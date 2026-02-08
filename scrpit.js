@@ -1,69 +1,47 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     
-    // --- Theme Toggle ---
-    const themeToggle = document.getElementById('themeToggle');
-    const html = document.documentElement;
-    
-    // Load saved theme
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    html.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-
-    themeToggle.addEventListener('click', () => {
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
-    });
-
-    function updateThemeIcon(theme) {
-        themeToggle.innerHTML = theme === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-    }
-
-    // --- Language Toggle ---
+    // 1. Get the language dropdown
     const languageToggle = document.getElementById('languageToggle');
-    const savedLang = localStorage.getItem('language') || 'en';
-    languageToggle.value = savedLang;
-    updateLanguage(savedLang);
-
-    languageToggle.addEventListener('change', (e) => {
-        const lang = e.target.value;
-        localStorage.setItem('language', lang);
-        updateLanguage(lang);
-    });
-
-    function updateLanguage(lang) {
-        document.querySelectorAll('[data-en]').forEach(el => {
-            el.textContent = el.getAttribute(`data-${lang}`);
+    
+    // 2. Check if the user already chose a language before (saved in memory)
+    const savedLang = localStorage.getItem('clinicLanguage') || 'en';
+    
+    // 3. Set the dropdown to the saved language and update text immediately
+    if (languageToggle) {
+        languageToggle.value = savedLang;
+        changeLanguage(savedLang);
+        
+        // 4. Listen for when the user changes the dropdown
+        languageToggle.addEventListener('change', function() {
+            const selectedLang = this.value;
+            localStorage.setItem('clinicLanguage', selectedLang); // Save for next time
+            changeLanguage(selectedLang);
         });
     }
 
-    // --- Booking Logic (WhatsApp) ---
-    const bookingForm = document.getElementById('bookingForm');
-    
-    if (bookingForm) {
-        bookingForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+    // --- The Function that Swaps the Text ---
+    function changeLanguage(lang) {
+        // Find ALL elements in the HTML that have a "data-en" tag
+        const elementsToTranslate = document.querySelectorAll('[data-en]');
+        
+        elementsToTranslate.forEach(element => {
+            // Get the translation from the data attribute (data-en or data-bm)
+            const translation = element.getAttribute(`data-${lang}`);
             
-            const formData = new FormData(bookingForm);
-            const name = formData.get('fullName');
-            const service = formData.get('service');
-            const message = formData.get('message');
+            // If a translation exists, update the text
+            if (translation) {
+                element.textContent = translation;
+            }
+        });
+    }
 
-            const text = `Hello Klinik Haya!%0A%0AI would like to enquire/book:%0A%0A*Name:* ${name}%0A*Service:* ${service}%0A*Message:* ${message}`;
-            
-            // Redirect to WhatsApp
-            window.open(`https://wa.me/60123499793?text=${text}`, '_blank');
+    // --- Mobile Menu Toggle (Bonus Fix) ---
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (mobileBtn) {
+        mobileBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
         });
     }
 });
-
-// --- Helper Functions ---
-function scrollToContact() {
-    document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
-}
-
-function sendWhatsAppBooking() {
-    window.open(`https://tr.ee/89qO7wBrzD`, '_blank');
-}
