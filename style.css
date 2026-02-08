@@ -453,3 +453,47 @@ img { max-width: 100%; display: block; }
     transform: translateX(-50%);
     display: block;
 }
+/* =========================================
+   FOOTER MAP UPDATES
+   ========================================= */
+
+/* Update grid to handle 4 columns instead of 3 */
+.footer-grid {
+    grid-template-columns: 1.2fr 1fr 1fr 1.2fr; /* Wider columns for text & map */
+    gap: 40px;
+}
+
+.footer-map-frame {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px;
+}
+
+.waze-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #33ccff !important; /* Waze Blue-ish color */
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.waze-link:hover {
+    text-decoration: underline;
+    color: white !important;
+}
+
+/* Responsive: Stack columns on mobile */
+@media (max-width: 992px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr; /* 2x2 grid on tablets */
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-grid {
+        grid-template-columns: 1fr; /* 1 column on mobile */
+        gap: 40px;
+    }
+}
