@@ -47,14 +47,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ==========================================
-    // 3. SCROLL SPY (Auto-Highlight while scrolling)
+// ==========================================
+    // 3. SCROLL SPY (Auto-Highlight with Bottom Check)
     // ==========================================
     window.addEventListener('scroll', () => {
         let current = '';
         const sections = document.querySelectorAll('section, header');
         const headerOffset = 150; 
-
+        
+        // Standard check: Which section is near the top?
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
             if (pageYOffset >= (sectionTop - headerOffset)) {
@@ -62,7 +63,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Only run this if we found a current section
+        // --- THE FIX: Check if we are at the bottom of the page ---
+        // If (Window Height + Scroll Amount) >= Total Page Height
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+            current = 'contact'; // Force the active state to 'contact'
+        }
+
+        // Apply the class
         if (current) {
             navLinks.forEach(link => {
                 link.classList.remove('active');
