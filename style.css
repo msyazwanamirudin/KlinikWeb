@@ -378,28 +378,28 @@ img { max-width: 100%; display: block; }
     .journey-step::after { display: none; }
 }
 /* =========================================
-   ACTIVE LINK STATE (The Dot Effect)
+   ACTIVE LINK STATE (The Purple Dot)
    ========================================= */
 
-/* 1. Turn the text the primary color (Blue/Purple) */
-.nav-list a.active-link {
-    color: var(--primary-color) !important;
+/* 1. Style the text when active */
+.nav-links a.active {
+    color: var(--primary) !important; /* Forces the purple color */
     font-weight: 700;
     position: relative;
 }
 
-/* 2. Add the small dot underneath */
-.nav-list a.active-link::after {
+/* 2. Style the dot underneath */
+.nav-links a.active::after {
     content: '';
     position: absolute;
-    bottom: -5px; /* Adjusts how far down the dot is */
-    left: 50%;
-    transform: translateX(-50%);
     width: 6px;
     height: 6px;
-    background-color: var(--primary-color); /* Matches the text color */
-    border-radius: 50%; /* Makes it a circle */
-    transition: all 0.3s ease;
+    background-color: var(--primary);
+    border-radius: 50%;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: block;
 }
 /* Mobile Menu Slide Animation */
 @media (max-width: 992px) {
