@@ -28,34 +28,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 2. SMOOTH SCROLL & CLICK-TO-STICK
+    // 2. SMOOTH SCROLL (Updated for ALL links)
     // ==========================================
-    // We target .nav-links because that is what is in your HTML
-    const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+    // OLD CODE: const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+    // NEW CODE: Select ALL links that start with # (Nav + Hero Buttons)
+    const allSmoothLinks = document.querySelectorAll('a[href^="#"]');
     
-    navLinks.forEach(link => {
+    allSmoothLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault(); 
             
-            // 1. Remove 'active' from all links immediately
-            navLinks.forEach(nav => nav.classList.remove('active'));
-            // 2. Add 'active' to the clicked link
-            this.classList.add('active');
+            // Only add 'active' class if this is a Navigation Link
+            if (this.closest('.nav-links')) {
+                // Remove active from other nav links
+                document.querySelectorAll('.nav-links a').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            }
 
             const targetId = this.getAttribute('href');
             smoothScrollTo(targetId);
         });
     });
 
-// ==========================================
-    // 3. SCROLL SPY (Auto-Highlight with Bottom Check)
+    // ==========================================
+    // 3. SCROLL SPY (Highlight Nav Links Only)
     // ==========================================
     window.addEventListener('scroll', () => {
         let current = '';
         const sections = document.querySelectorAll('section, header');
+        const navLinks = document.querySelectorAll('.nav-links a'); // Only highlight menu items
         const headerOffset = 150; 
         
-        // Standard check: Which section is near the top?
+        // Check which section is on screen
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
             if (pageYOffset >= (sectionTop - headerOffset)) {
@@ -63,13 +67,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // --- THE FIX: Check if we are at the bottom of the page ---
-        // If (Window Height + Scroll Amount) >= Total Page Height
+        // Special Check: Are we at the bottom of the page? (For Contact)
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
-            current = 'contact'; // Force the active state to 'contact'
+            current = 'contact';
         }
 
-        // Apply the class
+        // Apply active class to Nav Links only
         if (current) {
             navLinks.forEach(link => {
                 link.classList.remove('active');
@@ -84,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 4. MOBILE MENU TOGGLE
     // ==========================================
     const mobileBtn = document.querySelector('.mobile-menu-btn');
-    const navMenu = document.querySelector('.nav-links'); // Fixed class name here too
+    const navMenu = document.querySelector('.nav-links');
     
     if (mobileBtn) {
         mobileBtn.addEventListener('click', () => {
@@ -96,31 +99,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==========================================
 // 5. HELPER FUNCTIONS
 // ==========================================
-function smoothScrollTo(targetId) {
-    const targetElement = document.querySelector(targetId);
-    const headerOffset = 100;
-
-    if (targetElement) {
-        const elementPosition = targetElement.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.scrollY - headerOffset;
-
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth"
-        });
-        
-        // Close mobile menu if open
-        const navMenu = document.querySelector('.nav-links'); // Fixed class name
-        if (navMenu && navMenu.classList.contains('active')) {
-            navMenu.classList.remove('active');
-        }
-    }
-}
-
-function scrollToContact() {
-    smoothScrollTo('#contact');
-}
-
-function scrollToBooking() {
-    smoothScrollTo('#contact');
-}
+function smoothScrollTo
