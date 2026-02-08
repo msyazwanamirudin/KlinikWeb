@@ -429,3 +429,27 @@ img { max-width: 100%; display: block; }
         visibility: visible;
     }
 }
+/* =========================================
+   STICKY ACTIVE STATE (The "Stuck" Effect)
+   ========================================= */
+
+/* 1. Force the text color to stay Blue/Purple when active */
+.nav-list a.active {
+    color: var(--primary-color) !important;
+    font-weight: 700;
+    position: relative; /* Needed for the dot to sit underneath */
+}
+
+/* 2. Create the dot using ::after */
+.nav-list a.active::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: var(--primary-color); /* Matches text color */
+    border-radius: 50%; /* Makes it round */
+    bottom: -5px; /* Pushes it below the text */
+    left: 50%;
+    transform: translateX(-50%); /* Centers the dot */
+    display: block; /* Ensures it appears */
+}

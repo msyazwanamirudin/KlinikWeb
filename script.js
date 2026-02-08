@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             smoothScrollTo(targetId); // Use the helper function
         });
     });
-    
+
     // ==========================================
     // SCROLL SPY (Highlight Active Nav Link)
     // ==========================================
@@ -49,17 +49,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const sections = document.querySelectorAll('section');
         const navLinks = document.querySelectorAll('.nav-list a');
         const headerOffset = 150; // Adjusts when the highlight triggers
-    
+
         // 1. Figure out which section is currently on screen
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
             const sectionHeight = section.clientHeight;
-            
+
             if (pageYOffset >= (sectionTop - headerOffset)) {
                 current = section.getAttribute('id');
             }
         });
-    
+
         // 2. Add the 'active-link' class to the matching nav button
         navLinks.forEach(link => {
             link.classList.remove('active-link');
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // ==========================================
     // 4. MOBILE MENU TOGGLE
     // ==========================================
@@ -125,3 +125,40 @@ function scrollToBooking() {
     // Option B: If you prefer it to open WhatsApp directly:
     // window.open('https://wa.me/60123499793', '_blank');
 }
+// ==========================================
+// CLICK TO STICK (Highlight Active Link)
+// ==========================================
+
+// 1. Select all navigation links
+const stickyNavLinks = document.querySelectorAll('.nav-list a');
+
+stickyNavLinks.forEach(link => {
+    link.addEventListener('click', function() {
+        // 2. Remove 'active' class from ALL links first
+        stickyNavLinks.forEach(nav => nav.classList.remove('active'));
+
+        // 3. Add 'active' class to the one we just clicked
+        this.classList.add('active');
+    });
+});
+
+// Optional: Auto-highlight sections while scrolling (ScrollSpy)
+window.addEventListener('scroll', () => {
+    let current = '';
+    const sections = document.querySelectorAll('section');
+    const headerOffset = 150; 
+
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= (sectionTop - headerOffset)) {
+            current = section.getAttribute('id');
+        }
+    });
+
+    stickyNavLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href').includes(current)) {
+            link.classList.add('active');
+        }
+    });
+});
