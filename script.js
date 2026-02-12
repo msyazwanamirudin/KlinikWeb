@@ -247,8 +247,13 @@ function handleUserChoice(choice) {
     const qr = document.getElementById('quickReplies');
     if (qr) qr.remove();
 
-    if (choice === 'Start Over') { resetChat(); return; }
-    if (choice === 'Back') { goBack(); return; }
+    if (choice === 'Start Over' || choice === 'Back to Start') { resetChat(); return; }
+    if (choice === 'Back') {
+        addMessage("Back", true); // Show 'Back' in chat log for clarity
+        // Small delay to make it feel natural
+        setTimeout(() => goBack(), 300);
+        return;
+    }
 
     addMessage(choice, true);
     toggleInput(false);
@@ -399,7 +404,7 @@ function finishFlow(flowName) {
     chatState.bookingData.service = `Assessment (${flowName})`;
 
     addMessage(`**Assessment Complete**<br>Risk: <span class="${risk === 'High' ? 'text-danger' : 'text-warning'}">${risk}</span><br>${tips}<br><br>Would you like to see a doctor?`);
-    addQuickReplies(['Yes, Book Now', 'No, Just Asking', 'Back']);
+    addQuickReplies(['Yes, Book Now', 'Back to Start', 'Back']);
 }
 
 // --- BOOKING FLOW ---
@@ -408,6 +413,29 @@ function startBookingFlow() {
     chatState.flow = 'booking';
     chatState.step = 0;
     askBookingQuestion();
+}
+
+// ... (in handleUserChoice)
+
+function handleUserChoice(choice) {
+    const qr = document.getElementById('quickReplies');
+    if (qr) qr.remove();
+
+    if (choice === 'Start Over' || choice === 'Back to Start') { resetChat(); return; }
+    if (choice === 'Back') {
+        addMessage("Back", true); // Log 'Back' action
+        goBack();
+        return;
+    }
+
+    addMessage(choice, true);
+    toggleInput(false);
+    showTyping();
+
+    setTimeout(() => {
+        removeTyping();
+        processChatFlow(choice);
+    }, 600);
 }
 
 function askBookingQuestion() {
