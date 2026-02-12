@@ -266,6 +266,18 @@ function handleUserChoice(choice) {
 }
 
 function processChatFlow(choice) {
+    // 0. Global Intercepts
+    if (choice === 'Yes, Book Now') {
+        // Preserve context if coming from a flow
+        if (chatState.flow && chatState.flow !== 'booking') {
+            chatState.bookingData.service = `Assessment (${chatState.flow})`;
+        } else {
+            chatState.bookingData.service = 'General Booking';
+        }
+        startBookingFlow();
+        return;
+    }
+
     // 1. Main Menu Selection
     if (chatState.flow === null) {
         if (choice === 'Check Symptoms') {

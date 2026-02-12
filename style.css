@@ -119,8 +119,12 @@ h4,
     color: white;
     font-size: 0.85rem;
     padding: 8px 0;
-    position: relative;
-    z-index: 1031;
+    position: sticky;
+    /* Make Sticky */
+    top: 0;
+    /* Stick to top */
+    z-index: 1040;
+    /* Above Navbar */
 }
 
 .indicator-dot {
@@ -150,7 +154,11 @@ h4,
 .navbar {
     padding: 1.2rem 0;
     transition: 0.3s;
+    /* Navbar is sticky-top via Bootstrap, but we need to offset it below status bar */
+    top: 37px;
+    /* Be careful with exact height match */
 }
+
 
 .navbar.scrolled {
     background: rgba(255, 255, 255, 0.9);
