@@ -1,16 +1,49 @@
 AOS.init({ duration: 800, once: true });
 
-// --- Navbar Scroll Effect ---
+// --- Navbar Scroll Effect & ScrollSpy ---
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = document.querySelectorAll('section');
+
 window.addEventListener('scroll', function () {
     const nav = document.querySelector('.navbar');
+    // Scrolled Effect
     if (window.scrollY > 50) nav.classList.add('scrolled');
     else nav.classList.remove('scrolled');
+
+    // ScrollSpy Logic
+    let current = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= (sectionTop - 150)) {
+            current = section.getAttribute('id');
+        }
+    });
+
+    navLinks.forEach(link => {
+        link.classList.remove('active-nav');
+        if (link.getAttribute('href').includes(current)) {
+            link.classList.add('active-nav');
+        }
+    });
+
+    // Back To Top Visibility
+    const backToTop = document.getElementById('backToTop');
+    if (window.scrollY > 300) {
+        backToTop.classList.add('show');
+    } else {
+        backToTop.classList.remove('show');
+    }
+});
+
+// --- Back To Top Logic ---
+document.getElementById('backToTop').addEventListener('click', function (e) {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 // --- Typing Effect (Simple) ---
 const words = ["Your Family", "Your Future", "Your Baby", "Your Health"];
 let i = 0;
-let timer;
 
 function typeWriter() {
     const element = document.getElementById("typewriter");
@@ -31,12 +64,10 @@ typeWriter();
 function updateLiveStatus() {
     const now = new Date();
     const hour = now.getHours();
-    const day = now.getDay(); // 0 = Sunday
     const statusText = document.getElementById('liveStatusText');
     const statusDot = document.getElementById('liveStatusDot');
 
     // Clinic Hours: Mon-Sat 9AM - 10PM, Sun 9AM - 2PM (Example)
-    // Simple Logic: Open from 9AM to 10PM everyday for demo
     const isOpen = hour >= 9 && hour < 22;
 
     if (isOpen) {
@@ -50,14 +81,17 @@ function updateLiveStatus() {
         statusDot.style.animation = "none";
     }
 }
-// Run on load
 updateLiveStatus();
-// Update every minute
 setInterval(updateLiveStatus, 60000);
 
 
-// --- WHATSAPP BOOKING LOGIC (No Backend Required) ---
+// --- WHATSAPP BOOKING LOGIC (With Confirmation) ---
 function bookViaWhatsApp(serviceName, details = "") {
+    // Confirmation
+    const confirmAction = confirm("We are redirecting you to WhatsApp to complete your booking securely. Continue?");
+
+    if (!confirmAction) return;
+
     const phone = "60135253503";
     let message = `Hi Klinik Haya, I would like to book an appointment.`;
 
@@ -90,7 +124,6 @@ function addMessage(text, isUser = false) {
     div.className = isUser ? 'msg msg-user' : 'msg msg-bot';
     div.innerHTML = text;
     chatBody.appendChild(div);
-    // Auto scroll
     chatBody.scrollTop = chatBody.scrollHeight;
 }
 
@@ -109,9 +142,12 @@ function removeTyping() {
     if (indicator) indicator.remove();
 }
 
+// Expanded Chat Logic
 function handleUserChoice(choice) {
     // Remove quick replies
-    document.getElementById('quickReplies').style.display = 'none';
+    const qr = document.getElementById('quickReplies');
+    if (qr) qr.remove();
+    // Note: In a real app we might just hide them or disable them
 
     // User Message
     addMessage(choice, true);
@@ -123,24 +159,46 @@ function handleUserChoice(choice) {
         removeTyping();
 
         if (choice === 'Check Symptoms') {
-            addMessage("I can help with that. Are you experiencing any urgent pain or breathing difficulties?");
-            addQuickReplies(['Yes, Severe', 'No, Mild Symptoms']);
-        } else if (choice === 'Fertility Info') {
-            addMessage("Dr. Alia is a specialist in TTC journeys. Would you like to schedule a Follicle Scan or general consultation?");
-            addQuickReplies(['Follicle Scan', 'General Consult']);
-        } else if (choice === 'Book Appointment') {
-            addMessage("Great! I can fast-track that. Are you a Haya Care+ member?");
-            addQuickReplies(['Yes', 'No, Sign me up', 'Just Book']);
-        } else if (choice === 'Yes, Severe') {
-            addMessage("<b class='text-danger'>Please go to the nearest Emergency Room immediately.</b> <br>Or call 999.");
-            addQuickReplies(['Call Emergency']);
-        } else if (choice === 'Follicle Scan' || choice === 'General Consult') {
-            addMessage(`Understood. I'm opening WhatsApp to book your ${choice} slot now.`);
-            setTimeout(() => bookViaWhatsApp(choice), 2000);
-        } else {
-            addMessage("Thanks! Connecting you to our admin via WhatsApp for priority booking...");
-            setTimeout(() => bookViaWhatsApp('General Booking', 'Referred by Haya AI'), 1500);
+            addMessage("I can help with that. Are you experiencing any urgent pain, bleeding, or breathing difficulties?");
+            addQuickReplies(['Yes, Severe Pain/Bleeding', 'No, Just Mild Discomfort', 'Fever/Cough']);
         }
+        else if (choice === 'Yes, Severe Pain/Bleeding') {
+            addMessage("<b class='text-danger'>Please go to the nearest Emergency Room or Hospital immediately.</b> Our clinic is a GP setting and may not be equipped for critical emergencies.");
+            addQuickReplies(['Call 999', 'Call Clinic for Advice']);
+        }
+        else if (choice === 'No, Just Mild Discomfort' || choice === 'Fever/Cough') {
+            addMessage("It sounds like you should see a doctor soon. Our wait time is currently under 15 minutes. Would you like to book a slot?");
+            addQuickReplies(['Book Slot', 'Just Walk-In']);
+        }
+        else if (choice === 'Book Slot') {
+            bookViaWhatsApp('General Sickness');
+        }
+
+        else if (choice === 'Fertility Info') {
+            addMessage("Dr. Alia is a specialist in TTC journeys. We offer:");
+            addMessage("1. <b>Follicle Tracking</b> (RM60/scan)<br>2. <b>Full Fertility Screen</b> (RM250)<br>3. <b>IUI Counseling</b>");
+            addMessage("Which one are you interested in?");
+            addQuickReplies(['Follicle Scan', 'Full Screening', 'Just asking']);
+        }
+        else if (choice === 'Follicle Scan' || choice === 'Full Screening') {
+            addMessage("Excellent choice. I'm opening WhatsApp for you to choose your preferred date.");
+            setTimeout(() => bookViaWhatsApp(choice), 2000);
+        }
+
+        else if (choice === 'Book Appointment') {
+            addMessage("What type of appointment involves?");
+            addQuickReplies(['General Health', 'Antenatal Checkup', 'Vaccination', 'Others']);
+        }
+        else if (['General Health', 'Antenatal Checkup', 'Vaccination', 'Others'].includes(choice)) {
+            addMessage(`Noted on ${choice}. Connecting you to our admin...`);
+            setTimeout(() => bookViaWhatsApp(choice), 1500);
+        }
+
+        else {
+            addMessage("Is there anything else I can help you with?");
+            addQuickReplies(['Check Symptoms', 'Book Appointment']);
+        }
+
     }, 1000);
 }
 
@@ -148,7 +206,7 @@ function addQuickReplies(options) {
     const chatBody = document.getElementById('chatBody');
     const div = document.createElement('div');
     div.className = 'quick-replies';
-    div.id = 'quickReplies'; // Re-assign ID to manage state
+    div.id = 'quickReplies';
 
     options.forEach(opt => {
         const chip = document.createElement('div');

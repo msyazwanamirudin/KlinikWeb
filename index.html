@@ -39,8 +39,6 @@
             <div class="d-none d-md-block">
                 <a href="tel:0135253503" class="text-white text-decoration-none me-3"><i class="fas fa-phone me-1"></i>
                     Emergency: 013-5253503</a>
-                <a href="#" class="text-white text-decoration-none fw-bold" data-bs-toggle="tooltip"
-                    title="Login to Patient Portal">Patient Portal <i class="fas fa-sign-in-alt ms-1"></i></a>
             </div>
         </div>
     </div>
@@ -130,26 +128,7 @@
                         <img src="https://images.unsplash.com/photo-1666214280557-f1b5022eb634?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
                             class="img-fluid" alt="Doctor with Tablet">
 
-                        <!-- Floating Elements -->
-                        <div class="stat-floater sf-1">
-                            <div class="bg-success bg-opacity-10 p-2 rounded-circle text-success">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div>
-                                <small class="d-block text-muted">Condition</small>
-                                <span class="fw-bold">Fertility Optimized</span>
-                            </div>
-                        </div>
-
-                        <div class="stat-floater sf-2">
-                            <div class="bg-primary p-2 rounded-circle text-white">
-                                <i class="fas fa-video"></i>
-                            </div>
-                            <div>
-                                <small class="d-block text-muted">Next Available</small>
-                                <span class="fw-bold">10:30 AM (Online)</span>
-                            </div>
-                        </div>
+                        <!-- Floating Elements Removed -->
                     </div>
                 </div>
             </div>
@@ -553,7 +532,6 @@
                 <div class="col-lg-2">
                     <h6 class="text-primary mb-4">Patient</h6>
                     <ul class="list-unstyled footer-links text-white-50">
-                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Portal Login</a></li>
                         <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Book Appointment</a></li>
                         <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Telehealth</a></li>
                         <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Membership</a></li>
@@ -567,10 +545,11 @@
                     </ul>
                 </div>
                 <div class="col-lg-4">
-                    <h6 class="text-primary mb-4">Subscribe to Newsletter</h6>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control rounded-start-pill border-0" placeholder="Email Address">
-                        <button class="btn btn-primary rounded-end-pill" type="button">Join</button>
+                    <h6 class="text-primary mb-4">Our Location</h6>
+                    <div class="map-container rounded-3 overflow-hidden shadow-sm">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.607490082729!2d101.78768831475685!3d2.928428997868352!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdcc86be024225%3A0xc4863625988e4414!2sKlinik%20Haya!5e0!3m2!1sen!2smy!4v1677651234567!5m2!1sen!2smy"
+                            width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                     </div>
                 </div>
             </div>
@@ -581,6 +560,11 @@
         </div>
     </footer>
 
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
 
     <!-- --- OVERLAYS --- -->
 
