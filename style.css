@@ -248,12 +248,9 @@ h4,
     /* Specific radius for the main image */
     overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    /* TRANSFORM REMOVED */
 }
 
-.hero-img-box:hover {
-    /* HOVER EFFECT REMOVED */
-}
+
 
 .stat-floater {
     position: absolute;
