@@ -35,10 +35,17 @@ window.addEventListener('scroll', function () {
     }
 });
 
-// --- Back To Top Logic ---
-document.getElementById('backToTop').addEventListener('click', function (e) {
-    e.preventDefault();
+// --- SCROLL TO TOP (HOME / BUTTON) ---
+function scrollToTop(e) {
+    if (e) e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('backToTop').addEventListener('click', scrollToTop);
+
+// Ensure "Home" link in navbar also scrolls to absolute top
+document.querySelectorAll('a[href="#home"]').forEach(anchor => {
+    anchor.addEventListener('click', scrollToTop);
 });
 
 // --- Typing Effect (Simple) ---
@@ -60,20 +67,33 @@ function typeWriter() {
 document.getElementById("typewriter").style.transition = "opacity 0.5s";
 typeWriter();
 
-// --- LIVE STATUS LOGIC (Static Workaround) ---
+// --- LIVE STATUS LOGIC (Refined) ---
 function updateLiveStatus() {
     const now = new Date();
     const hour = now.getHours();
     const statusText = document.getElementById('liveStatusText');
     const statusDot = document.getElementById('liveStatusDot');
 
-    // Clinic Hours: Mon-Sat 9AM - 10PM, Sun 9AM - 2PM (Example)
+    // Logic:
+    // Open: 9AM - 10PM (except break)
+    // Break: 12PM - 2PM
+    // Closed: 10PM - 9AM
+
+    const isBreak = hour >= 12 && hour < 14;
     const isOpen = hour >= 9 && hour < 22;
 
     if (isOpen) {
-        statusText.innerHTML = "Clinic Open (Queue: <span class='text-success'>Normal</span>)";
-        statusDot.style.backgroundColor = "#22c55e"; // Green
-        statusDot.style.boxShadow = "0 0 10px #22c55e";
+        if (isBreak) {
+            statusText.innerHTML = "Doctor on Break (Resume 2:00 PM)";
+            statusDot.style.backgroundColor = "#eab308"; // Yellow/Gold
+            statusDot.style.boxShadow = "none";
+            statusDot.style.animation = "none";
+        } else {
+            statusText.innerHTML = "Clinic Open (Queue: <span class='text-success'>Normal</span>)";
+            statusDot.style.backgroundColor = "#22c55e"; // Green
+            statusDot.style.boxShadow = "0 0 10px #22c55e";
+            statusDot.style.animation = "pulse 2s infinite";
+        }
     } else {
         statusText.innerHTML = "Clinic Closed (Opens 9:00 AM)";
         statusDot.style.backgroundColor = "#ef4444"; // Red
@@ -113,17 +133,17 @@ let chatState = {
     step: 0,
     flow: null,
     answers: [],
-    bookingData: {} // To store Name, Date, Time
+    bookingData: {},
+    history: [] // For Undo/Back
 };
 
 function toggleChat() {
     const chat = document.getElementById('chatWindow');
     if (chat.style.display === 'flex') {
         chat.style.display = 'none';
-        chatState.flow = null; // Reset on close? Optional.
     } else {
         chat.style.display = 'flex';
-        // If empty, start fresh? No, keep history for now.
+        // If first time/empty, show welcome? handled by HTML init.
     }
 }
 
@@ -131,7 +151,7 @@ function addMessage(text, isUser = false) {
     const chatBody = document.getElementById('chatBody');
     const div = document.createElement('div');
     div.className = isUser ? 'msg msg-user' : 'msg msg-bot';
-    div.innerHTML = text; // Allow HTML primarily for line breaks
+    div.innerHTML = text;
     chatBody.appendChild(div);
     chatBody.scrollTop = chatBody.scrollHeight;
 }
@@ -174,36 +194,64 @@ function handleInputSubmit() {
     }
 }
 
-// Reset Function
 function resetChat() {
-    chatState = { step: 0, flow: null, answers: [], bookingData: {} };
+    chatState = { step: 0, flow: null, answers: [], bookingData: {}, history: [] };
     toggleInput(false);
     const chatBody = document.getElementById('chatBody');
     chatBody.innerHTML = `
         <div class="msg msg-bot">
-            Hello! I'm AI Assistant (Reset). <br>How can I help you?
+            Hello! I'm AI Assistant (Reset). Re-calibrating... <br>How can I help you?
         </div>
     `;
+    addMainMenu();
+}
+
+function addMainMenu() {
     addQuickReplies(['Check Symptoms', 'Book Appointment', 'Fertility Info']);
 }
 
-// Main Logic
-function handleUserChoice(choice) {
-    // Remove old options
-    const qr = document.getElementById('quickReplies');
-    if (qr) qr.remove();
+function saveState() {
+    // Deep copy state for history
+    chatState.history.push(JSON.parse(JSON.stringify({
+        step: chatState.step,
+        flow: chatState.flow,
+        answers: chatState.answers,
+        bookingData: chatState.bookingData
+    })));
+}
 
-    // Handle Reset
-    if (choice === 'Start Over') {
+function goBack() {
+    if (chatState.history.length === 0) {
+        addMessage("Cannot go back further. Restarting...");
         resetChat();
         return;
     }
+    const prev = chatState.history.pop();
+    chatState.step = prev.step;
+    chatState.flow = prev.flow;
+    chatState.answers = prev.answers;
+    chatState.bookingData = prev.bookingData;
 
-    // User Message
+    // Re-trigger display based on state
+    if (chatState.flow === 'booking') {
+        askBookingQuestion();
+    } else if (chatState.flow) {
+        nextQuestion(); // Reruns question generation based on step
+    } else {
+        addMessage("Back to Main Menu.");
+        addMainMenu();
+    }
+}
+
+function handleUserChoice(choice) {
+    const qr = document.getElementById('quickReplies');
+    if (qr) qr.remove();
+
+    if (choice === 'Start Over') { resetChat(); return; }
+    if (choice === 'Back') { goBack(); return; }
+
     addMessage(choice, true);
-    toggleInput(false); // Hide input after submission by default
-
-    // Bot Thinking
+    toggleInput(false);
     showTyping();
 
     setTimeout(() => {
@@ -213,11 +261,12 @@ function handleUserChoice(choice) {
 }
 
 function processChatFlow(choice) {
-    // 1. Initial Selection
+    // 1. Main Menu Selection
     if (chatState.flow === null) {
         if (choice === 'Check Symptoms') {
+            saveState();
             addMessage("I can help assess your condition. What seems to be the main issue?");
-            addQuickReplies(['High Fever (Dengue?)', 'General Fever/Flu', 'Other / Pain']);
+            addQuickReplies(['High Fever (Dengue?)', 'General Fever/Flu', 'Other / Pain', 'Back']);
         } else if (choice === 'High Fever (Dengue?)') {
             startFlow('dengue');
         } else if (choice === 'General Fever/Flu') {
@@ -228,33 +277,37 @@ function processChatFlow(choice) {
             chatState.bookingData.service = 'General Booking';
             startBookingFlow();
         } else if (choice === 'Fertility Info') {
+            saveState();
             addMessage("Dr. Alia is our fertility expert. Connect with us for a Follicle Scan (RM60).");
-            addQuickReplies(['Book Scan', 'Chat with Specialist', 'Start Over']);
+            addQuickReplies(['Book Scan', 'Chat with Specialist', 'Back']);
         } else if (choice === 'Book Scan') {
             chatState.bookingData.service = 'Follicle Scan';
             startBookingFlow();
         } else if (choice === 'Chat with Specialist') {
             bookViaWhatsApp('Fertility Inquiry');
         } else {
-            addMessage("How can I help you today?");
-            addQuickReplies(['Check Symptoms', 'Book Appointment', 'Start Over']);
+            // Default Fallback
+            addMessage("I didn't quite catch that. Here are some options:");
+            addMainMenu();
         }
         return;
     }
 
-    // 2. Booking Flow Logic
+    // 2. Booking Flow
     if (chatState.flow === 'booking') {
         handleBookingStep(choice);
         return;
     }
 
-    // 3. Symptom Checker Logic
+    // 3. Symptom Checker
+    saveState();
     chatState.answers.push(choice);
     chatState.step++;
     nextQuestion();
 }
 
 function startFlow(flowType) {
+    saveState();
     chatState.flow = flowType;
     chatState.step = 0;
     chatState.answers = [];
@@ -268,6 +321,7 @@ function nextQuestion() {
     let questions = [];
     let options = [];
 
+    // Define Questions
     if (flow === 'dengue') {
         questions = [
             "Do you have a sudden high fever (>38.5°C)?",
@@ -285,11 +339,7 @@ function nextQuestion() {
             "Eating/Drinking okay?"
         ];
         options = [
-            ['< 2 Days', '> 3 Days'],
-            ['Yes', 'No'],
-            ['Yes', 'No'],
-            ['Yes', 'No'],
-            ['Yes', 'No']
+            ['< 2 Days', '> 3 Days'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No']
         ];
     } else if (flow === 'general') {
         questions = [
@@ -300,21 +350,15 @@ function nextQuestion() {
             "Pregnant/Breastfeeding?"
         ];
         options = [
-            ['Mild (1-3)', 'Severe (>7)'],
-            ['Yes', 'No'],
-            ['Yes', 'No'],
-            ['Yes', 'No'],
-            ['Yes', 'No']
+            ['Mild (1-3)', 'Severe (>7)'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No']
         ];
     }
 
     if (step < questions.length) {
         addMessage(questions[step]);
         let currentOptions = ['Yes', 'No'];
-        if (options.length > 0 && options[step]) {
-            currentOptions = options[step];
-        }
-        currentOptions.push('Start Over');
+        if (options.length > 0 && options[step]) currentOptions = options[step];
+        currentOptions.push('Back');
         addQuickReplies(currentOptions);
     } else {
         finishFlow(flow);
@@ -322,109 +366,89 @@ function nextQuestion() {
 }
 
 function finishFlow(flowName) {
-    // Generate Report
-    let report = `*AI Triage Report: ${flowName.toUpperCase()}*\n`;
-    const questionsDS = {
-        'dengue': ['High Fever', 'Eye Pain', 'Joint Pain', 'Rash', 'Bleeding'],
-        'fever': ['Duration', 'High Temp', 'Cough/Sore', 'Breathing', 'Eating'],
-        'general': ['Pain Level', 'Allergies', 'Meds', 'Recurring', 'Pregnant']
-    };
+    const answers = chatState.answers;
+    // Risk Logic
+    let risk = "Low";
+    let tips = "Monitor symptoms and stay hydrated.";
 
-    chatState.answers.forEach((ans, i) => {
-        const qLabel = questionsDS[flowName][i] || `Q${i + 1}`;
-        report += `- ${qLabel}: ${ans}\n`;
-    });
+    // Simple Heuristics
+    if (flowName === 'dengue') {
+        const yesCount = answers.filter(a => a === 'Yes').length;
+        if (yesCount >= 3) {
+            risk = "High";
+            tips = "Please seek immediate medical attention. Possible Dengue signs detected.";
+        } else {
+            risk = "Medium";
+            tips = "Monitor for bleeding or persistent fever. Visit us if symptoms worsen.";
+        }
+    } else if (flowName === 'fever') {
+        if (answers[0] === '> 3 Days' || answers[1] === 'Yes' || answers[3] === 'Yes') {
+            risk = "High";
+            tips = "High fever or breathing issues require doctor evaluation.";
+        } else {
+            tips = "Rest well, drink water, and take paracetamol if needed.";
+        }
+    }
+
+    let report = `*AI Triage Report (${flowName.toUpperCase()})*\n`;
+    report += `Risk Level: ${risk}\n`;
+    report += `Advice: ${tips}\n\n`;
+    answers.forEach((ans, i) => report += `Q${i + 1}: ${ans}\n`);
 
     chatState.bookingData.report = report;
     chatState.bookingData.service = `Assessment (${flowName})`;
 
-    addMessage("Assessment Complete. Would you like to proceed with booking?");
-    addQuickReplies(['Yes, Book Now', 'No, Just Asking', 'Start Over']);
+    addMessage(`**Assessment Complete**<br>Risk: <span class="${risk === 'High' ? 'text-danger' : 'text-warning'}">${risk}</span><br>${tips}<br><br>Would you like to see a doctor?`);
+    addQuickReplies(['Yes, Book Now', 'No, Just Asking', 'Back']);
 }
 
 // --- BOOKING FLOW ---
 function startBookingFlow() {
+    saveState();
     chatState.flow = 'booking';
     chatState.step = 0;
-    // Step 0: Name
-    addMessage("Great! To secure your slot, may I have your **Full Name**?");
-    toggleInput(true); // Show input for Name
+    askBookingQuestion();
+}
+
+function askBookingQuestion() {
+    if (chatState.step === 0) {
+        addMessage("Great! To secure your slot, please type your **Full Name**.");
+        toggleInput(true);
+    } else if (chatState.step === 1) {
+        addMessage(`Thanks, ${chatState.bookingData.name}. When would you like to visit?`);
+        addQuickReplies(['Today', 'Tomorrow', 'Custom Date', 'Back']);
+    } else if (chatState.step === 2) {
+        addMessage("Preferred Time Slot?");
+        addQuickReplies(['Morning (9-12)', 'Afternoon (2-5)', 'Evening (6-9)', 'Custom Time', 'Back']);
+    }
 }
 
 function handleBookingStep(choice) {
+    if (choice === 'Back') { goBack(); return; }
+
     const step = chatState.step;
 
     if (step === 0) {
-        // Name Captured
         chatState.bookingData.name = choice;
-        chatState.step++;
-        addMessage(`Thanks, ${choice}. When would you like to come?`);
-        addQuickReplies(['Today', 'Tomorrow', 'Other Date', 'Start Over']);
-    } else if (step === 1) {
-        // Date Captured
-        if (choice === 'Other Date') {
-            addMessage("Please type your preferred date (e.g., 15 Oct):");
-            toggleInput(true);
-            return; // Stay on step 1 effectively but waiting for text? No, handle logic.
-            // Actually simplest is to just accept the text next time around.
-            // Let's increment step and treat the next input as date.
-            // But wait, 'processChatFlow' calls this function.
-            // If user clicks 'Other Date', we ask for text input.
-            // The next 'choice' will be the text input.
-            // So we need a sub-step or just handle it here.
-        }
-
-        chatState.bookingData.date = choice;
-        chatState.step++;
-        addMessage("Preferred Time?");
-        addQuickReplies(['Morning (9am-12pm)', 'Afternoon (1pm-5pm)', 'Evening (6pm-10pm)', 'Start Over']);
-    } else if (step === 2) { // Logic fix: if coming from "Other date" text input
-        // Wait, if user typed a date, step was 1. 
-        // So if step is 1 and choice is a date text...
-        // Let's simplify:
-        // If choice was "Other Date", we didn't increment step yet? 
-        // To avoid complexity, let's just assume valid date.
-        chatState.bookingData.date = choice;
-        chatState.step++;
-        addMessage("Preferred Time?");
-        addQuickReplies(['Morning (9am-12pm)', 'Afternoon (1pm-5pm)', 'Evening (6pm-10pm)', 'Start Over']);
-    } else if (step === 3) { // Time Captured (Logic actually depends on previous flow)
-        // Actually, let's realign step logic.
-        // Step 0: Asked for Name. Input: Name. -> Go to Step 1.
-        // Step 1: Asked for Date. Input: Date or Chip. -> Go to Step 2.
-        // Step 2: Asked for Time. Input: Time. -> Finish.
-
-        chatState.bookingData.time = choice;
-        finishBooking();
-    }
-}
-// Fix implementation of handleBookingStep to be robust
-function handleBookingStep(choice) {
-    // Current Step Index matches what we keep in chatState.step
-    // 0 = Waiting for Name
-    // 1 = Waiting for Date
-    // 2 = Waiting for Time
-
-    if (chatState.step === 0) {
-        // Just received Name
-        chatState.bookingData.name = choice;
+        saveState();
         chatState.step = 1;
-        addMessage(`Thanks, ${choice}. When would you like to visit?`);
-        addQuickReplies(['Today', 'Tomorrow', 'Type a Date', 'Start Over']);
-    } else if (chatState.step === 1) {
-        // Just received Date (or 'Type a Date' request)
-        if (choice === 'Type a Date') {
-            addMessage("Please type your preferred date (e.g. 12th Oct):");
+        askBookingQuestion();
+    } else if (step === 1) {
+        if (choice === 'Custom Date') {
+            addMessage("Please type your preferred date (e.g., 12 Oct):");
             toggleInput(true);
-            return; // Wait for input, stay on step 1
+            return; // Wait for text input
         }
-
         chatState.bookingData.date = choice;
+        saveState();
         chatState.step = 2;
-        addMessage("Preferred Time Slot?");
-        addQuickReplies(['Morning (9-12)', 'Afternoon (2-5)', 'Evening (6-9)', 'Start Over']);
-    } else if (chatState.step === 2) {
-        // Just received Time
+        askBookingQuestion();
+    } else if (step === 2) {
+        if (choice === 'Custom Time') {
+            addMessage("Please type your preferred time (e.g. 8:30 PM):");
+            toggleInput(true);
+            return;
+        }
         chatState.bookingData.time = choice;
         finishBooking();
     }
@@ -433,42 +457,46 @@ function handleBookingStep(choice) {
 function finishBooking() {
     const { name, date, time, service, report } = chatState.bookingData;
 
-    let finalMsg = `Booking Confirmed for *${name}*.\n📅 ${date}, ${time}`;
+    let finalMsg = `Booking Confirmed for *${name}*.<br>📅 ${date} at ${time}<br><br>Please click below to send this to our WhatsApp for final confirmation.`;
     addMessage(finalMsg);
 
-    // Construct WhatsApp Message
-    let waMsg = `Hello, I'd like to confirm a booking.\n\n`;
-    waMsg += `👤 Name: ${name}\n`;
-    waMsg += `📅 Date: ${date}\n`;
-    waMsg += `🕒 Time: ${time}\n`;
-    waMsg += `🏥 Service: ${service || 'General'}\n`;
+    // Formatted WhatsApp Message
+    let waMsg = `*BOOKING REQUEST*\n\n`;
+    waMsg += `👤 *Name:* ${name}\n`;
+    waMsg += `📅 *Date:* ${date}\n`;
+    waMsg += `🕒 *Time:* ${time}\n`;
+    waMsg += `🏥 *Service:* ${service || 'General Appointment'}\n\n`;
 
     if (report) {
-        waMsg += `\n${report}`;
+        waMsg += `----------------\n${report}`;
     }
 
     const waUrl = `https://wa.me/60172032048?text=${encodeURIComponent(waMsg)}`;
 
-    // Final Button
     const chatBody = document.getElementById('chatBody');
     const div = document.createElement('div');
     div.className = 'quick-replies';
-    div.id = 'quickReplies';
 
+    // WhatsApp Button
     const btn = document.createElement('div');
     btn.className = 'chip';
-    btn.style.background = '#22c55e'; // Green
+    btn.style.background = '#22c55e';
     btn.style.color = 'white';
-    btn.innerText = "✅ Send to WhatsApp";
+    btn.innerHTML = '<i class="fab fa-whatsapp"></i> Send to WhatsApp';
     btn.onclick = () => window.open(waUrl, '_blank');
 
-    const resetBtn = document.createElement('div');
-    resetBtn.className = 'chip';
-    resetBtn.innerText = "Start Over";
-    resetBtn.onclick = () => resetChat();
+    // Menu Button (Infinite Loop)
+    const menuBtn = document.createElement('div');
+    menuBtn.className = 'chip';
+    menuBtn.innerText = "Main Menu";
+    menuBtn.onclick = () => {
+        chatState.flow = null;
+        addMessage("What else can I do for you?");
+        addMainMenu();
+    };
 
     div.appendChild(btn);
-    div.appendChild(resetBtn);
+    div.appendChild(menuBtn);
     chatBody.appendChild(div);
     chatBody.scrollTop = chatBody.scrollHeight;
 }
@@ -477,16 +505,15 @@ function addQuickReplies(options) {
     const chatBody = document.getElementById('chatBody');
     const div = document.createElement('div');
     div.className = 'quick-replies';
-    div.id = 'quickReplies';
+    div.id = 'quickReplies'; // Ensure ID is set for removal
 
     options.forEach(opt => {
         const chip = document.createElement('div');
         chip.className = 'chip';
-        // Style 'Start Over' differently
-        if (opt === 'Start Over') {
+        if (opt === 'Start Over' || opt === 'Back') {
             chip.style.backgroundColor = '#f1f5f9';
             chip.style.color = '#64748b';
-            chip.style.border = '1px solid #cbd5e1';
+            chip.style.fontSize = '0.8rem';
         }
         chip.innerText = opt;
         chip.onclick = () => handleUserChoice(opt);

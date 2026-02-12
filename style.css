@@ -1,42 +1,56 @@
 :root {
-    /* Futuristic Health Palette */
-    --primary: #0F766E;
-    /* Teal 700 */
-    --primary-dark: #134E4A;
-    /* Teal 900 */
-    --secondary: #CCFBF1;
-    /* Teal 100 */
-    --accent: #F43F5E;
-    /* Rose 500 (Urgent/Heart) */
-    --warm: #FDBA74;
-    /* Orange 300 (Warmth) */
-    --gold: #F59E0B;
-    /* Amber 500 (Premium) */
-    --dark: #0F172A;
-    /* Slate 900 */
-    --light: #F8FAFC;
-    /* Slate 50 */
+    /* -- Clinical & Professional Palette -- */
+    --primary: #0f766e;
+    /* Teal 700 - Trustworthy & Medical */
+    --primary-dark: #115e59;
+    /* Teal 800 */
+    --secondary: #2dd4bf;
+    /* Teal 400 - Fresh & Welcoming */
+    --accent: #f43f5e;
+    /* Rose 500 - Subtle urgency accents */
+    --gold: #d97706;
+    /* Amber 600 - Premium touch */
 
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    --dark: #1e293b;
+    /* Slate 800 - Professional Dark */
+    --light: #f1f5f9;
+    /* Slate 100 - Clinical Light */
+    --white: #ffffff;
+    /* Pure White */
 
-    --radius-xl: 24px;
-    --radius-lg: 16px;
+    /* -- UI Variables -- */
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-xl: 30px;
+    --shadow-soft: 0 10px 40px -10px rgba(15, 118, 110, 0.1);
+    /* Teal-tinted shadow */
 }
 
 body {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-body);
     color: var(--dark);
-    background-color: var(--light);
+    background-color: #f8fafc;
+    /* Slate 50 - Very clean, clinical background */
     overflow-x: hidden;
-    /* ILLUSION EFFECT */
-    background-image:
-        radial-gradient(circle at 100% 50%, transparent 20%, rgba(255, 255, 255, 0.3) 21%, rgba(255, 255, 255, 0.3) 34%, transparent 35%, transparent),
-        radial-gradient(circle at 0% 50%, transparent 20%, rgba(255, 255, 255, 0.3) 21%, rgba(255, 255, 255, 0.3) 34%, transparent 35%, transparent);
-    background-size: 75px 150px;
-    background-attachment: fixed;
-    animation: illusionMove 60s linear infinite;
+}
+
+/* Clinical Overrides */
+.bg-light {
+    background-color: #f0fdfa !important;
+    /* Azure/Teal 50 - Soft medical fresh feel */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    color: #0f172a;
+    /* Slate 900 */
 }
 
 @keyframes illusionMove {
@@ -272,11 +286,16 @@ h4,
     border-radius: var(--radius-xl);
     padding: 2.5rem 2rem;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(15, 118, 110, 0.08);
+    /* Subtle Teal Border */
     height: 100%;
     position: relative;
     z-index: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    /* Soft Shadow */
 }
 
 .service-card-new::before {
@@ -286,16 +305,16 @@ h4,
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(15, 118, 110, 0.03) 0%, rgba(244, 63, 94, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.05) 0%, rgba(204, 251, 241, 0.2) 100%);
     z-index: -1;
     opacity: 0;
     transition: 0.4s;
 }
 
 .service-card-new:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    border-color: transparent;
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(15, 118, 110, 0.15);
+    border-color: var(--primary);
 }
 
 .service-card-new:hover::before {
@@ -349,84 +368,7 @@ h4,
     font-size: 1.2rem;
 }
 
-/* ---  Care+ Membership (Upsell) --- */
-.membership-section {
-    background: var(--dark);
-    color: white;
-    padding: 100px 0;
-    position: relative;
-    overflow: hidden;
-}
 
-.price-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-xl);
-    padding: 3rem 2rem;
-    text-align: center;
-    transition: 0.3s;
-}
-
-.price-card.popular {
-    background: linear-gradient(145deg, rgba(15, 118, 110, 0.2), rgba(15, 118, 110, 0.4));
-    border: 1px solid var(--primary);
-    transform: scale(1.05);
-    position: relative;
-}
-
-.badge-popular {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--primary);
-    color: white;
-    padding: 5px 20px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-.price-card:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.price-bg {
-    font-size: 3rem;
-    font-weight: 700;
-    font-family: 'Space Grotesk';
-}
-
-.price-sm {
-    font-size: 1rem;
-    opacity: 0.7;
-    font-weight: 400;
-}
-
-.feature-check {
-    list-style: none;
-    padding: 0;
-    margin: 2rem 0;
-    text-align: left;
-}
-
-.feature-check li {
-    margin-bottom: 12px;
-    display: flex;
-    align-items: start;
-    gap: 10px;
-    opacity: 0.9;
-}
-
-.feature-check i {
-    color: var(--primary);
-    margin-top: 4px;
-}
-
-.popular .feature-check i {
-    color: #5eead4;
-}
 
 /* --- Telehealth Teaser --- */
 .telehealth-box {
@@ -542,19 +484,24 @@ h4,
     transform: scale(1.1);
 }
 
-/* --- Seamless Journey Section --- */
+/* --- Seamless Journey Section (Clinical & Fresh) --- */
 .bg-teal-light {
-    background-color: #f0fdfa;
-    /* Light Teal Tint */
+    background-color: #ccfbf1 !important;
+    /* Teal 100 - Fresh & Hygienic */
 }
 
 .journey-step-icon {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid #5eead4;
+    /* Teal 300 Border */
+    background: #ffffff;
 }
 
 .journey-step-icon:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.15) !important;
+    box-shadow: 0 10px 25px rgba(15, 118, 110, 0.2) !important;
+    /* Teal shadow */
+    border-color: var(--primary);
 }
 
 .journey-line {

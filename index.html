@@ -29,16 +29,10 @@
 
     <!-- Live Status Bar -->
     <div class="status-bar d-flex justify-content-center align-items-center">
-        <div class="container d-flex justify-content-between align-items-center">
+        <div class="container d-flex justify-content-center align-items-center">
             <div>
                 <span id="liveStatusDot" class="indicator-dot"></span>
                 <span id="liveStatusText" class="fw-bold">Clinic Open</span>
-            </div>
-            <div class="col-lg-4">
-                <h6 class="text-primary mb-4">Contact Us</h6>
-                <p><i class="fas fa-map-marker-alt"></i>Setia Emporia, 43000 Kajang</p>
-                <p><i class="fas fa-phone"></i> 017-2032048</p>
-                <p><i class="fas fa-envelope"></i> klinik@gmail.com</p>
             </div>
         </div>
     </div>
@@ -619,21 +613,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Q3 -->
-                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#faq3">
-                                    How does the Care+ membership work?
-                                </button>
-                            </h2>
-                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body text-muted">
-                                    Care+ is an annual plan (RM50/year) that gives your entire family priority
-                                    access, 10% off medications, and free health tracking via our portal.
-                                </div>
-                            </div>
-                        </div>
+
                         <!-- Q4 -->
                         <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
                             <h2 class="accordion-header">
@@ -854,12 +834,11 @@
                 <div class="chip" onclick="handleUserChoice('Fertility Info')">Fertility Info</div>
             </div>
         </div>
-    </div>
-    <!-- Input Area (Hidden by Default) -->
-    <div class="chat-input" id="chatInputArea" style="display: none;">
-        <input type="text" id="chatInput" placeholder="Type your answer..." onkeypress="handleEnter(event)">
-        <button onclick="handleInputSubmit()"><i class="fas fa-paper-plane"></i></button>
-    </div>
+        <!-- Input Area (Hidden by Default) -->
+        <div class="chat-input" id="chatInputArea" style="display: none;">
+            <input type="text" id="chatInput" placeholder="Type your answer..." onkeypress="handleEnter(event)">
+            <button onclick="handleInputSubmit()"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
 
     <!-- JavaScript -->
