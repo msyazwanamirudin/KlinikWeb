@@ -11,7 +11,7 @@
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 6 Pro (CDN) -->
-    <link href="https://pro.fontawesome.com/releases/v6.0.0/css/all.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -175,40 +175,40 @@
             <div class="row g-4">
                 <!-- Card 1 -->
                 <div class="col-md-4 mb-4" data-aos="fade-up">
-                    <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
-                        <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
-                            <i class="fas fa-heartbeat fs-3"></i>
+                    <div class="service-card-new p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <div class="icon-box-lg mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-heartbeat"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Health & Wellness</h4>
-                        <p class="text-muted mb-4">Comprehensive health screenings (RM250), blood tests, and vaccination
-                            programs for all ages.</p>
-                        <a href="#" class="stretched-link text-decoration-none fw-bold"
+                        <p class="text-muted mb-4 flex-grow-1">Comprehensive health screenings (RM250), blood tests, and
+                            vaccination programs for all ages.</p>
+                        <a href="javascript:void(0)" class="stretched-link text-decoration-none fw-bold mt-auto"
                             onclick="bookViaWhatsApp('General Health')">Learn More <i
                                 class="fas fa-chevron-right ms-1"></i></a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
-                        <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
-                            <i class="fas fa-baby-carriage fs-3"></i>
+                    <div class="service-card-new p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <div class="icon-box-lg mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-baby-carriage"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Fertility & Maternity</h4>
-                        <p class="text-muted mb-4">Expert IUI procedures, follicle tracking (RM60), and antenatal care
-                            led by Dr. Alia.</p>
-                        <a href="#" class="stretched-link text-decoration-none fw-bold"
+                        <p class="text-muted mb-4 flex-grow-1">Expert IUI procedures, follicle tracking (RM60), and
+                            antenatal care led by Dr. Alia.</p>
+                        <a href="javascript:void(0)" class="stretched-link text-decoration-none fw-bold mt-auto"
                             onclick="bookViaWhatsApp('Fertility')">Learn More <i
                                 class="fas fa-chevron-right ms-1"></i></a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
-                        <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
-                            <i class="fas fa-brain fs-3"></i>
+                    <div class="service-card-new p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+                        <div class="icon-box-lg mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-brain"></i>
                         </div>
                         <h4 class="fw-bold mb-3">Minor Surgery</h4>
-                        <p class="text-muted mb-4">Safe and sterile procedures for wound care, suturing, and removal of
-                            lumps/bumps.</p>
-                        <a href="#" class="stretched-link text-decoration-none fw-bold"
+                        <p class="text-muted mb-4 flex-grow-1">Safe and sterile procedures for wound care, suturing, and
+                            removal of lumps/bumps.</p>
+                        <a href="javascript:void(0)" class="stretched-link text-decoration-none fw-bold mt-auto"
                             onclick="bookViaWhatsApp('Surgery')">Learn More <i
                                 class="fas fa-chevron-right ms-1"></i></a>
                     </div>
@@ -458,9 +458,9 @@
                                 class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
                         <p class="mb-4">"Best clinic in Kajang! The ambiance is so relaxing, doesn't feel like a clinic
-                            at all. Highly recommended."</p>
+                            at all. Highly recommend Dr. Sarah."</p>
                         <div class="d-flex align-items-center gap-3">
-                            <div class="avatar-circle bg-danger text-white">S</div>
+                            <div class="avatar-circle bg-info text-white">S</div>
                             <div>
                                 <h6 class="fw-bold mb-0">Sarah Lim</h6>
                                 <small class="text-muted">General Checkup</small>
@@ -746,76 +746,62 @@
         </div>
     </section>
 
-    <!-- Telehealth Upsell -->
-    <section id="telehealth" class="py-5">
-        <div class="container py-5">
-            <div class="telehealth-box">
-                <div class="row align-items-center">
-                    <div class="col-lg-6 mb-4 mb-lg-0">
-                        <span class="text-primary fw-bold text-uppercase">Digital Care</span>
-                        <h2 class="display-4 fw-bold mb-4">See a Doctor from your couch.</h2>
-                        <ul class="list-unstyled mb-5">
-                            <li class="mb-3 d-flex align-items-center"><i
-                                    class="fas fa-video text-primary bg-white p-3 rounded-circle shadow-sm me-3"></i> HD
-                                Video Consultation</li>
-                            <li class="mb-3 d-flex align-items-center"><i
-                                    class="fas fa-file-prescription text-primary bg-white p-3 rounded-circle shadow-sm me-3"></i>
-                                E-Prescription Delivered</li>
-                            <li class="mb-3 d-flex align-items-center"><i
-                                    class="fas fa-user-secret text-primary bg-white p-3 rounded-circle shadow-sm me-3"></i>
-                                Private & Secure</li>
-                        </ul>
-                        <div class="d-flex gap-3">
-                            <button class="btn btn-dark rounded-pill px-4 py-3"><i
-                                    class="fab fa-apple me-2"></i>Download App</button>
-                            <button class="btn btn-outline-dark rounded-pill px-4 py-3"><i
-                                    class="fab fa-google-play me-2"></i>Play Store</button>
-                        </div>
-                    </div>
-                    <div class="col-lg-6 text-center">
-                        <img src="https://assets.website-files.com/5e51c674258ffe10d286d30a/5e535887258ffe34ac86efdb_mobile-app-mockup-p-800.png"
-                            alt="App Mockup" class="phone-mockup img-fluid" style="max-height: 500px;">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <!-- Footer -->
     <footer class="bg-dark text-white pt-5 pb-3" id="footer">
         <div class="container">
             <div class="row g-5">
+                <!-- 1. Brand & Contact -->
                 <div class="col-lg-4">
-                    <h3 class="fw-bold mb-4" style="font-family: 'Space Grotesk'">Klinik </h3>
-                    <p class="text-white-50">Redefining primary care in Malaysia. Combining medical excellence with
+                    <h3 class="fw-bold mb-4" style="font-family: 'Space Grotesk'">Klinik</h3>
+                    <p class="text-white-50 mb-4">Redefining primary care in Malaysia. Combining medical excellence with
                         technology for a seamless experience.</p>
+
+                    <h6 class="text-primary mb-3">Contact Us</h6>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>Alam Sari, 43000 Bangi, Selangor</li>
+                        <li class="mb-2"><i class="fas fa-phone me-2"></i>017-2032048</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
+                    </ul>
                 </div>
-                <div class="col-lg-2">
-                    <h6 class="text-primary mb-4">Clinic Status</h6>
-                    <div class="d-flex align-items-center mb-3">
-                        <!-- Duplicated Live Status Logic Here for Footer Visibilty -->
-                        <span
-                            style="width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #22c55e;"></span>
-                        <span class="text-white fw-bold">Open Today</span>
+
+                <!-- 2. Clinic Status & Quick Links -->
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <h6 class="text-primary mb-4">Clinic Status</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <span
+                                    style="width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #22c55e;"></span>
+                                <span class="text-white fw-bold">Open Today</span>
+                            </div>
+                            <ul class="list-unstyled footer-links text-white-50">
+                                <li class="mb-2">9:00 AM - 10:00 PM</li>
+                                <li class="mb-2">Open Daily</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-4">Quick Links</h6>
+                            <ul class="list-unstyled footer-links text-white-50">
+                                <li class="mb-2"><a href="#home" class="text-reset text-decoration-none">Home</a></li>
+                                <li class="mb-2"><a href="#services"
+                                        class="text-reset text-decoration-none">Services</a></li>
+                                <li class="mb-2"><a href="#specialist"
+                                        class="text-reset text-decoration-none">Specialists</a></li>
+                                <li class="mb-2"><a href="#faq" class="text-reset text-decoration-none">FAQ</a></li>
+                            </ul>
+                        </div>
                     </div>
-                    <ul class="list-unstyled footer-links text-white-50">
-                        <li class="mb-2">9:00 AM - 10:00 PM</li>
-                        <li class="mb-2">Open Daily</li>
-                    </ul>
                 </div>
-                <div class="col-lg-2">
-                    <h6 class="text-primary mb-4">Legal</h6>
-                    <ul class="list-unstyled footer-links text-white-50">
-                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Privacy Policy</a></li>
-                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Terms of Service</a></li>
-                    </ul>
-                </div>
+
+                <!-- 3. Map -->
                 <div class="col-lg-4">
                     <h6 class="text-primary mb-4">Our Location</h6>
                     <div class="map-container rounded-3 overflow-hidden shadow-sm">
                         <iframe
                             src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
-                            width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"
+                            width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"
                             referrerpolicy="no-referrer-when-downgrade"></iframe>
                     </div>
                 </div>

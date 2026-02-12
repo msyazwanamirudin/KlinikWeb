@@ -93,7 +93,7 @@ function bookViaWhatsApp(serviceName, details = "") {
     if (!confirmAction) return;
 
     const phone = "60172032048";
-    let message = `Hi Klinik , I would like to book an appointment.`;
+    let message = `Hi Klinik, I would like to book an appointment.`;
 
     if (serviceName) {
         message += `\nService: ${serviceName}`;
@@ -181,7 +181,7 @@ function resetChat() {
     const chatBody = document.getElementById('chatBody');
     chatBody.innerHTML = `
         <div class="msg msg-bot">
-            Hello! I'm  AI (Reset). <br>How can I help you?
+            Hello! I'm AI Assistant (Reset). <br>How can I help you?
         </div>
     `;
     addQuickReplies(['Check Symptoms', 'Book Appointment', 'Fertility Info']);
