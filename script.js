@@ -1,190 +1,163 @@
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // CONFIGURATION
-    const headerOffset = 120; // Height of sticky navbar + buffer
+AOS.init({ duration: 800, once: true });
 
-    // ==========================================
-    // 1. LANGUAGE TOGGLE
-    // ==========================================
-    const languageToggle = document.getElementById('languageToggle');
-    const savedLang = localStorage.getItem('clinicLanguage') || 'en';
-    
-    if (languageToggle) {
-        languageToggle.value = savedLang;
-        changeLanguage(savedLang);
-        
-        languageToggle.addEventListener('change', function() {
-            const selectedLang = this.value;
-            localStorage.setItem('clinicLanguage', selectedLang);
-            changeLanguage(selectedLang);
-        });
-    }
-
-    function changeLanguage(lang) {
-        const elementsToTranslate = document.querySelectorAll('[data-en]');
-        elementsToTranslate.forEach(element => {
-            const translation = element.getAttribute(`data-${lang}`);
-            if (translation) {
-                element.textContent = translation;
-            }
-        });
-    }
-
-    // ==========================================
-    // 2. SMOOTH SCROLL & ACTIVE STATE
-    // ==========================================
-    // Logic for ALL links starting with #
-    const allLinks = document.querySelectorAll('a[href^="#"]');
-    
-    allLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            
-            // If it's a menu link, highlight it
-            if (this.closest('.nav-links')) {
-                document.querySelectorAll('.nav-links a').forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-            }
-            
-            smoothScrollTo(targetId);
-        });
-    });
-
-    // ==========================================
-    // 3. SCROLL SPY (Auto-highlight menu)
-    // ==========================================
-    window.addEventListener('scroll', () => {
-        let current = '';
-        const sections = document.querySelectorAll('section, header');
-        const navLinks = document.querySelectorAll('.nav-links a'); 
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            if (pageYOffset >= (sectionTop - headerOffset - 50)) {
-                current = section.getAttribute('id');
-            }
-        });
-
-        // "Bottom of Page" Check (For Contact)
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
-            current = 'contact';
-        }
-
-        if (current) {
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href').includes(current)) {
-                    link.classList.add('active');
-                }
-            });
-        }
-    });
-
-    // ==========================================
-    // 4. MOBILE MENU
-    // ==========================================
-    const mobileBtn = document.querySelector('.mobile-menu-btn');
-    const navMenu = document.querySelector('.nav-links'); 
-    
-    if (mobileBtn && navMenu) {
-        mobileBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
-
-        // Close menu when a link inside it is clicked
-        navMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-            });
-        });
-    }
+// --- Navbar Scroll Effect ---
+window.addEventListener('scroll', function () {
+    const nav = document.querySelector('.navbar');
+    if (window.scrollY > 50) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
 });
 
-// ==========================================
-// 5. HELPER FUNCTIONS (Global)
-// ==========================================
+// --- Typing Effect (Simple) ---
+const words = ["Your Family", "Your Future", "Your Baby", "Your Health"];
+let i = 0;
+let timer;
 
-// Global smooth scroll function
-function smoothScrollTo(targetId) {
-    const targetElement = document.querySelector(targetId);
-    const headerOffset = 120; 
+function typeWriter() {
+    const element = document.getElementById("typewriter");
+    // Simple rotation for demo purposes
+    setInterval(() => {
+        i = (i + 1) % words.length;
+        element.style.opacity = 0;
+        setTimeout(() => {
+            element.innerHTML = words[i];
+            element.style.opacity = 1;
+        }, 500);
+    }, 3000);
+}
+document.getElementById("typewriter").style.transition = "opacity 0.5s";
+typeWriter();
 
-    if (targetElement) {
-        const elementPosition = targetElement.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.scrollY - headerOffset;
+// --- LIVE STATUS LOGIC (Static Workaround) ---
+function updateLiveStatus() {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay(); // 0 = Sunday
+    const statusText = document.getElementById('liveStatusText');
+    const statusDot = document.getElementById('liveStatusDot');
 
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth"
-        });
+    // Clinic Hours: Mon-Sat 9AM - 10PM, Sun 9AM - 2PM (Example)
+    // Simple Logic: Open from 9AM to 10PM everyday for demo
+    const isOpen = hour >= 9 && hour < 22;
+
+    if (isOpen) {
+        statusText.innerHTML = "Clinic Open (Queue: <span class='text-success'>Normal</span>)";
+        statusDot.style.backgroundColor = "#22c55e"; // Green
+        statusDot.style.boxShadow = "0 0 10px #22c55e";
+    } else {
+        statusText.innerHTML = "Clinic Closed (Opens 9:00 AM)";
+        statusDot.style.backgroundColor = "#ef4444"; // Red
+        statusDot.style.boxShadow = "none";
+        statusDot.style.animation = "none";
+    }
+}
+// Run on load
+updateLiveStatus();
+// Update every minute
+setInterval(updateLiveStatus, 60000);
+
+
+// --- WHATSAPP BOOKING LOGIC (No Backend Required) ---
+function bookViaWhatsApp(serviceName, details = "") {
+    const phone = "60135253503";
+    let message = `Hi Klinik Haya, I would like to book an appointment.`;
+
+    if (serviceName) {
+        message += `\nService: ${serviceName}`;
+    }
+    if (details) {
+        message += `\nDetails: ${details}`;
+    }
+
+    message += `\n\nCould you please let me know the available slots?`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+}
+
+// --- Chat Bot Logic ---
+function toggleChat() {
+    const chat = document.getElementById('chatWindow');
+    if (chat.style.display === 'flex') {
+        chat.style.display = 'none';
+    } else {
+        chat.style.display = 'flex';
     }
 }
 
-// Linked to HTML buttons (Book Now / Contact)
-function scrollToBooking() {
-    smoothScrollTo('#contact'); 
+function addMessage(text, isUser = false) {
+    const chatBody = document.getElementById('chatBody');
+    const div = document.createElement('div');
+    div.className = isUser ? 'msg msg-user' : 'msg msg-bot';
+    div.innerHTML = text;
+    chatBody.appendChild(div);
+    // Auto scroll
+    chatBody.scrollTop = chatBody.scrollHeight;
 }
 
-function scrollToContact() {
-    smoothScrollTo('#contact');
+function showTyping() {
+    const chatBody = document.getElementById('chatBody');
+    const div = document.createElement('div');
+    div.id = 'typingIndicator';
+    div.className = 'msg msg-bot';
+    div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
 }
-/* =========================================
-   6. CONTENT PROTECTION (Speedbump)
-   ========================================= */
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. Create the Alert Bubble Dynamically
-    const alertBox = document.createElement('div');
-    alertBox.id = 'protection-alert';
-    // Using a lock icon and simple text
-    alertBox.innerHTML = '<i class="fas fa-lock"></i> <span>Content is protected</span>';
-    document.body.appendChild(alertBox);
 
-    // 2. Logic to Show/Hide Alert
-    let timeout;
-    function showProtectionAlert() {
-        alertBox.classList.add('show');
-        
-        // Reset timer if triggered multiple times
-        clearTimeout(timeout);
-        
-        // Hide after 2 seconds
-        timeout = setTimeout(() => {
-            alertBox.classList.remove('show');
-        }, 2000);
-    }
+function removeTyping() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) indicator.remove();
+}
 
-    // 3. Disable Right Click
-    document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        showProtectionAlert();
+function handleUserChoice(choice) {
+    // Remove quick replies
+    document.getElementById('quickReplies').style.display = 'none';
+
+    // User Message
+    addMessage(choice, true);
+
+    // Bot Logic
+    showTyping();
+
+    setTimeout(() => {
+        removeTyping();
+
+        if (choice === 'Check Symptoms') {
+            addMessage("I can help with that. Are you experiencing any urgent pain or breathing difficulties?");
+            addQuickReplies(['Yes, Severe', 'No, Mild Symptoms']);
+        } else if (choice === 'Fertility Info') {
+            addMessage("Dr. Alia is a specialist in TTC journeys. Would you like to schedule a Follicle Scan or general consultation?");
+            addQuickReplies(['Follicle Scan', 'General Consult']);
+        } else if (choice === 'Book Appointment') {
+            addMessage("Great! I can fast-track that. Are you a Haya Care+ member?");
+            addQuickReplies(['Yes', 'No, Sign me up', 'Just Book']);
+        } else if (choice === 'Yes, Severe') {
+            addMessage("<b class='text-danger'>Please go to the nearest Emergency Room immediately.</b> <br>Or call 999.");
+            addQuickReplies(['Call Emergency']);
+        } else if (choice === 'Follicle Scan' || choice === 'General Consult') {
+            addMessage(`Understood. I'm opening WhatsApp to book your ${choice} slot now.`);
+            setTimeout(() => bookViaWhatsApp(choice), 2000);
+        } else {
+            addMessage("Thanks! Connecting you to our admin via WhatsApp for priority booking...");
+            setTimeout(() => bookViaWhatsApp('General Booking', 'Referred by Haya AI'), 1500);
+        }
+    }, 1000);
+}
+
+function addQuickReplies(options) {
+    const chatBody = document.getElementById('chatBody');
+    const div = document.createElement('div');
+    div.className = 'quick-replies';
+    div.id = 'quickReplies'; // Re-assign ID to manage state
+
+    options.forEach(opt => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.innerText = opt;
+        chip.onclick = () => handleUserChoice(opt);
+        div.appendChild(chip);
     });
 
-    // 4. Disable Keyboard Shortcuts (Copy, Save, Inspect)
-    document.addEventListener('keydown', (e) => {
-        // F12 (Dev Tools)
-        if (e.key === 'F12') {
-            e.preventDefault();
-            showProtectionAlert();
-        }
-        
-        // Ctrl+Shift+I (Inspect) or Ctrl+Shift+J (Console) or Ctrl+Shift+C
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
-            e.preventDefault();
-            showProtectionAlert();
-        }
-
-        // Ctrl+U (View Source)
-        if (e.ctrlKey && e.key === 'u') {
-            e.preventDefault();
-            showProtectionAlert();
-        }
-
-        // Ctrl+S (Save Page)
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            showProtectionAlert();
-        }
-    });
-});
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
