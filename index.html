@@ -5,21 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="Klinik Haya Ultimate - The Future of Family Care. AI-Powered, Premium Memberships, and Telehealth.">
+        content="Klinik Ultimate - The Future of Family Care. AI-Powered, Premium Memberships, and Telehealth.">
     <title>Klinik Haya | The Future of Family Care</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Google Fonts: Space Grotesk (Tech) & Outfit (Modern) -->
+    <!-- FontAwesome 6 Pro (CDN) -->
+    <link href="https://pro.fontawesome.com/releases/v6.0.0/css/all.css" rel="stylesheet">
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
         rel="stylesheet">
-
-    <!-- Font Awesome Pro (Free CDN for demo) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- AOS Animate -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -34,13 +32,13 @@
         <div class="container d-flex justify-content-between align-items-center">
             <div>
                 <span id="liveStatusDot" class="indicator-dot"></span>
-                <span id="liveStatusText" class="fw-bold">Clinic Open (Queue: Low)</span>
+                <span id="liveStatusText" class="fw-bold">Clinic Open</span>
             </div>
             <div class="col-lg-4">
                 <h6 class="text-primary mb-4">Contact Us</h6>
                 <p><i class="fas fa-map-marker-alt"></i> 20-1, Jalan Sari Niaga,<br>Setia Emporia, 43000 Kajang</p>
                 <p><i class="fas fa-phone"></i> 017-2032048</p>
-                <p><i class="fas fa-envelope"></i> klinikhaya@gmail.com</p>
+                <p><i class="fas fa-envelope"></i> klinik@gmail.com</p>
             </div>
         </div>
     </div>
@@ -60,20 +58,23 @@
                         CARE</span>
                 </div>
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <i class="fas fa-bars text-primary fa-lg"></i>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navContent">
+                <i class="fas fa-bars fs-2"></i>
             </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav align-items-center">
-                    <li class="nav-item"><a class="nav-link active-nav" href="#home">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#services">Specialties</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#membership"><i
-                                class="fas fa-crown text-warning me-1"></i>Care+</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#telehealth">Telehealth</a></li>
-                    <li class="nav-item ms-lg-3">
-                        <button class="btn-glow" onclick="toggleChat()">Check Symptoms AI</button>
-                    </li>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                    <li class="nav-item px-2"><a class="nav-link text-uppercase active-nav" href="#home">Home</a></li>
+                    <li class="nav-item px-2"><a class="nav-link text-uppercase" href="#services">Services</a></li>
+                    <li class="nav-item px-2"><a class="nav-link text-uppercase" href="#specialist">Specialists</a></li>
+                    <li class="nav-item px-2"><a class="nav-link text-uppercase" href="#facilities">Facilities</a></li>
+                    <li class="nav-item px-2"><a class="nav-link text-uppercase" href="#faq">FAQ</a></li>
+                    <li class="nav-item px-2"><a class="nav-link text-uppercase" href="#footer">Contact</a></li>
                 </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="#" onclick="bookViaWhatsApp('General Booking')"
+                        class="btn btn-outline-primary rounded-pill px-4">Contact Us</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -173,62 +174,88 @@
 
             <div class="row g-4">
                 <!-- Card 1 -->
-                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="0">
-                    <div class="service-card-new">
-                        <div class="icon-box-lg text-primary">
-                            <i class="fas fa-baby-carriage"></i>
+                <div class="col-md-4 mb-4" data-aos="fade-up">
+                    <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
+                        <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-heartbeat fs-3"></i>
                         </div>
-                        <h4>Fertility & TTC</h4>
-                        <p class="text-muted mb-4">Advanced screening and personalized plans for your journey to
-                            parenthood.</p>
-                        <button onclick="bookViaWhatsApp('Fertility & TTC')"
-                            class="btn btn-link text-dark px-0 text-decoration-none fw-bold">Book Consult <i
-                                class="fas fa-arrow-right ms-2"></i></button>
+                        <h4 class="fw-bold mb-3">Health & Wellness</h4>
+                        <p class="text-muted mb-4">Comprehensive health screenings (RM250), blood tests, and vaccination
+                            programs for all ages.</p>
+                        <a href="#" class="stretched-link text-decoration-none fw-bold"
+                            onclick="bookViaWhatsApp('General Health')">Learn More <i
+                                class="fas fa-chevron-right ms-1"></i></a>
                     </div>
                 </div>
-                <!-- Card 2 -->
-                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
-                    <div class="service-card-new">
-                        <div class="icon-box-lg text-danger">
-                            <i class="fas fa-heartbeat"></i>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
+                        <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-baby-carriage fs-3"></i>
                         </div>
-                        <h4>Maternal Health</h4>
-                        <p class="text-muted mb-4">Comprehensive antenatal care, 4D scans, and postnatal recovery
-                            support.</p>
-                        <button onclick="bookViaWhatsApp('Maternal Health')"
-                            class="btn btn-link text-dark px-0 text-decoration-none fw-bold">Book Consult <i
-                                class="fas fa-arrow-right ms-2"></i></button>
+                        <h4 class="fw-bold mb-3">Fertility & Maternity</h4>
+                        <p class="text-muted mb-4">Expert IUI procedures, follicle tracking (RM60), and antenatal care
+                            led by Dr. Alia.</p>
+                        <a href="#" class="stretched-link text-decoration-none fw-bold"
+                            onclick="bookViaWhatsApp('Fertility')">Learn More <i
+                                class="fas fa-chevron-right ms-1"></i></a>
                     </div>
                 </div>
-                <!-- Card 3 -->
-                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
-                    <div class="service-card-new">
-                        <div class="icon-box-lg text-warning">
-                            <i class="fas fa-shapes"></i>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
+                        <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-brain fs-3"></i>
                         </div>
-                        <h4>Pediatrics</h4>
-                        <p class="text-muted mb-4">Gentle care for your little ones, from vaccinations to developmental
-                            checks.</p>
-                        <button onclick="bookViaWhatsApp('Pediatrics')"
-                            class="btn btn-link text-dark px-0 text-decoration-none fw-bold">Book Consult <i
-                                class="fas fa-arrow-right ms-2"></i></button>
-                    </div>
-                </div>
-                <!-- Card 4 -->
-                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
-                    <div class="service-card-new">
-                        <div class="icon-box-lg text-success">
-                            <i class="fas fa-stethoscope"></i>
-                        </div>
-                        <h4>General Wellness</h4>
-                        <p class="text-muted mb-4">Routine checkups, blood screening, and chronic disease management.
-                        </p>
-                        <button onclick="bookViaWhatsApp('General Wellness')"
-                            class="btn btn-link text-dark px-0 text-decoration-none fw-bold">Book Consult <i
-                                class="fas fa-arrow-right ms-2"></i></button>
+                        <h4 class="fw-bold mb-3">Minor Surgery</h4>
+                        <p class="text-muted mb-4">Safe and sterile procedures for wound care, suturing, and removal of
+                            lumps/bumps.</p>
+                        <a href="#" class="stretched-link text-decoration-none fw-bold"
+                            onclick="bookViaWhatsApp('Surgery')">Learn More <i
+                                class="fas fa-chevron-right ms-1"></i></a>
                     </div>
                 </div>
             </div>
+            <!-- Card 4 -->
+            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
+                    <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                        <i class="fas fa-pills fs-3"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Chronic Disease</h4>
+                    <p class="text-muted mb-4">Long-term management for Diabetes, Hypertension, and High Cholesterol
+                        with personalized plans.</p>
+                    <a href="#" class="stretched-link text-decoration-none fw-bold"
+                        onclick="bookViaWhatsApp('Chronic Disease')">Learn More <i
+                            class="fas fa-chevron-right ms-1"></i></a>
+                </div>
+            </div>
+            <!-- Card 5 -->
+            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
+                <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
+                    <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                        <i class="fas fa-male fs-3"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Men's Health</h4>
+                    <p class="text-muted mb-4">Discreet and professional screening for sexual health, hormonal balance,
+                        and general wellness.</p>
+                    <a href="#" class="stretched-link text-decoration-none fw-bold"
+                        onclick="bookViaWhatsApp('Mens Health')">Learn More <i
+                            class="fas fa-chevron-right ms-1"></i></a>
+                </div>
+            </div>
+            <!-- Card 6 -->
+            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="500">
+                <div class="service-card p-4 rounded-4 bg-white h-100 position-relative overflow-hidden">
+                    <div class="icon-box mb-4 text-primary bg-light rounded-circle d-inline-flex p-3">
+                        <i class="fas fa-user-nurse fs-3"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Doorstep Care</h4>
+                    <p class="text-muted mb-4">Home visits for bedridden patients, wound dressing, and post-surgery
+                        recovery support.</p>
+                    <a href="#" class="stretched-link text-decoration-none fw-bold"
+                        onclick="bookViaWhatsApp('Home Visit')">Learn More <i class="fas fa-chevron-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
         </div>
     </section>
 
@@ -299,7 +326,7 @@
     </section>
 
     <!-- Meet Our Specialists -->
-    <section class="py-5 bg-light">
+    <section class="py-5 bg-light" id="specialist">
         <div class="container py-5">
             <div class="text-center mb-5">
                 <span class="text-primary fw-bold letter-spacing-2 text-uppercase">Expert Care</span>
@@ -343,6 +370,26 @@
                             <p class="text-primary small fw-bold mb-3">Pediatrician & Child Wellness</p>
                             <p class="text-muted small">"Ensuring your little ones grow up healthy and strong with
                                 gentle, compassionate care."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor 3 -->
+                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="doctor-card h-100">
+                        <div class="doctor-img-box">
+                            <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                                alt="Dr. Hanim" class="img-fluid">
+                            <div class="social-overlay">
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                        <div class="p-4 text-center">
+                            <h4 class="fw-bold mb-1">Dr. Hanim</h4>
+                            <p class="text-primary small fw-bold mb-3">General Practitioner</p>
+                            <p class="text-muted small">"Dedicated to providing holistic family medicine with a gentle
+                                touch."</p>
                         </div>
                     </div>
                 </div>
@@ -426,58 +473,60 @@
     </section>
 
     <!-- Patient Journey (Timeline) -->
-    <section class="py-5">
+    <section class="py-5 bg-teal-light">
         <div class="container py-5">
             <div class="text-center mb-5">
                 <span class="text-primary fw-bold letter-spacing-2 text-uppercase">Seamless Experience</span>
                 <h2 class="display-5 fw-bold mt-2">Your Journey With Us</h2>
+                <p class="text-muted">From the moment you contact us, to your full recovery.</p>
             </div>
 
             <div class="row text-center position-relative">
                 <!-- Connecting Line (Desktop) -->
-                <div class="d-none d-lg-block position-absolute top-50 start-0 w-100 border-top border-2 border-primary"
-                    style="z-index: -1; transform: translateY(-50%); opacity: 0.3;"></div>
+                <div class="d-none d-lg-block position-absolute top-50 start-0 w-100 border-top border-2 border-primary journey-line"
+                    style="z-index: 0; transform: translateY(-50%); opacity: 0.2;"></div>
 
                 <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up">
-                    <div class="bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3"
-                        style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; z-index: 1;">
+                    <div
+                        class="journey-step-icon bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3 z-1">
                         <i class="fas fa-comments text-primary fs-2"></i>
                         <span
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">1</span>
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark border border-white">1</span>
                     </div>
                     <h5 class="fw-bold">Contact / AI Triage</h5>
-                    <p class="text-muted small">Chat with Haya AI or WhatsApp us to check symptoms and book a slot.</p>
+                    <p class="text-muted small">Chat with Haya AI or WhatsApp us to check symptoms and book a slot
+                        instantly.</p>
                 </div>
 
                 <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3"
-                        style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; z-index: 1;">
+                    <div
+                        class="journey-step-icon bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3 z-1">
                         <i class="fas fa-calendar-check text-primary fs-2"></i>
                         <span
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">2</span>
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark border border-white">2</span>
                     </div>
                     <h5 class="fw-bold">Fast-Track Registration</h5>
-                    <p class="text-muted small">Arrive at your booked time. Skip the long queue with priority access.
-                    </p>
+                    <p class="text-muted small">Arrive at your booked time. Skip the long queue with our priority access
+                        system.</p>
                 </div>
 
                 <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3"
-                        style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; z-index: 1;">
+                    <div
+                        class="journey-step-icon bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3 z-1">
                         <i class="fas fa-user-md text-primary fs-2"></i>
                         <span
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">3</span>
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark border border-white">3</span>
                     </div>
                     <h5 class="fw-bold">Expert Consultation</h5>
                     <p class="text-muted small">Comprehensive checkup with Dr. Alia or our dedicated medical team.</p>
                 </div>
 
                 <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3"
-                        style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; z-index: 1;">
+                    <div
+                        class="journey-step-icon bg-white p-4 rounded-circle shadow-sm d-inline-block position-relative mb-3 z-1">
                         <i class="fas fa-heart text-primary fs-2"></i>
                         <span
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">4</span>
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark border border-white">4</span>
                     </div>
                     <h5 class="fw-bold">Recovery & Support</h5>
                     <p class="text-muted small">Medication dispensed and follow-up care via telehealth if needed.</p>
@@ -487,7 +536,7 @@
     </section>
 
     <!-- Clinic Facilities (Gallery) -->
-    <section class="py-5 bg-light">
+    <section class="py-5 bg-light" id="facilities">
         <div class="container py-5">
             <div class="row align-items-center mb-5">
                 <div class="col-lg-6">
@@ -529,61 +578,168 @@
     </section>
 
     <!-- FAQ Section -->
-    <section class="py-5 bg-light">
+    <section class="py-5 bg-white" id="faq">
         <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="text-primary fw-bold letter-spacing-2 text-uppercase">Got Questions?</span>
+                <h2 class="display-5 fw-bold mt-2">Common Questions</h2>
+                <p class="text-muted">Everything you need to know about our services.</p>
+            </div>
+
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <div class="text-center mb-5">
-                        <h2 class="fw-bold">Common Questions</h2>
-                        <p class="text-muted">Everything you need to know about our services.</p>
-                    </div>
-
-                    <div class="accordion custom-accordion" id="faqAccordion">
-                        <div class="accordion-item border-0 mb-3 shadow-sm rounded">
+                    <div class="accordion" id="faqAccordion">
+                        <!-- Q1 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
                             <h2 class="accordion-header">
-                                <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faq1">
-                                    Do I need an appointment for general illness?
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    Do I need an appointment or can I walk in?
                                 </button>
                             </h2>
-                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body text-muted">
-                                    No, for general illness (fever, flu, etc.), walk-ins are always welcome 24/7.
-                                    However, for specialized services like fertility scans or detailed health
-                                    screenings, we recommend booking an appointment to avoid long wait times.
+                                    We welcome walk-ins! However, we highly recommend booking an appointment via
+                                    WhatsApp to minimize your waiting time, especially for specialist consultations.
                                 </div>
                             </div>
                         </div>
-
-                        <div class="accordion-item border-0 mb-3 shadow-sm rounded">
+                        <!-- Q2 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed fw-bold" type="button"
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#faq2">
-                                    What payment methods do you accept?
+                                    What insurance panels do you cover?
                                 </button>
                             </h2>
                             <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body text-muted">
-                                    We accept Cash, Credit/Debit Cards (Visa/Mastercard), E-Wallets (GrabPay, TnG), and
-                                    selected Insurance Guarantee Letters (GL).
+                                    We cover major panels including PMCare, AIA, and Micare. Please contact us via
+                                    WhatsApp to verify your specific coverage before visiting.
                                 </div>
                             </div>
                         </div>
-
-                        <div class="accordion-item border-0 mb-3 shadow-sm rounded">
+                        <!-- Q3 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed fw-bold" type="button"
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#faq3">
                                     How does the Haya Care+ membership work?
                                 </button>
                             </h2>
                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                                 <div class="accordion-body text-muted">
-                                    It's a monthly subscription that gives you unlimited basic consultations, priority
-                                    queue access, and discounts on medications and procedures. You can cancel anytime.
+                                    Haya Care+ is an annual plan (RM50/year) that gives your entire family priority
+                                    access, 10% off medications, and free health tracking via our portal.
                                 </div>
                             </div>
                         </div>
+                        <!-- Q4 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    Do you offer fertility treatments?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Yes, Dr. Alia specializes in fertility. We offer follicle tracking scans (TV/TA),
+                                    fertility screenings, and IUI counseling.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Q5 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq5">
+                                    Can I do a blood test without a doctor's consult?
+                                </button>
+                            </h2>
+                            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Yes, we offer walk-in blood screening packages. Results are typically emailed to you
+                                    within 24-48 hours.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Q6 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq6">
+                                    Is there parking available?
+                                </button>
+                            </h2>
+                            <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Yes, ample public parking is available right in front of the clinic at Setia
+                                    Emporia.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Q7 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq7">
+                                    Do you treat children and babies?
+                                </button>
+                            </h2>
+                            <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Absolutely. We provide pediatric wellness checks, vaccinations, and treatment for
+                                    common childhood illnesses.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Q8 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq8">
+                                    What payment methods do you accept?
+                                </button>
+                            </h2>
+                            <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    We accept Cash, Credit/Debit Cards (Visa/Mastercard), and E-wallets (Touch 'n Go,
+                                    GrabPay).
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Q9 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq9">
+                                    Can I get a Medical Certificate (MC)?
+                                </button>
+                            </h2>
+                            <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Yes, valid MCs are issued by the doctor after a consultation, strictly based on
+                                    medical condition.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Q10 -->
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold rounded-3" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq10">
+                                    Do you do circumcision for babies?
+                                </button>
+                            </h2>
+                            <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body text-muted">
+                                    Yes, we perform safe circumcision for babies and young boys. Please book an
+                                    appointment in advance.
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -626,7 +782,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white pt-5 pb-3">
+    <footer class="bg-dark text-white pt-5 pb-3" id="footer">
         <div class="container">
             <div class="row g-5">
                 <div class="col-lg-4">
@@ -635,11 +791,16 @@
                         technology for a seamless experience.</p>
                 </div>
                 <div class="col-lg-2">
-                    <h6 class="text-primary mb-4">Patient</h6>
+                    <h6 class="text-primary mb-4">Clinic Status</h6>
+                    <div class="d-flex align-items-center mb-3">
+                        <!-- Duplicated Live Status Logic Here for Footer Visibilty -->
+                        <span
+                            style="width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #22c55e;"></span>
+                        <span class="text-white fw-bold">Open Today</span>
+                    </div>
                     <ul class="list-unstyled footer-links text-white-50">
-                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Book Appointment</a></li>
-                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Telehealth</a></li>
-                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Membership</a></li>
+                        <li class="mb-2">9:00 AM - 10:00 PM</li>
+                        <li class="mb-2">Open Daily</li>
                     </ul>
                 </div>
                 <div class="col-lg-2">
@@ -653,8 +814,9 @@
                     <h6 class="text-primary mb-4">Our Location</h6>
                     <div class="map-container rounded-3 overflow-hidden shadow-sm">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.607490082729!2d101.78768831475685!3d2.928428997868352!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdcc86be024225%3A0xc4863625988e4414!2sKlinik%20Haya!5e0!3m2!1sen!2smy!4v1677651234567!5m2!1sen!2smy"
-                            width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
+                            width="100%" height="200" style="border:0;" allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
                     </div>
                 </div>
             </div>
@@ -682,9 +844,9 @@
     <!-- AI Chat Window -->
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
-            <div class="d-flex align-items-center gap-2">
-                <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center"
-                    style="width:35px; height:35px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white text-primary rounded-circle p-2 d-flex align-items-center justify-content-center"
+                    style="width: 40px; height: 40px;">
                     <i class="fas fa-robot"></i>
                 </div>
                 <div>
@@ -694,7 +856,6 @@
             </div>
             <button onclick="toggleChat()" class="btn btn-sm text-white"><i class="fas fa-times"></i></button>
         </div>
-
         <div class="chat-body" id="chatBody">
             <!-- Initial Messages -->
             <div class="msg msg-bot">
@@ -703,16 +864,16 @@
             </div>
             <div class="quick-replies" id="quickReplies">
                 <div class="chip" onclick="handleUserChoice('Check Symptoms')">Check Symptoms</div>
-                <div class="chip" onclick="handleUserChoice('Fertility Info')">Fertility Info</div>
                 <div class="chip" onclick="handleUserChoice('Book Appointment')">Book Appointment</div>
+                <div class="chip" onclick="handleUserChoice('Fertility Info')">Fertility Info</div>
             </div>
         </div>
-
-        <div class="chat-footer">
-            <input type="text" class="form-control rounded-pill border-0 bg-light" placeholder="Type a message..."
-                disabled>
-            <button class="btn btn-primary rounded-circle"><i class="fas fa-paper-plane"></i></button>
-        </div>
+    </div>
+    <!-- Input Area (Hidden by Default) -->
+    <div class="chat-input" id="chatInputArea" style="display: none;">
+        <input type="text" id="chatInput" placeholder="Type your answer..." onkeypress="handleEnter(event)">
+        <button onclick="handleInputSubmit()"><i class="fas fa-paper-plane"></i></button>
+    </div>
     </div>
 
     <!-- JavaScript -->

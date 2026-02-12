@@ -514,6 +514,86 @@ h4,
     transform: scale(1.1);
 }
 
+/* --- Seamless Journey Section --- */
+.bg-teal-light {
+    background-color: #f0fdfa;
+    /* Light Teal Tint */
+}
+
+.journey-step-icon {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.journey-step-icon:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(15, 118, 110, 0.15) !important;
+}
+
+.journey-line {
+    border-color: #0d9488 !important;
+    /* Teal-600 */
+}
+
+/* --- FAQ Tweaks --- */
+.accordion-button:not(.collapsed) {
+    background-color: #f0fdfa;
+    color: var(--primary);
+    box-shadow: none;
+}
+
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(15, 118, 110, 0.1);
+}
+
+/* --- Chatbot Chip Tweaks --- */
+.chip {
+    transition: all 0.2s;
+}
+
+.chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Chat Input Area --- */
+.chat-input {
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+.chat-input input {
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 15px;
+    outline: none;
+    flex-grow: 1;
+    font-size: 0.9rem;
+}
+
+.chat-input button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-input button:hover {
+    background: var(--dark);
+}
+
 .img-caption {
     position: absolute;
     bottom: 20px;
