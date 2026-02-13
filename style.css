@@ -21,6 +21,8 @@ html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
     /* Offset for sticky header */
+    margin: 0;
+    padding: 0;
     height: 100%;
 }
 
@@ -34,12 +36,16 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    margin: 0;
+    padding: 0;
 }
 
-/* Push Footer to Bottom if content is short */
+/* Push Footer to Bottom */
 footer {
     margin-top: auto;
     padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    width: 100%;
 }
 
 body.modal-open {
