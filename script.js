@@ -1101,27 +1101,7 @@ function handleBookingStep(choice) {
     }
 }
 
-// This function is assumed to be `handleUserChoice` or similar,
-// which processes user input and then calls `processChatFlow`.
-// The instruction implies this structure for randomizing typing delay.
-// REDUNDANT? handleUserChoice is defined above. But Step 1154 showed it again?
-// Step 1154 showed lines 999-1021 as handleUserChoice REPEAT?
-// NO, Step 1154 showed lines 601-1175.
-// Lines 748 and 999 are BOTH handleUserChoice?
-// Let's check Step 1154 output.
-// Line 748: function handleUserChoice(choice) { ... }
-// Line 999: function handleUserChoice(choice) { ... }
-// Ah, the file must have duplicates from previous edits!
-// I should clean this up. I will use the one at line 748 and ignore the duplicate at 999.
-// And 1023: function processChatFlow(choice) { ... } (Duplicate of 772).
 
-// I will filter out duplicates in my rewrite.
-// I will cut off the file after `finishBooking` (Line 1152) and `addQuickReplies` (Line 1154).
-// Wait, `addQuickReplies` is at 1154.
-// `finishBooking` is at 1106.
-
-// I will keep the cleaner versions.
-// I will remove the duplicates at the end.
 
 function finishBooking() {
     const { name, date, time, service } = chatState.bookingData;
