@@ -397,6 +397,10 @@ function switchAdminTab(tab, event) {
             document.getElementById('invSearch').value = '';
             document.getElementById('invFilterCategory').value = 'All';
         }
+    } else if (tab === 'roster') {
+        document.getElementById('tabRoster').style.display = 'block';
+        loadRosterAdmin();
+        populateDoctorSelect();
     }
 
     if (event && event.currentTarget) {
@@ -406,13 +410,136 @@ function switchAdminTab(tab, event) {
 
 // --- MISSING FUNCTION DEFINITIONS (Roster Admin + Promo) ---
 
-function getRosterRules() {
-    // Read from Firebase cache (LocalStorage key set by firebaseListen)
-    return JSON.parse(localStorage.getItem('fb_roster_rules') || '[]');
+// --- ROSTER ADMIN LOGIC ---
+
+function loadRosterAdmin() {
+    firebaseLoad('roster/rules', []).then(rules => {
+        renderRosterList(rules);
+    });
 }
 
-function saveRosterRules(rules) {
-    firebaseSave('roster/rules', rules);
+function renderRosterList(rules) {
+    const list = document.getElementById('rosterList');
+    const empty = document.getElementById('rosterEmpty');
+    if (!list) return;
+
+    if (rules.length === 0) {
+        list.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+
+    if (empty) empty.style.display = 'none';
+
+    // Sort: Dates first (descending), then Weekly (Mon-Sun)
+    rules.sort((a, b) => {
+        if (a.type === 'date' && b.type === 'weekly') return -1;
+        if (a.type === 'weekly' && b.type === 'date') return 1;
+        if (a.type === 'date' && b.type === 'date') return new Date(a.date) - new Date(b.date);
+        return a.day - b.day; // Weekly
+    });
+
+    let html = '';
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    rules.forEach((rule, index) => {
+        let when = '';
+        let badge = '';
+
+        if (rule.type === 'weekly') {
+            when = `Every <b>${days[rule.day]}</b>`;
+            badge = '<span class="badge bg-info text-dark">Weekly</span>';
+        } else {
+            const dateObj = new Date(rule.date);
+            when = `${dateObj.getDate()} ${dateObj.toLocaleDateString('en-US', { month: 'short' })} (${days[dateObj.getDay()]})`;
+            badge = '<span class="badge bg-primary">Specific</span>';
+        }
+
+        html += `
+        <tr>
+            <td>
+                <div class="small">${badge}</div>
+                <div class="fw-bold text-dark">${when}</div>
+            </td>
+            <td>
+                <div class="fw-bold text-dark">${escapeHTML(rule.doc)}</div>
+                <div class="small text-muted">${rule.shift}</div>
+            </td>
+            <td class="text-end">
+                <button onclick="deleteRosterRule(${index})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
+    });
+
+    list.innerHTML = html;
+}
+
+function toggleRosterForm() {
+    const form = document.getElementById('rosterForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    // Default to Date
+    if (form.style.display === 'block') {
+        document.getElementById('ruleDate').checked = true;
+        toggleRuleInputs();
+    }
+}
+
+function toggleRuleInputs() {
+    const isWeekly = document.getElementById('ruleWeekly').checked;
+    document.getElementById('inputDateGroup').style.display = isWeekly ? 'none' : 'block';
+    document.getElementById('inputDayGroup').style.display = isWeekly ? 'block' : 'none';
+}
+
+function addRosterRule() {
+    const isWeekly = document.getElementById('ruleWeekly').checked;
+    const doc = document.getElementById('rosterDocSelect').value;
+    const shift = document.getElementById('rosterShift').value;
+
+    let newRule = { doc, shift };
+
+    if (isWeekly) {
+        newRule.type = 'weekly';
+        newRule.day = parseInt(document.getElementById('rosterDay').value);
+    } else {
+        const dateVal = document.getElementById('rosterDate').value;
+        if (!dateVal) return alert("Please select a date");
+        newRule.type = 'date';
+        newRule.date = dateVal;
+    }
+
+    firebaseLoad('roster/rules', []).then(rules => {
+        // Remove existing conflict (same day/date)
+        if (newRule.type === 'weekly') {
+            rules = rules.filter(r => !(r.type === 'weekly' && r.day === newRule.day));
+        } else {
+            rules = rules.filter(r => !(r.type === 'date' && r.date === newRule.date));
+        }
+
+        rules.push(newRule);
+        firebaseSave('roster/rules', rules).then(() => {
+            toggleRosterForm();
+            loadRosterAdmin();
+        });
+    });
+}
+
+function deleteRosterRule(index) {
+    if (!confirm("Delete this rule?")) return;
+    firebaseLoad('roster/rules', []).then(rules => {
+        // Since we sort the display, we need to find the actual item in the unsorted array
+        // But wait, the index passed is from the SORTED list render. 
+        // This is tricky. Better to Reload -> Sort -> Splice -> Save.
+        // Re-sorting here to match render logic:
+        rules.sort((a, b) => {
+            if (a.type === 'date' && b.type === 'weekly') return -1;
+            if (a.type === 'weekly' && b.type === 'date') return 1;
+            if (a.type === 'date' && b.type === 'date') return new Date(a.date) - new Date(b.date);
+            return a.day - b.day;
+        });
+
+        rules.splice(index, 1);
+        firebaseSave('roster/rules', rules).then(() => loadRosterAdmin());
+    });
 }
 
 function populateDoctorSelect() {
