@@ -67,12 +67,16 @@ function typeWriter() {
 document.getElementById("typewriter").style.transition = "opacity 0.5s";
 typeWriter();
 
-// --- LIVE STATUS LOGIC (Refined) ---
+// --- LIVE STATUS LOGIC (Refined & Synced) ---
 function updateLiveStatus() {
     const now = new Date();
     const hour = now.getHours();
     const statusText = document.getElementById('liveStatusText');
     const statusDot = document.getElementById('liveStatusDot');
+
+    // Footer Elements
+    const footerText = document.getElementById('footerStatusText');
+    const footerDot = document.getElementById('footerStatusDot');
 
     // Logic:
     // Open: 9AM - 10PM (except break)
@@ -82,23 +86,44 @@ function updateLiveStatus() {
     const isBreak = hour >= 12 && hour < 14;
     const isOpen = hour >= 9 && hour < 22;
 
+    let text = "";
+    let color = "";
+    let shadow = "";
+    let anim = "";
+
     if (isOpen) {
         if (isBreak) {
-            statusText.innerHTML = "Doctor on Break (Resume 2:00 PM)";
-            statusDot.style.backgroundColor = "#eab308"; // Yellow/Gold
-            statusDot.style.boxShadow = "none";
-            statusDot.style.animation = "none";
+            text = "Doctor on Break (Resume 2:00 PM)";
+            color = "#eab308"; // Yellow
+            shadow = "none";
+            anim = "none";
         } else {
-            statusText.innerHTML = "Clinic Open (Queue: <span class='text-success'>Normal</span>)";
-            statusDot.style.backgroundColor = "#22c55e"; // Green
-            statusDot.style.boxShadow = "0 0 10px #22c55e";
-            statusDot.style.animation = "pulse 2s infinite";
+            text = "Clinic Open"; // Removed Queue Status
+            color = "#22c55e"; // Green
+            shadow = "0 0 10px #22c55e";
+            anim = "pulse 2s infinite";
         }
     } else {
-        statusText.innerHTML = "Clinic Closed (Opens 9:00 AM)";
-        statusDot.style.backgroundColor = "#ef4444"; // Red
-        statusDot.style.boxShadow = "none";
-        statusDot.style.animation = "none";
+        text = "Clinic Closed (Opens 9:00 AM)";
+        color = "#ef4444"; // Red
+        shadow = "none";
+        anim = "none";
+    }
+
+    // Update Top Bar
+    if (statusText) statusText.innerHTML = text;
+    if (statusDot) {
+        statusDot.style.backgroundColor = color;
+        statusDot.style.boxShadow = shadow;
+        statusDot.style.animation = anim;
+    }
+
+    // Update Footer
+    if (footerText) footerText.innerHTML = text;
+    if (footerDot) {
+        footerDot.style.backgroundColor = color;
+        footerDot.style.boxShadow = shadow;
+        // Optional: Add animation to footer dot too if desired
     }
 }
 updateLiveStatus();
@@ -249,9 +274,8 @@ function handleUserChoice(choice) {
 
     if (choice === 'Start Over' || choice === 'Back to Start') { resetChat(); return; }
     if (choice === 'Back') {
-        addMessage("Back", true); // Show 'Back' in chat log for clarity
-        // Small delay to make it feel natural
-        setTimeout(() => goBack(), 300);
+        addMessage("Back", true); // Log 'Back' action
+        goBack();
         return;
     }
 
@@ -301,7 +325,12 @@ function processChatFlow(choice) {
             chatState.bookingData.service = 'Follicle Scan';
             startBookingFlow();
         } else if (choice === 'Chat with Specialist') {
-            bookViaWhatsApp('Fertility Inquiry');
+            // FIX: Chat with Specialist Flow
+            addMessage("Connecting you to our Fertility Specialist on WhatsApp...");
+            setTimeout(() => {
+                bookViaWhatsApp('Fertility Specialist Chat', 'I have questions about fertility treatments.');
+                addMainMenu(); // Return to menu after action
+            }, 1000);
         } else {
             // Default Fallback
             addMessage("I didn't quite catch that. Here are some options:");
@@ -412,7 +441,7 @@ function finishFlow(flowName) {
     report += `Advice: ${tips}\n\n`;
     answers.forEach((ans, i) => report += `Q${i + 1}: ${ans}\n`);
 
-    chatState.bookingData.report = report;
+    chatState.bookingData.report = report; // Keep for internal logic, but won't send in WA
     chatState.bookingData.service = `Assessment (${flowName})`;
 
     addMessage(`**Assessment Complete**<br>Risk: <span class="${risk === 'High' ? 'text-danger' : 'text-warning'}">${risk}</span><br>${tips}<br><br>Would you like to see a doctor?`);
@@ -425,29 +454,6 @@ function startBookingFlow() {
     chatState.flow = 'booking';
     chatState.step = 0;
     askBookingQuestion();
-}
-
-// ... (in handleUserChoice)
-
-function handleUserChoice(choice) {
-    const qr = document.getElementById('quickReplies');
-    if (qr) qr.remove();
-
-    if (choice === 'Start Over' || choice === 'Back to Start') { resetChat(); return; }
-    if (choice === 'Back') {
-        addMessage("Back", true); // Log 'Back' action
-        goBack();
-        return;
-    }
-
-    addMessage(choice, true);
-    toggleInput(false);
-    showTyping();
-
-    setTimeout(() => {
-        removeTyping();
-        processChatFlow(choice);
-    }, 600);
 }
 
 function askBookingQuestion() {
@@ -495,21 +501,20 @@ function handleBookingStep(choice) {
 }
 
 function finishBooking() {
-    const { name, date, time, service, report } = chatState.bookingData;
+    const { name, date, time, service } = chatState.bookingData;
+    // Removed 'report' from destructuring to avoid sending it
 
     let finalMsg = `Booking Confirmed for *${name}*.<br>📅 ${date} at ${time}<br><br>Please click below to send this to our WhatsApp for final confirmation.`;
     addMessage(finalMsg);
 
-    // Formatted WhatsApp Message
+    // Formatted WhatsApp Message (Simplified - No Report)
     let waMsg = `*BOOKING REQUEST*\n\n`;
     waMsg += `👤 *Name:* ${name}\n`;
     waMsg += `📅 *Date:* ${date}\n`;
     waMsg += `🕒 *Time:* ${time}\n`;
-    waMsg += `🏥 *Service:* ${service || 'General Appointment'}\n\n`;
+    waMsg += `🏥 *Service:* ${service || 'General Appointment'}\n`;
 
-    if (report) {
-        waMsg += `----------------\n${report}`;
-    }
+    // Note: Q&A Report removed from WhatsApp message as requested
 
     const waUrl = `https://wa.me/60172032048?text=${encodeURIComponent(waMsg)}`;
 
@@ -525,12 +530,14 @@ function finishBooking() {
     btn.innerHTML = '<i class="fab fa-whatsapp"></i> Send to WhatsApp';
     btn.onclick = () => window.open(waUrl, '_blank');
 
-    // Menu Button (Infinite Loop -> Reset)
+    // Menu Button (Appends Main Menu instead of Reset)
     const menuBtn = document.createElement('div');
     menuBtn.className = 'chip';
     menuBtn.innerText = "Main Menu";
     menuBtn.onclick = () => {
-        resetChat(); // Clear screen for a fresh start
+        addMessage("How else can I help?");
+        chatState.flow = null; // Reset flow but keep history
+        addMainMenu();
     };
 
     div.appendChild(btn);
