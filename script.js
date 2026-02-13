@@ -4,6 +4,17 @@ AOS.init({ duration: 800, once: true });
 const navLinks = document.querySelectorAll('.nav-link');
 const sections = document.querySelectorAll('section, footer'); // Include Footer
 
+// --- Mobile Navbar Auto-Collapse on Link Click ---
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        const navCollapse = document.getElementById('navContent');
+        if (navCollapse && navCollapse.classList.contains('show')) {
+            const bsCollapse = bootstrap.Collapse.getInstance(navCollapse) || new bootstrap.Collapse(navCollapse, { toggle: false });
+            bsCollapse.hide();
+        }
+    });
+});
+
 window.addEventListener('scroll', function () {
     const nav = document.querySelector('.navbar');
     // Scrolled Effect
@@ -810,7 +821,7 @@ function resetChat() {
     const chatBody = document.getElementById('chatBody');
     chatBody.innerHTML = `
         <div class="msg msg-bot">
-            Hello! I'm AI Assistant (Reset). Re-calibrating... <br>How can I help you?
+            Hello! 👋 Welcome back. How may I assist you today?
         </div>
     `;
     addMainMenu();
@@ -898,7 +909,7 @@ function processChatFlow(choice) {
         if (choice === 'Check Symptoms') {
             chatState.answers = []; // Reset answers
             saveState();
-            addMessage("I can help assess your condition. What seems to be the main issue?");
+            addMessage("I'd be happy to help assess your condition. Could you tell me what seems to be the main concern?");
             addQuickReplies(['High Fever (Dengue?)', 'General Fever/Flu', 'Other / Pain', 'Back']);
         } else if (choice === 'High Fever (Dengue?)') {
             startFlow('dengue');
@@ -965,30 +976,30 @@ function nextQuestion() {
     // Define Questions
     if (flow === 'dengue') {
         questions = [
-            "Do you have a sudden high fever (>38.5°C)?",
-            "Severe pain behind the eyes?",
-            "Severe joint/muscle pain?",
-            "Any skin rash or red spots?",
-            "Bleeding from nose/gums?"
+            "Have you been experiencing a sudden high fever, above 38.5°C? 🤒",
+            "Are you feeling any severe pain behind your eyes?",
+            "Have you noticed any severe joint or muscle pain?",
+            "Do you see any skin rash or red spots on your body?",
+            "Have you experienced any bleeding from your nose or gums?"
         ];
     } else if (flow === 'fever') {
         questions = [
-            "Duration of fever?",
-            "Temperature > 38°C?",
-            "Cough / Sore Throat?",
-            "Breathing Difficulty?",
-            "Eating/Drinking okay?"
+            "How long have you been having this fever?",
+            "Has your temperature gone above 38°C?",
+            "Are you also experiencing a cough or sore throat?",
+            "Are you having any difficulty breathing?",
+            "Are you still able to eat and drink comfortably?"
         ];
         options = [
-            ['< 2 Days', '> 3 Days'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No']
+            ['Less than 2 Days', 'More than 3 Days'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No']
         ];
     } else if (flow === 'general') {
         questions = [
-            "Pain Level (1-10)?",
-            "Any Drug Allergies?",
-            "Taking medication?",
-            "Recurring Issue?",
-            "Pregnant/Breastfeeding?"
+            "On a scale of 1 to 10, how would you rate your pain level?",
+            "Do you have any known drug allergies we should be aware of?",
+            "Are you currently taking any medication?",
+            "Has this been a recurring issue for you?",
+            "Are you currently pregnant or breastfeeding?"
         ];
         options = [
             ['Mild (1-3)', 'Severe (>7)'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No'], ['Yes', 'No']
