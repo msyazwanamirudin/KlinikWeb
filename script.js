@@ -203,27 +203,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2b. Emergency Reset Trigger (Hidden in Top Bar Doctor Name)
+    // 2b. Emergency Reset Trigger (Hidden in Top Bar Doctor Name AND Footer Status)
     let resetCount = 0;
     let resetTimer = null;
+
+    function handleEmergencyReset() {
+        resetCount++;
+        if (resetCount === 1) resetTimer = setTimeout(() => { resetCount = 0; }, 2000);
+        if (resetCount >= 10) {
+            if (confirm("⚠️ Developer Reset: Clear Lockouts & Enable Debug Mode?")) {
+                localStorage.removeItem('adminLockout');
+                localStorage.removeItem('adminAttempts');
+                enableDebugMode();
+                alert("System Reset! Try logging in again.");
+            }
+            resetCount = 0;
+            clearTimeout(resetTimer);
+        }
+    }
+
     const resetTrigger = document.getElementById('topDoctorDuty');
     if (resetTrigger) {
-        resetTrigger.style.cursor = 'default'; // Hidden in plain sight
-        resetTrigger.addEventListener('click', () => {
-            resetCount++;
-            if (resetCount === 1) resetTimer = setTimeout(() => { resetCount = 0; }, 2000);
-            if (resetCount >= 10) {
-                // EMERGENCY RESET (For Developer)
-                if (confirm("⚠️ Developer Reset: Clear Lockouts & Enable Debug Mode?")) {
-                    localStorage.removeItem('adminLockout');
-                    localStorage.removeItem('adminAttempts');
-                    enableDebugMode();
-                    alert("System Reset! Try logging in again.");
-                }
-                resetCount = 0;
-                clearTimeout(resetTimer);
-            }
-        });
+        resetTrigger.style.cursor = 'default';
+        resetTrigger.addEventListener('click', handleEmergencyReset);
+    }
+
+    // Also add to Footer Status Text for easier access on mobile
+    const footerStatus = document.getElementById('footerStatusText');
+    if (footerStatus) {
+        footerStatus.addEventListener('click', handleEmergencyReset);
     }
 
     // 3. Initialize Logic
@@ -271,10 +279,12 @@ function openAdminModal() {
     document.getElementById('adminControlScreen').style.display = 'none';
     document.getElementById('adminPinInput').value = '';
     document.getElementById('adminPinInput').focus();
+    document.body.classList.add('modal-open'); // Lock Scroll
 }
 
 function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
+    document.body.classList.remove('modal-open'); // Unlock Scroll
 }
 
 function verifyAdminPin() {
@@ -588,28 +598,73 @@ function updateDoctorRoster(isOpen) {
 
 // --- PUBLIC HEALTH TOOLS ---
 function calculateBMI() {
-    const h = parseFloat(document.getElementById('bmiHeight').value) / 100;
-    const w = parseFloat(document.getElementById('bmiWeight').value);
-    if (!h || !w) return alert("Enter valid height & weight");
+    const hInput = document.getElementById('bmiHeight');
+    const wInput = document.getElementById('bmiWeight');
+    const resultDiv = document.getElementById('bmiResult');
 
-    const bmi = (w / (h * h)).toFixed(1);
-    let status = "";
-    if (bmi < 18.5) status = "Underweight";
-    else if (bmi < 25) status = "Normal";
-    else if (bmi < 30) status = "Overweight";
-    else status = "Obese";
+    if (!hInput.value || !wInput.value) return alert("Enter valid height & weight");
 
-    document.getElementById('bmiResult').innerText = `BMI: ${bmi} (${status})`;
+    const h = parseFloat(hInput.value) / 100;
+    const w = parseFloat(wInput.value);
+
+    // Loading State
+    resultDiv.innerHTML = '<span class="text-primary"><i class="fas fa-spinner fa-spin me-2"></i>Calculating...</span>';
+
+    setTimeout(() => {
+        const bmi = (w / (h * h)).toFixed(1);
+        let status = "";
+        let color = "";
+        let advice = "";
+
+        if (bmi < 18.5) {
+            status = "Underweight";
+            color = "text-info";
+            advice = "Eat more nutrient-rich foods.";
+        } else if (bmi < 25) {
+            status = "Normal";
+            color = "text-success";
+            advice = "Great! Maintain your balanced diet.";
+        } else if (bmi < 30) {
+            status = "Overweight";
+            color = "text-warning";
+            advice = "Consider regular exercise.";
+        } else {
+            status = "Obese";
+            color = "text-danger";
+            advice = "Please consult a doctor for advice.";
+        }
+
+        resultDiv.innerHTML = `
+            <div>BMI: <span class="display-6 fw-bold ${color}">${bmi}</span></div>
+            <div class="fw-bold ${color}">${status}</div>
+            <div class="small text-muted mt-1"><i class="fas fa-info-circle me-1"></i>${advice}</div>
+        `;
+    }, 800);
 }
 
 function calculateDueDate() {
-    const lmp = new Date(document.getElementById('lmpDate').value);
+    const lmpInput = document.getElementById('lmpDate');
+    const resultDiv = document.getElementById('eddResult');
+
+    const lmp = new Date(lmpInput.value);
     if (isNaN(lmp)) return alert("Select a date");
 
-    const due = new Date(lmp);
-    due.setDate(lmp.getDate() + 280); // +40 Weeks
+    // Loading State
+    resultDiv.innerHTML = '<span class="text-primary"><i class="fas fa-spinner fa-spin me-2"></i>Calculating...</span>';
 
-    document.getElementById('eddResult').innerText = `Estimated Due Date: ${due.toDateString()}`;
+    setTimeout(() => {
+        const due = new Date(lmp);
+        due.setDate(lmp.getDate() + 280); // +40 Weeks
+
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        const dateStr = due.toLocaleDateString('en-US', options);
+
+        resultDiv.innerHTML = `
+            <div class="small text-muted mb-1">Estimated Due Date:</div>
+            <div class="h5 fw-bold text-primary mb-0">${dateStr}</div>
+            <div class="small text-muted mt-1">based on 40-week gestation</div>
+        `;
+    }, 800);
 }
 
 
@@ -867,7 +922,8 @@ function processChatFlow(choice) {
             addMessage("Connecting you to our Fertility Specialist on WhatsApp...");
             setTimeout(() => {
                 bookViaWhatsApp('Fertility Specialist Chat', 'I have questions about fertility treatments.');
-                addMainMenu(); // Return to menu after action
+                addMessage("I've opened WhatsApp for you. Feel free to come back here if you need anything else!");
+                addQuickReplies(['Back to Start']); // Don't auto-show menu, just a back button
             }, 1000);
         } else {
             // Default Fallback
