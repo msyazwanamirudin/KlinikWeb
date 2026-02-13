@@ -706,11 +706,12 @@
                                 <!-- Tabs -->
                                 <ul class="nav nav-pills mb-3 nav-justified" id="adminTabs">
                                     <li class="nav-item">
-                                        <button class="nav-link active btn-sm" onclick="switchAdminTab('roster')">👨‍⚕️
+                                        <button class="nav-link active btn-sm"
+                                            onclick="switchAdminTab('roster', event)">👨‍⚕️
                                             Roster</button>
                                     </li>
                                     <li class="nav-item">
-                                        <button class="nav-link btn-sm" onclick="switchAdminTab('promo')">📣
+                                        <button class="nav-link btn-sm" onclick="switchAdminTab('promo', event)">📣
                                             Promo</button>
                                     </li>
                                 </ul>
@@ -818,6 +819,8 @@
                                             </small>
                                             <img id="promoImgPreview" src="" class="img-fluid rounded mt-2 border"
                                                 style="display: none; max-height: 150px; object-fit: cover; width: 100%;">
+                                            <p id="imgErrorMsg" class="text-danger small mt-1" style="display:none;">
+                                            </p>
                                         </div>
                                         <button type="submit" class="btn btn-success btn-sm w-100">Save &
                                             Publish</button>

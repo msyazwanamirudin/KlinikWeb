@@ -233,16 +233,24 @@ function verifyAdminPin() {
     }
 }
 
-function switchAdminTab(tab) {
+function switchAdminTab(tab, event) {
+    if (event) event.preventDefault();
+
     document.querySelectorAll('.admin-tab-pane').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-pills .nav-link').forEach(el => el.classList.remove('active'));
 
     if (tab === 'roster') {
         document.getElementById('tabRoster').style.display = 'block';
-        event.target.classList.add('active'); // Simplistic active toggle
     } else {
         document.getElementById('tabPromo').style.display = 'block';
-        event.target.classList.add('active');
+        // Force redraw for image preview if needed
+        const preview = document.getElementById('promoImgPreview');
+        if (preview && preview.src) preview.style.display = 'block';
+    }
+
+    // robust active class toggling
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
     }
 }
 
@@ -566,9 +574,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle Image Load Error
         preview.addEventListener('error', function () {
             if (this.src && this.src !== window.location.href && !this.src.startsWith('data:image')) {
-                alert("Cannot load this image. The website hosting it might be blocking access (Hotlinking protection) or the URL is invalid.\n\nTry a direct link from Unsplash or use the Upload feature.");
+                // alert("Cannot load this image..."); // Removed strict alert
                 this.style.display = 'none';
+                const errorMsg = document.getElementById('imgErrorMsg');
+                if (errorMsg) {
+                    errorMsg.style.display = 'block';
+                    errorMsg.textContent = "Unable to load image. It might be blocked (hotlink protection) or invalid.";
+                }
             }
+        });
+
+        // Reset error on successful load (or new input)
+        preview.addEventListener('load', function () {
+            const errorMsg = document.getElementById('imgErrorMsg');
+            if (errorMsg) errorMsg.style.display = 'none';
         });
     }
 
@@ -951,6 +970,13 @@ function handleBookingStep(choice) {
     const step = chatState.step;
 
     if (step === 0) {
+        // Name Validation (Alphabets only)
+        if (!/^[a-zA-Z\s]+$/.test(choice)) {
+            addMessage("Please enter a valid name (letters only).");
+            // Do NOT advance step.
+            return;
+        }
+
         chatState.bookingData.name = choice;
         saveState();
         chatState.step = 1;
@@ -1110,7 +1136,7 @@ function finishBooking() {
         // New Requested Format
         let waMsg = `👤 Name: ${name}\n`;
         waMsg += `📅 Date: ${date}\n`;
-        waMsg += `⏰ Time: ${time}\n`;
+        waMsg += `🕒 Time: ${time}\n`;
         waMsg += `🏥 Service: ${service || 'General Booking'}\n`;
         waMsg += `--------------------------------\n`;
         waMsg += `Hi, I would like to confirm my appointment.`;

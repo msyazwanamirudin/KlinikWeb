@@ -1028,7 +1028,8 @@ h4,
 
 .admin-content {
     background: white;
-    width: 100%;
+    width: 95%;
+    /* Better for mobile */
     max-width: 600px;
     border-radius: 12px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
