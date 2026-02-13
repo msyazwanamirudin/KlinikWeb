@@ -613,318 +613,316 @@
             </div>
         </div>
         <!-- Patient Resources (Calculators) -->
-        <section class="py-5 bg-white border-top" id="resources">
-            <div class="container py-5">
-                <div class="text-center mb-5">
-                    <span class="text-primary fw-bold letter-spacing-2 text-uppercase">Interactive Tools</span>
-                    <h2 class="display-5 fw-bold mt-2">Patient Resources</h2>
-                </div>
-                <div class="row g-4 justify-content-center">
-                    <!-- BMI Calculator -->
-                    <div class="col-md-5">
-                        <div class="p-4 bg-light rounded-4 border">
-                            <h4 class="fw-bold mb-3"><i class="fas fa-weight text-primary me-2"></i>BMI Calculator</h4>
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <input type="number" id="bmiHeight" class="form-control" placeholder="Height (cm)">
-                                </div>
-                                <div class="col-6">
-                                    <input type="number" id="bmiWeight" class="form-control" placeholder="Weight (kg)">
-                                </div>
+    </section>
+    <section class="py-5 bg-white border-top" id="resources">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="text-primary fw-bold letter-spacing-2 text-uppercase">Interactive Tools</span>
+                <h2 class="display-5 fw-bold mt-2">Patient Resources</h2>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <!-- BMI Calculator -->
+                <div class="col-md-5">
+                    <div class="p-4 bg-light rounded-4 border">
+                        <h4 class="fw-bold mb-3"><i class="fas fa-weight text-primary me-2"></i>BMI Calculator</h4>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <input type="number" id="bmiHeight" class="form-control" placeholder="Height (cm)">
                             </div>
-                            <button onclick="calculateBMI()" class="btn btn-primary w-100 mb-3">Calculate BMI</button>
-                            <div id="bmiResult" class="fw-bold text-center text-dark h5 mb-0">-</div>
+                            <div class="col-6">
+                                <input type="number" id="bmiWeight" class="form-control" placeholder="Weight (kg)">
+                            </div>
                         </div>
+                        <button onclick="calculateBMI()" class="btn btn-primary w-100 mb-3">Calculate BMI</button>
+                        <div id="bmiResult" class="fw-bold text-center text-dark h5 mb-0">-</div>
                     </div>
-                    <!-- Due Date Calculator -->
-                    <div class="col-md-5">
-                        <div class="p-4 bg-light rounded-4 border">
-                            <h4 class="fw-bold mb-3"><i class="fas fa-baby text-primary me-2"></i>Pregnancy Due Date
-                            </h4>
-                            <label class="small text-muted mb-2">First Day of Last Period (LMP)</label>
-                            <input type="date" id="lmpDate" class="form-control mb-3">
-                            <button onclick="calculateDueDate()" class="btn btn-primary w-100 mb-3">Calculate
-                                EDD</button>
-                            <div id="eddResult" class="fw-bold text-center text-dark h5 mb-0">-</div>
-                        </div>
+                </div>
+                <!-- Due Date Calculator -->
+                <div class="col-md-5">
+                    <div class="p-4 bg-light rounded-4 border">
+                        <h4 class="fw-bold mb-3"><i class="fas fa-baby text-primary me-2"></i>Pregnancy Due Date
+                        </h4>
+                        <label class="small text-muted mb-2">First Day of Last Period (LMP)</label>
+                        <input type="date" id="lmpDate" class="form-control mb-3">
+                        <button onclick="calculateDueDate()" class="btn btn-primary w-100 mb-3">Calculate
+                            EDD</button>
+                        <div id="eddResult" class="fw-bold text-center text-dark h5 mb-0">-</div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
 
 
-        <!-- Footer -->
-        <footer id="mainFooter" class="bg-dark text-white pt-5 pb-2 position-relative">
-            <div class="container position-relative z-2">
-                <div class="row g-5">
-                    <!-- 1. Brand & Clinic Status -->
-                    <div class="col-lg-4">
-                        <h3 class="fw-bold mb-4 text-white">Klinik<span class="text-secondary">.</span></h3>
-                        <p class="text-white-50 mb-4">Redefining primary care in Malaysia. Combining medical excellence
-                            with
-                            technology for a seamless experience.</p>
+    <!-- Footer -->
+    <footer id="mainFooter" class="bg-dark text-white pt-5 pb-2 position-relative">
+        <div class="container position-relative z-2">
+            <div class="row g-5">
+                <!-- 1. Brand & Clinic Status -->
+                <div class="col-lg-4">
+                    <h3 class="fw-bold mb-4 text-white">Klinik<span class="text-secondary">.</span></h3>
+                    <p class="text-white-50 mb-4">Redefining primary care in Malaysia. Combining medical excellence
+                        with
+                        technology for a seamless experience.</p>
 
-                        <!-- Clinic Status (Moved here) -->
-                        <h6 class="text-primary mb-4">Clinic Status</h6>
-                        <div class="d-flex align-items-center mb-3">
-                            <span id="footerStatusDot"
-                                style="width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #22c55e;"></span>
-                            <span id="footerStatusText" class="text-white fw-bold">Open Today</span>
+                    <!-- Clinic Status (Moved here) -->
+                    <h6 class="text-primary mb-4">Clinic Status</h6>
+                    <div class="d-flex align-items-center mb-3">
+                        <span id="footerStatusDot"
+                            style="width: 10px; height: 10px; background-color: #22c55e; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #22c55e;"></span>
+                        <span id="footerStatusText" class="text-white fw-bold">Open Today</span>
+                    </div>
+                    <!-- Doctor on DutySystem -->
+                    <div class="mb-3">
+                        <small class="text-white-50 d-block mb-1">Doctor on
+                            Duty:</small>
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="fas fa-user-md text-primary me-2"></i>
+                            <span id="doctorDutyText" class="text-white">Loading...</span>
                         </div>
-                        <!-- Doctor on DutySystem -->
-                        <div class="mb-3">
-                            <small class="text-white-50 d-block mb-1">Doctor on
-                                Duty:</small>
-                            <div class="d-flex align-items-center mb-1">
-                                <i class="fas fa-user-md text-primary me-2"></i>
-                                <span id="doctorDutyText" class="text-white">Loading...</span>
+                        <a href="javascript:void(0)" onclick="openRosterModal()"
+                            class="text-primary small text-decoration-none">
+                            <i class="fas fa-calendar-alt me-1"></i> View Full Schedule
+                        </a>
+                    </div>
+
+                    <!-- Patient Roster View Modal -->
+                    <div id="rosterModal" class="admin-modal" style="display: none;">
+                        <div class="admin-content" style="max-width: 500px;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="text-dark mb-0 fw-bold">📅 Doctor Schedule (Next 7 Days)</h5>
+                                <div class="close-modal-btn" onclick="closeRosterModal()">&times;</div>
                             </div>
-                            <a href="javascript:void(0)" onclick="openRosterModal()"
-                                class="text-primary small text-decoration-none">
-                                <i class="fas fa-calendar-alt me-1"></i> View Full Schedule
-                            </a>
+                            <div class="bg-light p-3 rounded mb-3">
+                                <p class="small text-muted mb-0"><i class="fas fa-info-circle me-1"></i> Schedule is
+                                    subject to last minute changes. Please call to confirm.</p>
+                            </div>
+                            <ul id="publicRosterList"
+                                class="list-group list-group-flush border rounded overflow-hidden">
+                                <!-- Populated by JS -->
+                            </ul>
+                            <div class="mt-3 text-center">
+                                <button onclick="closeRosterModal()"
+                                    class="btn btn-primary btn-sm px-4 rounded-pill">Close</button>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Patient Roster View Modal -->
-                        <div id="rosterModal" class="admin-modal" style="display: none;">
-                            <div class="admin-content" style="max-width: 500px;">
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="text-dark mb-0 fw-bold">📅 Doctor Schedule (Next 7 Days)</h5>
-                                    <div class="close-modal-btn" onclick="closeRosterModal()">&times;</div>
-                                </div>
-                                <div class="bg-light p-3 rounded mb-3">
-                                    <p class="small text-muted mb-0"><i class="fas fa-info-circle me-1"></i> Schedule is
-                                        subject to last minute changes. Please call to confirm.</p>
-                                </div>
-                                <ul id="publicRosterList"
-                                    class="list-group list-group-flush border rounded overflow-hidden">
-                                    <!-- Populated by JS -->
+                    <!-- Hidden Admin Dashboard (No Backend - LocalStorage CMS) -->
+                    <div id="adminModal" class="admin-modal" style="display: none;">
+                        <div class="admin-content admin-dashboard">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="text-dark mb-0 fw-bold"><i class="fas fa-cogs text-primary me-2"></i>Admin
+                                    Dashboard</h5>
+                                <div class="close-modal-btn" onclick="closeAdminModal()">&times;</div>
+                            </div>
+
+                            <!-- Screen 1: PIN -->
+                            <div id="adminPinScreen">
+                                <p class="text-muted small mb-2 text-center">Enter PIN to access CMS:</p>
+                                <input type="password" id="adminPinInput" class="form-control mb-3 text-center"
+                                    placeholder="****" maxlength="6">
+                                <button onclick="verifyAdminPin()" class="btn btn-primary w-100 btn-sm">Verify
+                                    Identity</button>
+                                <p id="pinError" class="text-danger small mt-2 text-center" style="display:none;">
+                                    Invalid PIN</p>
+                            </div>
+
+                            <!-- Screen 2: Dashboard -->
+                            <div id="adminControlScreen" style="display: none;">
+                                <!-- Tabs (Hidden as we only have Inventory now, but kept structure if needed later) -->
+                                <ul class="nav nav-pills mb-3 nav-justified" id="adminTabs" style="display:none;">
+                                    <li class="nav-item">
+                                        <button class="nav-link active btn-sm"
+                                            onclick="switchAdminTab('inventory', event)">📦 Inventory</button>
+                                    </li>
                                 </ul>
-                                <div class="mt-3 text-center">
-                                    <button onclick="closeRosterModal()"
-                                        class="btn btn-primary btn-sm px-4 rounded-pill">Close</button>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Hidden Admin Dashboard (No Backend - LocalStorage CMS) -->
-                        <div id="adminModal" class="admin-modal" style="display: none;">
-                            <div class="admin-content admin-dashboard">
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="text-dark mb-0 fw-bold"><i
-                                            class="fas fa-cogs text-primary me-2"></i>Admin
-                                        Dashboard</h5>
-                                    <div class="close-modal-btn" onclick="closeAdminModal()">&times;</div>
-                                </div>
-
-                                <!-- Screen 1: PIN -->
-                                <div id="adminPinScreen">
-                                    <p class="text-muted small mb-2 text-center">Enter PIN to access CMS:</p>
-                                    <input type="password" id="adminPinInput" class="form-control mb-3 text-center"
-                                        placeholder="****" maxlength="6">
-                                    <button onclick="verifyAdminPin()" class="btn btn-primary w-100 btn-sm">Verify
-                                        Identity</button>
-                                    <p id="pinError" class="text-danger small mt-2 text-center" style="display:none;">
-                                        Invalid PIN</p>
-                                </div>
-
-                                <!-- Screen 2: Dashboard -->
-                                <div id="adminControlScreen" style="display: none;">
-                                    <!-- Tabs (Hidden as we only have Inventory now, but kept structure if needed later) -->
-                                    <ul class="nav nav-pills mb-3 nav-justified" id="adminTabs" style="display:none;">
-                                        <li class="nav-item">
-                                            <button class="nav-link active btn-sm"
-                                                onclick="switchAdminTab('inventory', event)">📦 Inventory</button>
-                                        </li>
-                                    </ul>
-
-                                    <!-- Tab: Inventory Management -->
-                                    <div id="tabInventory" class="admin-tab-pane" style="display: block;">
-                                        <div class="d-flex flex-column gap-3 mb-3">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <h6 class="text-primary fw-bold small text-uppercase mb-0">Stock
-                                                    Management</h6>
-                                                <button onclick="toggleInventoryForm()"
-                                                    class="btn btn-primary btn-sm rounded-pill px-3"><i
-                                                        class="fas fa-plus me-1"></i> Add Item</button>
-                                            </div>
-
-                                            <!-- Search & Filter -->
-                                            <div class="d-flex gap-2">
-                                                <input type="text" id="invSearch" class="form-control form-control-sm"
-                                                    placeholder="Search item..." onkeyup="filterInventory()">
-                                                <select id="invFilterCategory" class="form-select form-select-sm"
-                                                    style="width: auto;" onchange="filterInventory()">
-                                                    <option value="All">All Categories</option>
-                                                    <option value="Medicine">Medicine</option>
-                                                    <option value="Supplements">Supplements</option>
-                                                    <option value="Equipment">Equipment</option>
-                                                    <option value="Stationery">Stationery</option>
-                                                    <option value="Others">Others</option>
-                                                </select>
-                                            </div>
+                                <!-- Tab: Inventory Management -->
+                                <div id="tabInventory" class="admin-tab-pane" style="display: block;">
+                                    <div class="d-flex flex-column gap-3 mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="text-primary fw-bold small text-uppercase mb-0">Stock
+                                                Management</h6>
+                                            <button onclick="toggleInventoryForm()"
+                                                class="btn btn-primary btn-sm rounded-pill px-3"><i
+                                                    class="fas fa-plus me-1"></i> Add Item</button>
                                         </div>
 
-                                        <!-- Add Item Form (Hidden) -->
-                                        <div id="inventoryForm" class="bg-light p-3 rounded mb-3 border shadow-sm"
+                                        <!-- Search & Filter -->
+                                        <div class="d-flex gap-2">
+                                            <input type="text" id="invSearch" class="form-control form-control-sm"
+                                                placeholder="Search item..." onkeyup="filterInventory()">
+                                            <select id="invFilterCategory" class="form-select form-select-sm"
+                                                style="width: auto;" onchange="filterInventory()">
+                                                <option value="All">All Categories</option>
+                                                <option value="Medicine">Medicine</option>
+                                                <option value="Supplements">Supplements</option>
+                                                <option value="Equipment">Equipment</option>
+                                                <option value="Stationery">Stationery</option>
+                                                <option value="Others">Others</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add Item Form (Hidden) -->
+                                    <div id="inventoryForm" class="bg-light p-3 rounded mb-3 border shadow-sm"
+                                        style="display: none;">
+                                        <h6 class="fw-bold mb-2">New Stock Item</h6>
+                                        <div class="mb-2">
+                                            <select id="invCategory" class="form-select form-select-sm mb-2">
+                                                <option value="Medicine">Medicine</option>
+                                                <option value="Supplements">Supplements</option>
+                                                <option value="Equipment">Equipment</option>
+                                                <option value="Stationery">Stationery</option>
+                                                <option value="Others">Others</option>
+                                            </select>
+                                            <input type="text" id="invName" class="form-control form-control-sm"
+                                                placeholder="Item Name (e.g. Paracetamol 500mg)">
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <input type="number" id="invQty" class="form-control form-control-sm"
+                                                    placeholder="Qty">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="date" id="invExpiry" class="form-control form-control-sm">
+                                                <small class="text-muted" style="font-size: 0.7rem;">Expiry
+                                                    (Optional)</small>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button onclick="addInventoryItem()"
+                                                class="btn btn-success btn-sm flex-grow-1">Save Item</button>
+                                            <button onclick="toggleInventoryForm()"
+                                                class="btn btn-outline-secondary btn-sm">Cancel</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Inventory List -->
+                                    <div class="table-responsive border rounded bg-white shadow-sm"
+                                        style="max-height: 50vh;">
+                                        <table class="table table-hover mb-0 align-middle" style="font-size: 0.9rem;">
+                                            <thead class="table-light sticky-top">
+                                                <tr>
+                                                    <th style="width: 40%;">Item</th>
+                                                    <th style="width: 20%;">Category</th>
+                                                    <th style="width: 30%;">Stock</th>
+                                                    <th style="width: 10%;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="inventoryList">
+                                                <!-- Populated by JS -->
+                                            </tbody>
+                                        </table>
+                                        <div id="inventoryEmpty" class="text-center p-4 text-muted"
                                             style="display: none;">
-                                            <h6 class="fw-bold mb-2">New Stock Item</h6>
-                                            <div class="mb-2">
-                                                <select id="invCategory" class="form-select form-select-sm mb-2">
-                                                    <option value="Medicine">Medicine</option>
-                                                    <option value="Supplements">Supplements</option>
-                                                    <option value="Equipment">Equipment</option>
-                                                    <option value="Stationery">Stationery</option>
-                                                    <option value="Others">Others</option>
-                                                </select>
-                                                <input type="text" id="invName" class="form-control form-control-sm"
-                                                    placeholder="Item Name (e.g. Paracetamol 500mg)">
-                                            </div>
-                                            <div class="row g-2 mb-2">
-                                                <div class="col-6">
-                                                    <input type="number" id="invQty"
-                                                        class="form-control form-control-sm" placeholder="Qty">
-                                                </div>
-                                                <div class="col-6">
-                                                    <input type="date" id="invExpiry"
-                                                        class="form-control form-control-sm">
-                                                    <small class="text-muted" style="font-size: 0.7rem;">Expiry
-                                                        (Optional)</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex gap-2">
-                                                <button onclick="addInventoryItem()"
-                                                    class="btn btn-success btn-sm flex-grow-1">Save Item</button>
-                                                <button onclick="toggleInventoryForm()"
-                                                    class="btn btn-outline-secondary btn-sm">Cancel</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Inventory List -->
-                                        <div class="table-responsive border rounded bg-white shadow-sm"
-                                            style="max-height: 50vh;">
-                                            <table class="table table-hover mb-0 align-middle"
-                                                style="font-size: 0.9rem;">
-                                                <thead class="table-light sticky-top">
-                                                    <tr>
-                                                        <th style="width: 40%;">Item</th>
-                                                        <th style="width: 20%;">Category</th>
-                                                        <th style="width: 30%;">Stock</th>
-                                                        <th style="width: 10%;"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="inventoryList">
-                                                    <!-- Populated by JS -->
-                                                </tbody>
-                                            </table>
-                                            <div id="inventoryEmpty" class="text-center p-4 text-muted"
-                                                style="display: none;">
-                                                <i class="fas fa-box-open fs-1 mb-2 text-secondary"></i><br>
-                                                No items found.
-                                            </div>
+                                            <i class="fas fa-box-open fs-1 mb-2 text-secondary"></i><br>
+                                            No items found.
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <ul class="list-unstyled footer-links text-white-50">
-                            <li class="mb-2">9:00 AM - 10:00 PM</li>
-                            <li class="mb-2">Open Daily</li>
-                        </ul>
                     </div>
-
-                    <!-- 2. Contact Us (Moved here, Quick Links deleted) -->
-                    <div class="col-lg-4">
-                        <h6 class="text-primary mb-3">Contact Us</h6>
-                        <ul class="list-unstyled text-white-50">
-                            <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>Alam Sari, 43000 Bangi, Selangor
-                            </li>
-                            <li class="mb-2"><i class="fas fa-phone me-2"></i>017-2032048</li>
-                            <li class="mb-2"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
-                        </ul>
-                    </div>
-
-                    <!-- 3. Map (Unchanged) -->
-                    <div class="col-lg-4">
-                        <h6 class="text-primary mb-4">Our Location</h6>
-                        <div class="map-container rounded-3 overflow-hidden shadow-sm">
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
-                                width="100%" height="250" style="border:0; filter: none !important;" allowfullscreen=""
-                                loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        </div>
-                        <div class="mt-2 d-flex gap-2">
-                            <a href="https://www.google.com/maps/search/?api=1&query=Alam+Sari,+43000+Bangi,+Selangor"
-                                target="_blank" class="btn btn-outline-light btn-sm flex-grow-1">
-                                <i class="fab fa-google me-1"></i> Maps
-                            </a>
-                            <a href="https://waze.com/ul?q=Alam+Sari,+43000+Bangi,+Selangor" target="_blank"
-                                class="btn btn-outline-light btn-sm flex-grow-1">
-                                <i class="fab fa-waze me-1"></i> Waze
-                            </a>
-                        </div>
-                    </div>
+                    <ul class="list-unstyled footer-links text-white-50">
+                        <li class="mb-2">9:00 AM - 10:00 PM</li>
+                        <li class="mb-2">Open Daily</li>
+                    </ul>
                 </div>
-                <hr class="border-secondary my-5">
-                <div class="text-center text-white-50 small" id="adminTrigger" style="cursor: default;">
-                    &copy; 2026 Klinik Sdn Bhd. All rights reserved.
+
+                <!-- 2. Contact Us (Moved here, Quick Links deleted) -->
+                <div class="col-lg-4">
+                    <h6 class="text-primary mb-3">Contact Us</h6>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>Alam Sari, 43000 Bangi, Selangor
+                        </li>
+                        <li class="mb-2"><i class="fas fa-phone me-2"></i>017-2032048</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
+                    </ul>
+                </div>
+
+                <!-- 3. Map (Unchanged) -->
+                <div class="col-lg-4">
+                    <h6 class="text-primary mb-4">Our Location</h6>
+                    <div class="map-container rounded-3 overflow-hidden shadow-sm">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
+                            width="100%" height="250" style="border:0; filter: none !important;" allowfullscreen=""
+                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                    <div class="mt-2 d-flex gap-2">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Alam+Sari,+43000+Bangi,+Selangor"
+                            target="_blank" class="btn btn-outline-light btn-sm flex-grow-1">
+                            <i class="fab fa-google me-1"></i> Maps
+                        </a>
+                        <a href="https://waze.com/ul?q=Alam+Sari,+43000+Bangi,+Selangor" target="_blank"
+                            class="btn btn-outline-light btn-sm flex-grow-1">
+                            <i class="fab fa-waze me-1"></i> Waze
+                        </a>
+                    </div>
                 </div>
             </div>
-        </footer>
-
-
-        <!-- Back to Top Button -->
-        <a href="#" class="back-to-top d-flex align-items-center justify-content-center" id="backToTop">
-            <i class="fas fa-arrow-up"></i>
-        </a>
-
-        <!-- --- OVERLAYS --- -->
-
-        <!-- Chat Widget Button -->
-        <div class="chat-widget-btn" onclick="toggleChat()">
-            <i class="fas fa-robot"></i>
-            <div class="chat-badge"></div>
-        </div>
-
-        <!-- AI Chat Window -->
-        <div class="chat-window" id="chatWindow">
-            <div class="chat-header">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-white text-primary rounded-circle p-2 d-flex align-items-center justify-content-center"
-                        style="width: 40px; height: 40px;">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div>
-                        <h6 class="mb-0"> AI</h6>
-                        <small style="opacity:0.8;">Active now</small>
-                    </div>
-                </div>
-                <button onclick="toggleChat()" class="btn btn-sm text-white"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="chat-body" id="chatBody">
-                <!-- Initial Messages -->
-                <div class="msg msg-bot">
-                    Hello! I'm AI, your virtual assistant. 👋 <br>
-                    How can I help you today?
-                </div>
-                <div class="quick-replies" id="quickReplies">
-                    <div class="chip" onclick="handleUserChoice('Check Symptoms')">Check Symptoms</div>
-                    <div class="chip" onclick="handleUserChoice('Book Appointment')">Book Appointment</div>
-                    <div class="chip" onclick="handleUserChoice('Fertility Info')">Fertility Info</div>
-                </div>
-            </div>
-            <!-- Input Area (Hidden by Default) -->
-            <div class="chat-input" id="chatInputArea" style="display: none;">
-                <input type="text" id="chatInput" placeholder="Type your answer..." onkeypress="handleEnter(event)">
-                <button onclick="handleInputSubmit()"><i class="fas fa-paper-plane"></i></button>
+            <hr class="border-secondary my-5">
+            <div class="text-center text-white-50 small" id="adminTrigger" style="cursor: default;">
+                &copy; 2026 Klinik Sdn Bhd. All rights reserved.
             </div>
         </div>
+    </footer>
 
-        <!-- JavaScript -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-        <script src="script.js"></script>
+
+    <!-- Back to Top Button -->
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- --- OVERLAYS --- -->
+
+    <!-- Chat Widget Button -->
+    <div class="chat-widget-btn" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+        <div class="chat-badge"></div>
+    </div>
+
+    <!-- AI Chat Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white text-primary rounded-circle p-2 d-flex align-items-center justify-content-center"
+                    style="width: 40px; height: 40px;">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0"> AI</h6>
+                    <small style="opacity:0.8;">Active now</small>
+                </div>
+            </div>
+            <button onclick="toggleChat()" class="btn btn-sm text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <!-- Initial Messages -->
+            <div class="msg msg-bot">
+                Hello! I'm AI, your virtual assistant. 👋 <br>
+                How can I help you today?
+            </div>
+            <div class="quick-replies" id="quickReplies">
+                <div class="chip" onclick="handleUserChoice('Check Symptoms')">Check Symptoms</div>
+                <div class="chip" onclick="handleUserChoice('Book Appointment')">Book Appointment</div>
+                <div class="chip" onclick="handleUserChoice('Fertility Info')">Fertility Info</div>
+            </div>
+        </div>
+        <!-- Input Area (Hidden by Default) -->
+        <div class="chat-input" id="chatInputArea" style="display: none;">
+            <input type="text" id="chatInput" placeholder="Type your answer..." onkeypress="handleEnter(event)">
+            <button onclick="handleInputSubmit()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

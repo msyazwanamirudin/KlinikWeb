@@ -24,8 +24,6 @@ html {
     margin: 0;
     padding: 0;
     height: 100%;
-    background-color: #212529;
-    /* Match footer bg-dark to prevent light strip below footer */
 }
 
 body {
@@ -50,10 +48,7 @@ footer {
     width: 100%;
 }
 
-/* Collapse all elements after footer so they don't add flex space */
-footer~* {
-    position: fixed;
-}
+
 
 body.modal-open {
     overflow: hidden;
