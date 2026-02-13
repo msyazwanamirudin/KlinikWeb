@@ -947,12 +947,28 @@
                                         </div>
                                     </div>
 
-                                    <!-- Rules List -->
+                                    <!-- Roles List -->
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <button onclick="deleteSelectedRules()" id="btnDeleteSelected"
+                                                class="btn btn-danger btn-sm" disabled>
+                                                <i class="fas fa-trash me-1"></i> Delete Selected
+                                            </button>
+                                        </div>
+                                        <button onclick="clearAllRules()" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-bomb me-1"></i> Clear All Rules
+                                        </button>
+                                    </div>
+
                                     <div class="table-responsive border rounded bg-white shadow-sm"
                                         style="max-height: 50vh;">
                                         <table class="table table-hover mb-0 align-middle" style="font-size: 0.9rem;">
                                             <thead class="table-light sticky-top">
                                                 <tr>
+                                                    <th style="width: 40px;" class="text-center">
+                                                        <input type="checkbox" id="selectAllRules"
+                                                            class="form-check-input" onchange="toggleAllRules(this)">
+                                                    </th>
                                                     <th>When</th>
                                                     <th>Doctor</th>
                                                     <th class="text-end">Action</th>

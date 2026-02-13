@@ -170,6 +170,113 @@ function updateLiveStatus() {
     updateDoctorRoster(isOpen);
 }
 
+// --- PUBLIC ROSTER VIEW (PATIENT MODAL) ---
+
+function updateDoctorRoster(isOpen) {
+    const docText = document.getElementById('doctorDutyText');
+    const topDocText = document.getElementById('topDoctorDuty');
+
+    if (!isOpen) {
+        if (docText) docText.innerHTML = "<span class='text-muted'>-</span>";
+        if (topDocText) topDocText.innerHTML = "-";
+        return;
+    }
+
+    const now = new Date();
+    const day = now.getDay();
+    const dateISO = now.toISOString().split('T')[0];
+
+    // Check Firebase rules first, then fall back to hardcoded
+    firebaseLoad('roster/rules', []).then(rules => {
+        let doctorName = "";
+
+        // Priority 1: Date-specific rule
+        const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
+        // Priority 2: Weekly rule
+        const weekRule = rules.find(r => r.type === 'weekly' && r.day === day);
+
+        if (dateRule) {
+            doctorName = dateRule.doc;
+        } else if (weekRule) {
+            doctorName = weekRule.doc;
+        } else {
+            // Default hardcoded schedule
+            if (day === 0) doctorName = "Dr. Wong (Locum)";
+            else if (day === 2 || day === 4 || day === 6) doctorName = "Dr. Amin (Specialist)";
+            else doctorName = "Dr. Sara (General)";
+        }
+
+        if (docText) docText.innerHTML = `<span class="fw-bold">${doctorName}</span>`;
+        if (topDocText) topDocText.innerHTML = doctorName;
+    });
+}
+
+function openRosterModal() {
+    const modal = document.getElementById('rosterModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        generatePublicRoster();
+    }
+}
+
+function closeRosterModal() {
+    const modal = document.getElementById('rosterModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function generatePublicRoster() {
+    const list = document.getElementById('publicRosterList');
+
+    // Load rules from Firebase (async)
+    firebaseLoad('roster/rules', []).then(rules => {
+        let html = '';
+        const now = new Date();
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(now);
+            d.setDate(now.getDate() + i);
+
+            const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const dateISO = d.toISOString().split('T')[0];
+            const dayIdx = d.getDay();
+
+            // Resolve Doctor + Shift (priority: date rule > weekly rule > default)
+            const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
+            const weekRule = rules.find(r => r.type === 'weekly' && r.day === dayIdx);
+
+            let docName = "";
+            let shift = "Full Day";
+
+            if (dateRule) {
+                docName = dateRule.doc;
+                shift = dateRule.shift;
+            } else if (weekRule) {
+                docName = weekRule.doc;
+                shift = weekRule.shift;
+            } else {
+                // Default hardcoded schedule
+                if (dayIdx === 0) docName = "Dr. Wong (Locum)";
+                else if (dayIdx === 2 || dayIdx === 4 || dayIdx === 6) docName = "Dr. Amin (Specialist)";
+                else docName = "Dr. Sara (General)";
+            }
+
+            html += `
+            <li class="list-group-item">
+                <div class="roster-date text-center lh-1">
+                    <div class="small text-muted text-uppercase">${dayStr}</div>
+                    <div class="h5 mb-0">${d.getDate()}</div>
+                </div>
+                <div class="roster-info">
+                    <div class="fw-bold text-dark">${docName}</div>
+                    <div class="small text-muted">${shift}</div>
+                </div>
+            </li>`;
+        }
+
+        if (list) list.innerHTML = html;
+    });
+}
+
 // --- ADVANCED ADMIN SYSTEM (LocalStorage CMS) ---
 let clickCount = 0;
 let clickTimer = null;
@@ -277,7 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Initialize Logic
     populateDoctorSelect();
-    loadPromo();
     updateLiveStatus();
 
     // 4. Firebase Real-Time Listeners (auto-refresh when data changes)
@@ -304,29 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Promo Image Live Preview & Error Handling
-    const promoBgInput = document.getElementById('promoImgInput');
-    const preview = document.getElementById('promoImgPreview');
-
-    if (promoBgInput && preview) {
-        // Handle Input Change
-        promoBgInput.addEventListener('input', function () {
-            if (this.value) {
-                preview.src = this.value;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-        });
-
-        // Handle Image Load Error (e.g. 403 Forbidden, 404 Not Found)
-        preview.addEventListener('error', function () {
-            if (this.src && this.src !== window.location.href) { // Avoid triggering on empty
-                alert("Cannot load this image. The website hosting it might be blocking access (Hotlinking protection) or the URL is invalid.\n\nTry a direct link from Unsplash or upload the image to a hosting site like Imgur.");
-                this.style.display = 'none'; // Hide broken image icon
-            }
-        });
-    }
+    // --- END OF INITIALIZATION ---
 });
 
 // --- UI MANAGERS ---
@@ -373,7 +457,7 @@ function verifyAdminPin() {
     if (lockout.active && Date.now() < lockout.until) {
         errorMsg.style.display = 'block';
         // If lockout is > 24 hours, show permanent message
-        if (lockout.until - Date.now() > 24 * 60 * 60 * 1000) {
+        if (lockout.until > Date.now() + 24 * 60 * 60 * 1000) {
             errorMsg.innerText = "System Locked. Perform Emergency Reset.";
         } else {
             const remaining = Math.ceil((lockout.until - Date.now()) / 60000);
@@ -439,12 +523,14 @@ function switchAdminTab(tab, event) {
     }
 }
 
-// --- MISSING FUNCTION DEFINITIONS (Roster Admin + Promo) ---
 
 // --- ROSTER ADMIN LOGIC ---
 
+let latestRosterRules = []; // Store for access by index
+
 function loadRosterAdmin() {
     firebaseLoad('roster/rules', []).then(rules => {
+        latestRosterRules = rules; // Update global cache
         renderRosterList(rules);
     });
 }
@@ -452,7 +538,13 @@ function loadRosterAdmin() {
 function renderRosterList(rules) {
     const list = document.getElementById('rosterList');
     const empty = document.getElementById('rosterEmpty');
+    const btnDelete = document.getElementById('btnDeleteSelected');
     if (!list) return;
+
+    // Reset Batch Button
+    if (btnDelete) btnDelete.disabled = true;
+    const selectAll = document.getElementById('selectAllRules');
+    if (selectAll) selectAll.checked = false;
 
     if (rules.length === 0) {
         list.innerHTML = '';
@@ -462,8 +554,11 @@ function renderRosterList(rules) {
 
     if (empty) empty.style.display = 'none';
 
-    // Sort: Dates first (descending), then Weekly (Mon-Sun)
-    rules.sort((a, b) => {
+    // 1. Map to preserve original index (Fixes sorting bug)
+    let displayRules = rules.map((r, i) => ({ ...r, _origIdx: i }));
+
+    // 2. Sort: Dates first (descending), then Weekly (Mon-Sun)
+    displayRules.sort((a, b) => {
         if (a.type === 'date' && b.type === 'weekly') return -1;
         if (a.type === 'weekly' && b.type === 'date') return 1;
         if (a.type === 'date' && b.type === 'date') return new Date(a.date) - new Date(b.date);
@@ -473,31 +568,33 @@ function renderRosterList(rules) {
     let html = '';
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    rules.forEach((rule, index) => {
+    displayRules.forEach((rule) => {
         let when = '';
         let badge = '';
 
         if (rule.type === 'weekly') {
             when = `Every <b>${days[rule.day]}</b>`;
-            badge = '<span class="badge bg-info text-dark">Weekly</span>';
+            badge = `<span class="badge bg-info text-dark">Weekly</span>`;
         } else {
-            const dateObj = new Date(rule.date);
-            when = `${dateObj.getDate()} ${dateObj.toLocaleDateString('en-US', { month: 'short' })} (${days[dateObj.getDay()]})`;
-            badge = '<span class="badge bg-primary">Specific</span>';
+            const d = new Date(rule.date);
+            when = `<b>${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b> (${days[d.getDay()]})`;
+            badge = `<span class="badge bg-primary">Date</span>`;
         }
 
         html += `
         <tr>
-            <td>
-                <div class="small">${badge}</div>
-                <div class="fw-bold text-dark">${when}</div>
+            <td class="text-center">
+                <input type="checkbox" class="form-check-input rule-checkbox" 
+                    value="${rule._origIdx}" onchange="updateBatchButtons()">
             </td>
             <td>
-                <div class="fw-bold text-dark">${escapeHTML(rule.doc)}</div>
-                <div class="small text-muted">${rule.shift}</div>
+                <div>${when}</div>
+                <div class="small text-muted">${badge} &bull; ${rule.shift}</div>
             </td>
+            <td>${rule.doc}</td>
             <td class="text-end">
-                <button onclick="deleteRosterRule(${index})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button>
+                <button onclick="editRosterRule(${rule._origIdx})" class="btn btn-outline-primary btn-sm border-0 me-1" title="Edit/Copy"><i class="fas fa-pen"></i></button>
+                <button onclick="deleteRosterRule(${rule._origIdx})" class="btn btn-outline-danger btn-sm border-0" title="Delete"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     });
@@ -505,10 +602,75 @@ function renderRosterList(rules) {
     list.innerHTML = html;
 }
 
+// Batch Operations
+function toggleAllRules(source) {
+    document.querySelectorAll('.rule-checkbox').forEach(cb => cb.checked = source.checked);
+    updateBatchButtons();
+}
+
+function updateBatchButtons() {
+    const anyChecked = document.querySelectorAll('.rule-checkbox:checked').length > 0;
+    document.getElementById('btnDeleteSelected').disabled = !anyChecked;
+}
+
+function deleteSelectedRules() {
+    const checked = document.querySelectorAll('.rule-checkbox:checked');
+    if (checked.length === 0) return;
+
+    if (!confirm(`Are you sure you want to delete ${checked.length} selected rules?`)) return;
+
+    const indices = Array.from(checked).map(cb => parseInt(cb.value));
+    // Sort descending to splice correctly
+    indices.sort((a, b) => b - a);
+
+    firebaseLoad('roster/rules', []).then(rules => {
+        indices.forEach(idx => {
+            if (idx >= 0 && idx < rules.length) rules.splice(idx, 1);
+        });
+        firebaseSave('roster/rules', rules);
+        loadRosterAdmin();
+        alert("Selected rules deleted.");
+    });
+}
+
+function clearAllRules() {
+    if (!confirm("⚠️ DANGER: Are you sure you want to delete ALL roster rules?")) return;
+    if (!confirm("🔴 DOUBLE CHECK: This actions cannot be undone. Confirm clear all?")) return;
+
+    firebaseSave('roster/rules', []); // Save empty array
+    loadRosterAdmin();
+    alert("All rules cleared.");
+}
+
+function editRosterRule(index) {
+    const rule = latestRosterRules[index];
+    if (!rule) return;
+
+    // Open Form
+    const form = document.getElementById('rosterForm');
+    form.style.display = 'block';
+
+    // Populate Data
+    if (rule.type === 'weekly') {
+        document.getElementById('ruleWeekly').checked = true;
+        document.getElementById('rosterDay').value = rule.day;
+    } else {
+        document.getElementById('ruleDate').checked = true;
+        document.getElementById('rosterDateStart').value = rule.date;
+        document.getElementById('rosterDateEnd').value = ''; // Reset range end for single edit
+    }
+    toggleRuleInputs();
+
+    document.getElementById('rosterDocSelect').value = rule.doc;
+    document.getElementById('rosterShift').value = rule.shift;
+
+    // Scroll to form
+    form.scrollIntoView({ behavior: 'smooth' });
+}
+
 function toggleRosterForm() {
     const form = document.getElementById('rosterForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    // Default to Date
     if (form.style.display === 'block') {
         document.getElementById('ruleDate').checked = true;
         toggleRuleInputs();
@@ -619,7 +781,8 @@ function addRosterRule() {
         rules.push(...newRulesToAdd);
 
         firebaseSave('roster/rules', rules).then(() => {
-            toggleRosterForm();
+            // Close form if it was open
+            document.getElementById('rosterForm').style.display = 'none';
             loadRosterAdmin();
         });
     });
@@ -628,19 +791,10 @@ function addRosterRule() {
 function deleteRosterRule(index) {
     if (!confirm("Delete this rule?")) return;
     firebaseLoad('roster/rules', []).then(rules => {
-        // Since we sort the display, we need to find the actual item in the unsorted array
-        // But wait, the index passed is from the SORTED list render. 
-        // This is tricky. Better to Reload -> Sort -> Splice -> Save.
-        // Re-sorting here to match render logic:
-        rules.sort((a, b) => {
-            if (a.type === 'date' && b.type === 'weekly') return -1;
-            if (a.type === 'weekly' && b.type === 'date') return 1;
-            if (a.type === 'date' && b.type === 'date') return new Date(a.date) - new Date(b.date);
-            return a.day - b.day;
-        });
-
-        rules.splice(index, 1);
-        firebaseSave('roster/rules', rules).then(() => loadRosterAdmin());
+        if (index >= 0 && index < rules.length) {
+            rules.splice(index, 1);
+            firebaseSave('roster/rules', rules).then(() => loadRosterAdmin());
+        }
     });
 }
 
@@ -653,23 +807,8 @@ function populateDoctorSelect() {
     });
 }
 
-function loadPromo() {
-    firebaseLoad('promo', null).then(promo => {
-        if (!promo || !promo.active) return;
-        const section = document.getElementById('promoSection');
-        if (section) {
-            section.style.display = 'block';
-            const title = document.getElementById('promoTitle');
-            const desc = document.getElementById('promoDesc');
-            const img = document.getElementById('promoBg');
-            if (title) title.textContent = promo.title || '';
-            if (desc) desc.textContent = promo.description || '';
-            if (img && promo.imageUrl) img.src = promo.imageUrl;
-        }
-    });
-}
-
-// --- INVENTORY MANAGEMENT (Firebase-Backed) ---
+// --- INVENTORY MANAGEMENT ---
+let latestInventory = [];
 
 function toggleInventoryForm() {
     const form = document.getElementById('inventoryForm');
@@ -682,6 +821,7 @@ function loadInventory() {
 
     // Load from Firebase (async) with LocalStorage fallback
     firebaseLoad('inventory', []).then(items => {
+        latestInventory = items; // Cache for local filtering
         renderInventory(items, list, empty);
     });
 }
@@ -770,7 +910,9 @@ function renderInventory(items, list, empty) {
 }
 
 function filterInventory() {
-    loadInventory();
+    const list = document.getElementById('inventoryList');
+    const empty = document.getElementById('inventoryEmpty');
+    renderInventory(latestInventory, list, empty);
 }
 
 function updateStock(index, change) {
@@ -824,111 +966,7 @@ function deleteInventoryItem(index) {
     });
 }
 
-// --- PUBLIC ROSTER VIEW (PATIENT MODAL) ---
-function openRosterModal() {
-    const modal = document.getElementById('rosterModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        generatePublicRoster();
-    }
-}
 
-function closeRosterModal() {
-    const modal = document.getElementById('rosterModal');
-    if (modal) modal.style.display = 'none';
-}
-
-function generatePublicRoster() {
-    const list = document.getElementById('publicRosterList');
-
-    // Load rules from Firebase (async)
-    firebaseLoad('roster/rules', []).then(rules => {
-        let html = '';
-        const now = new Date();
-
-        for (let i = 0; i < 7; i++) {
-            const d = new Date(now);
-            d.setDate(now.getDate() + i);
-
-            const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
-            const dateISO = d.toISOString().split('T')[0];
-            const dayIdx = d.getDay();
-
-            // Resolve Doctor + Shift (priority: date rule > weekly rule > default)
-            const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
-            const weekRule = rules.find(r => r.type === 'weekly' && r.day === dayIdx);
-
-            let docName = "";
-            let shift = "Full Day";
-
-            if (dateRule) {
-                docName = dateRule.doc;
-                shift = dateRule.shift;
-            } else if (weekRule) {
-                docName = weekRule.doc;
-                shift = weekRule.shift;
-            } else {
-                // Default hardcoded schedule
-                if (dayIdx === 0) docName = "Dr. Wong (Locum)";
-                else if (dayIdx === 2 || dayIdx === 4 || dayIdx === 6) docName = "Dr. Amin (Specialist)";
-                else docName = "Dr. Sara (General)";
-            }
-
-            html += `
-            <li class="list-group-item">
-                <div class="roster-date text-center lh-1">
-                    <div class="small text-muted text-uppercase">${dayStr}</div>
-                    <div class="h5 mb-0">${d.getDate()}</div>
-                </div>
-                <div class="roster-info">
-                    <div class="fw-bold text-dark">${docName}</div>
-                    <div class="small text-muted">${shift}</div>
-                </div>
-            </li>`;
-        }
-
-        if (list) list.innerHTML = html;
-    });
-}
-
-function updateDoctorRoster(isOpen) {
-    const docText = document.getElementById('doctorDutyText');
-    const topDocText = document.getElementById('topDoctorDuty');
-
-    if (!isOpen) {
-        if (docText) docText.innerHTML = "<span class='text-muted'>-</span>";
-        if (topDocText) topDocText.innerHTML = "-";
-        return;
-    }
-
-    const now = new Date();
-    const day = now.getDay();
-    const dateISO = now.toISOString().split('T')[0];
-
-    // Check Firebase rules first, then fall back to hardcoded
-    firebaseLoad('roster/rules', []).then(rules => {
-        let doctorName = "";
-
-        // Priority 1: Date-specific rule
-        const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
-        // Priority 2: Weekly rule
-        const weekRule = rules.find(r => r.type === 'weekly' && r.day === day);
-
-        if (dateRule) {
-            doctorName = dateRule.doc;
-        } else if (weekRule) {
-            doctorName = weekRule.doc;
-        } else {
-            // Default hardcoded schedule
-            if (day === 0) doctorName = "Dr. Wong (Locum)";
-            else if (day === 2 || day === 4 || day === 6) doctorName = "Dr. Amin (Specialist)";
-            else doctorName = "Dr. Sara (General)";
-        }
-
-        if (docText) docText.innerHTML = `<span class="fw-bold">${doctorName}</span>`;
-        if (topDocText) topDocText.innerHTML = doctorName;
-    });
-}
 
 // --- PUBLIC HEALTH TOOLS ---
 function calculateBMI() {
