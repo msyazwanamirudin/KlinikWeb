@@ -146,17 +146,17 @@ let clickCount = 0;
 let clickTimer = null;
 
 // Security Constants
-// Base64 for "8888" -> "ODg4OA=="
-// To change PIN: Run btoa("NEW_PIN") in console.
-const ADMIN_ENC = "ODg4OA==";
+// SHA-256 for "8888"
+const ADMIN_HASH_SHA = "2926a2731804f57c59de960787a419eb50684f478a576dbf1dd90c291244e8af";
 const MAX_ATTEMPTS = 3;
-const LOCKOUT_TIME = 15 * 60 * 1000; // Increased to 15 Minutes as requested
+const LOCKOUT_TIME = 15 * 60 * 1000;
 
-// Base64 Helper
-function checkPin(input) {
-    try {
-        return btoa(input) === ADMIN_ENC;
-    } catch (e) { return false; }
+// SHA-256 Helper (Async)
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Data: Registered Doctors
@@ -227,8 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 3. Initialize Logic
+    // 3. Initialize Logic
     populateDoctorSelect();
-    renderRosterRules();
     loadPromo(); // Ensure this runs on load
     updateLiveStatus(); // Initial Roster Check
 
@@ -291,33 +291,35 @@ function verifyAdminPin() {
         return;
     }
 
-    // Verify PIN (Base64 Check)
-    if (checkPin(input)) {
-        // Success
-        document.getElementById('adminPinScreen').style.display = 'none';
-        document.getElementById('adminControlScreen').style.display = 'block';
-        renderRosterRules(); // Refresh list
-        enableDebugMode(); // UNLOCK INSPECT ELEMENT
+    // Verify PIN (SHA-256 Hash)
+    sha256(input).then(hash => {
+        if (hash === ADMIN_HASH_SHA) {
+            // Success
+            document.getElementById('adminPinScreen').style.display = 'none';
+            document.getElementById('adminControlScreen').style.display = 'block';
+            // NEW: No Roster Render needed here
+            enableDebugMode(); // UNLOCK INSPECT ELEMENT
 
-        // Reset Attempts
-        localStorage.removeItem('adminLockout');
-        localStorage.removeItem('adminAttempts');
-    } else {
-        // Failure
-        let attempts = parseInt(localStorage.getItem('adminAttempts') || 0) + 1;
-        localStorage.setItem('adminAttempts', attempts);
-
-        if (attempts >= MAX_ATTEMPTS) {
-            const unlockTime = Date.now() + LOCKOUT_TIME;
-            localStorage.setItem('adminLockout', JSON.stringify({ active: true, until: unlockTime }));
-            errorMsg.innerText = "Too many attempts. System Locked for 5 mins.";
+            // Reset Attempts
+            localStorage.removeItem('adminLockout');
+            localStorage.removeItem('adminAttempts');
         } else {
-            errorMsg.innerText = `Invalid PIN. ${MAX_ATTEMPTS - attempts} attempts remaining.`;
-        }
+            // Failure
+            let attempts = parseInt(localStorage.getItem('adminAttempts') || 0) + 1;
+            localStorage.setItem('adminAttempts', attempts);
 
-        errorMsg.style.display = 'block';
-        document.getElementById('adminPinInput').value = '';
-    }
+            if (attempts >= MAX_ATTEMPTS) {
+                const unlockTime = Date.now() + LOCKOUT_TIME;
+                localStorage.setItem('adminLockout', JSON.stringify({ active: true, until: unlockTime }));
+                errorMsg.innerText = "Too many attempts. System Locked for 15 mins.";
+            } else {
+                errorMsg.innerText = `Invalid PIN. ${MAX_ATTEMPTS - attempts} attempts remaining.`;
+            }
+
+            errorMsg.style.display = 'block';
+            document.getElementById('adminPinInput').value = '';
+        }
+    });
 }
 
 function switchAdminTab(tab, event) {
@@ -336,100 +338,23 @@ function switchAdminTab(tab, event) {
     }
 }
 
-function toggleRuleInputs() {
-    const type = document.getElementById('rosterRuleType').value;
-    if (type === 'weekly') {
-        document.getElementById('inputWeekly').style.display = 'block';
-        document.getElementById('inputDate').style.display = 'none';
-    } else {
-        document.getElementById('inputWeekly').style.display = 'none';
-        document.getElementById('inputDate').style.display = 'block';
-    }
+// --- NEW ADMIN TOOLS: RECEPTION UTILITIES ---
+
+// 1. WhatsApp Bill Generator
+function generateBill() {
+    const service = document.getElementById('billService').value;
+    const price = document.getElementById('billPrice').value;
+    const notes = document.getElementById('billNotes').value;
+
+    if (!service || !price) return alert("Enter Service and Price");
+
+    const text = `*INVOICE: Klinik Haya*\n\nService: ${service}\nAmount: RM${price}\nNotes: ${notes}\n\nPlease proceed with payment to:\nMaybank 5620-1234-5678\n(Klinik Haya Sdn Bhd)`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        alert("✅ Bill Copied to Clipboard!");
+    });
 }
 
-// --- ROSTER ENGINE ---
-function populateDoctorSelect() {
-    const sel = document.getElementById('rosterDoctorSelect');
-    if (!sel) return;
-    sel.innerHTML = DOCTORS.map(d => `<option value="${d}">${d}</option>`).join('');
-}
-
-function getRosterRules() {
-    return JSON.parse(localStorage.getItem('rosterRules') || '[]');
-}
-
-function addRosterRule() {
-    const doc = document.getElementById('rosterDoctorSelect').value;
-    const type = document.getElementById('rosterRuleType').value;
-    const shift = document.getElementById('rosterShiftSelect').value;
-    let rule = { id: Date.now(), doc, type, shift };
-
-    if (type === 'weekly') {
-        rule.day = parseInt(document.getElementById('rosterDaySelect').value);
-        rule.dayName = document.getElementById('rosterDaySelect').options[document.getElementById('rosterDaySelect').selectedIndex].text;
-    } else {
-        const dateVal = document.getElementById('rosterDateInput').value;
-        if (!dateVal) return alert("Please select a date");
-        rule.date = dateVal;
-    }
-
-    const rules = getRosterRules();
-
-    // VALIDATION: Check for duplicate rule (Same Doctor + Same Day/Date)
-    const existing = rules.find(r =>
-        r.doc === doc &&
-        ((type === 'weekly' && r.type === 'weekly' && r.day === rule.day) ||
-            (type === 'date' && r.type === 'date' && r.date === rule.date))
-    );
-
-    if (existing) {
-        alert(`Creation Failed:\n${doc} already has a rule for this ${type === 'weekly' ? 'day' : 'date'}.`);
-        return;
-    }
-
-    rules.push(rule);
-    localStorage.setItem('rosterRules', JSON.stringify(rules));
-
-    renderRosterRules();
-    updateLiveStatus(); // Apply immediately
-    alert("Rule Added Successfully!");
-}
-
-function deleteRule(id) {
-    const rules = getRosterRules().filter(r => r.id !== id);
-    localStorage.setItem('rosterRules', JSON.stringify(rules));
-    renderRosterRules();
-    updateLiveStatus();
-}
-
-function resetRosterRules() {
-    if (confirm("Clear all custom roster rules?")) {
-        localStorage.removeItem('rosterRules');
-        renderRosterRules();
-        updateLiveStatus();
-    }
-}
-
-function renderRosterRules() {
-    const list = document.getElementById('rosterRulesList');
-    const rules = getRosterRules();
-    if (rules.length === 0) {
-        list.innerHTML = '<li class="list-group-item text-muted small">No custom rules. Using default schedule.</li>';
-        return;
-    }
-
-    list.innerHTML = rules.map(r => `
-        <li class="list-group-item">
-            <div>
-                <span class="badge bg-secondary me-2">${r.type === 'weekly' ? 'Rep' : 'Date'}</span>
-                <strong>${r.doc}</strong> <small class="text-primary">(${r.shift})</small>
-                <br>
-                <small class="text-muted">${r.type === 'weekly' ? 'Every ' + r.dayName : r.date}</small>
-            </div>
-            <button onclick="deleteRule(${r.id})" class="btn btn-sm text-danger"><i class="fas fa-trash"></i></button>
-        </li>
-    `).join('');
-}
 
 // --- PUBLIC ROSTER VIEW (PATIENT MODAL) ---
 function openRosterModal() {
@@ -510,38 +435,44 @@ function updateDoctorRoster(isOpen) {
     }
 
     const now = new Date();
-    const todayDate = now.toISOString().split('T')[0];
     const day = now.getDay();
 
-    // PRIORITY 1: Specific Date Rule
-    const rules = getRosterRules();
-    const dateRule = rules.find(r => r.type === 'date' && r.date === todayDate);
-
-    // PRIORITY 2: Weekly Rule
-    const weekRule = rules.find(r => r.type === 'weekly' && r.day === day);
-
+    // HARDCODED WEEKLY SCHEDULE (Static Logic)
+    // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
     let doctorName = "";
-    let shiftInfo = "";
 
-    if (dateRule) {
-        doctorName = dateRule.doc;
-        shiftInfo = dateRule.shift;
-    } else if (weekRule) {
-        doctorName = weekRule.doc;
-        shiftInfo = weekRule.shift;
-    } else {
-        // PRIORITY 3: Default Hardcoded Logic
-        if (day === 0) doctorName = "Dr. Wong (Locum)";
-        else if (day === 2 || day === 4 || day === 6) doctorName = "Dr. Amin (Specialist)";
-        else doctorName = "Dr. Sara (General)";
-    }
+    if (day === 0) doctorName = "Dr. Wong (Locum)"; // Sunday
+    else if (day === 2 || day === 4 || day === 6) doctorName = "Dr. Amin (Specialist)"; // Tue, Thu, Sat
+    else doctorName = "Dr. Sara (General)"; // Mon, Wed, Fri
 
-    const displayText = shiftInfo && shiftInfo !== 'Full Day'
-        ? `${doctorName} <small class='text-white-50'>(${shiftInfo})</small>`
-        : doctorName;
+    if (docText) docText.innerHTML = `<span class="fw-bold">${doctorName}</span>`;
+    if (topDocText) topDocText.innerHTML = doctorName;
+}
 
-    if (docText) docText.innerHTML = `<span class="fw-bold">${displayText}</span>`;
-    if (topDocText) topDocText.innerHTML = doctorName.split('(')[0]; // Keep top bar short
+// --- PUBLIC HEALTH TOOLS ---
+function calculateBMI() {
+    const h = parseFloat(document.getElementById('bmiHeight').value) / 100;
+    const w = parseFloat(document.getElementById('bmiWeight').value);
+    if (!h || !w) return alert("Enter valid height & weight");
+
+    const bmi = (w / (h * h)).toFixed(1);
+    let status = "";
+    if (bmi < 18.5) status = "Underweight";
+    else if (bmi < 25) status = "Normal";
+    else if (bmi < 30) status = "Overweight";
+    else status = "Obese";
+
+    document.getElementById('bmiResult').innerText = `BMI: ${bmi} (${status})`;
+}
+
+function calculateDueDate() {
+    const lmp = new Date(document.getElementById('lmpDate').value);
+    if (isNaN(lmp)) return alert("Select a date");
+
+    const due = new Date(lmp);
+    due.setDate(lmp.getDate() + 280); // +40 Weeks
+
+    document.getElementById('eddResult').innerText = `Estimated Due Date: ${due.toDateString()}`;
 }
 
 
@@ -948,7 +879,7 @@ function handleBookingStep(choice) {
         // Name Validation (Alphabets only)
         if (!/^[a-zA-Z\s]+$/.test(choice)) {
             addMessage("Please enter a valid name (letters only).");
-            // Do NOT advance step.
+            toggleInput(true); // Re-show input so user can try again
             return;
         }
 
