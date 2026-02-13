@@ -146,19 +146,17 @@ let clickCount = 0;
 let clickTimer = null;
 
 // Security Constants
-// Simple Hash for "8888" -> 1583002
-// To change PIN: Run simpleHash("NEW_PIN") in console and update this value.
-const ADMIN_HASH = 1583002;
+// Base64 for "8888" -> "ODg4OA=="
+// To change PIN: Run btoa("NEW_PIN") in console.
+const ADMIN_ENC = "ODg4OA==";
 const MAX_ATTEMPTS = 3;
-const LOCKOUT_TIME = 5 * 60 * 1000; // 5 Minutes
+const LOCKOUT_TIME = 15 * 60 * 1000; // Increased to 15 Minutes as requested
 
-// Simple Hash Function (DJB2 variant)
-function simpleHash(str) {
-    let hash = 5381;
-    for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
-    }
-    return hash;
+// Base64 Helper
+function checkPin(input) {
+    try {
+        return btoa(input) === ADMIN_ENC;
+    } catch (e) { return false; }
 }
 
 // Data: Registered Doctors
@@ -170,18 +168,27 @@ const DOCTORS = [
     "Dr. Amin (Specialist)"
 ];
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Security: Disable Right Click & Inspect Shortcuts
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', function (event) {
-        // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-        if (event.key === 'F12' ||
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J')) ||
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
-        }
-    });
+// 1. Security: Disable Right Click & Inspect Shortcuts
+function blockContextMenu(event) { event.preventDefault(); }
+function blockShortcuts(event) {
+    // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+    if (event.key === 'F12' ||
+        (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J')) ||
+        (event.ctrlKey && event.key === 'u')) {
+        event.preventDefault();
+    }
+}
 
+document.addEventListener('contextmenu', blockContextMenu);
+document.addEventListener('keydown', blockShortcuts);
+
+function enableDebugMode() {
+    document.removeEventListener('contextmenu', blockContextMenu);
+    document.removeEventListener('keydown', blockShortcuts);
+    alert("🔧 Debug Mode Enabled\n\n- Right-Click Unlocked\n- F12 / Inspect Element Unlocked");
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     // 2. Admin Trigger (Hidden in Copyright)
     const trigger = document.getElementById('adminTrigger');
     if (trigger) {
@@ -192,6 +199,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 openAdminModal();
                 clickCount = 0;
                 clearTimeout(clickTimer);
+            }
+        });
+    }
+
+    // 2b. Emergency Reset Trigger (Hidden in Top Bar Doctor Name)
+    let resetCount = 0;
+    let resetTimer = null;
+    const resetTrigger = document.getElementById('topDoctorDuty');
+    if (resetTrigger) {
+        resetTrigger.style.cursor = 'pointer'; // Hint at interactivity
+        resetTrigger.addEventListener('click', () => {
+            resetCount++;
+            if (resetCount === 1) resetTimer = setTimeout(() => { resetCount = 0; }, 2000);
+            if (resetCount >= 10) {
+                // EMERGENCY RESET (For Developer)
+                if (confirm("⚠️ Developer Reset: Clear Lockouts & Enable Debug Mode?")) {
+                    localStorage.removeItem('adminLockout');
+                    localStorage.removeItem('adminAttempts');
+                    enableDebugMode();
+                    alert("System Reset! Try logging in again.");
+                }
+                resetCount = 0;
+                clearTimeout(resetTimer);
             }
         });
     }
@@ -261,12 +291,13 @@ function verifyAdminPin() {
         return;
     }
 
-    // Verify Hash
-    if (simpleHash(input) === ADMIN_HASH) {
+    // Verify PIN (Base64 Check)
+    if (checkPin(input)) {
         // Success
         document.getElementById('adminPinScreen').style.display = 'none';
         document.getElementById('adminControlScreen').style.display = 'block';
         renderRosterRules(); // Refresh list
+        enableDebugMode(); // UNLOCK INSPECT ELEMENT
 
         // Reset Attempts
         localStorage.removeItem('adminLockout');
