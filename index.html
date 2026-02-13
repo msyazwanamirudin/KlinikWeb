@@ -29,11 +29,14 @@
 
     <!-- Live Status Bar -->
     <div class="status-bar d-flex justify-content-center align-items-center">
-        <div class="container d-flex justify-content-center align-items-center">
-            <div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
                 <span id="liveStatusDot" class="indicator-dot"></span>
-                <span id="liveStatusText" class="fw-bold">Clinic Open</span>
+                <span id="liveStatusText" class="fw-bold me-3">Clinic Open</span>
+                <span class="d-none d-md-inline text-white-50">|&nbsp;&nbsp;On Duty: <span id="topDoctorDuty"
+                        class="text-white fw-bold">Loading...</span></span>
             </div>
+            <!-- Social Icons -->
         </div>
     </div>
 
@@ -610,8 +613,8 @@
 
 
     <!-- Footer -->
-    <footer class="bg-dark text-white pt-5 pb-3" id="footer">
-        <div class="container">
+    <footer id="mainFooter" class="bg-dark text-white py-5 position-relative">
+        <div class="container position-relative z-2">
             <div class="row g-5">
                 <!-- 1. Brand & Contact -->
                 <div class="col-lg-4">

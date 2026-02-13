@@ -133,6 +133,13 @@ h4,
     /* Stick to top */
     z-index: 1040;
     /* Above Navbar */
+    transition: transform 0.3s ease-in-out;
+    /* Smooth slide */
+}
+
+.status-bar.hidden-bar {
+    transform: translateY(-100%);
+    /* Slide UP out of view */
 }
 
 .indicator-dot {
