@@ -257,8 +257,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Initialize Logic
     populateDoctorSelect();
-    loadPromo(); // Ensure this runs on load
-    updateLiveStatus(); // Initial Roster Check
+    loadPromo();
+    updateLiveStatus();
+
+    // 4. Firebase Real-Time Listeners (auto-refresh when data changes)
+    firebaseListen('inventory', (data) => {
+        // Update local cache silently
+        localStorage.setItem('fb_inventory', JSON.stringify(data || []));
+    });
+    firebaseListen('roster/rules', (data) => {
+        localStorage.setItem('fb_roster_rules', JSON.stringify(data || []));
+        // Refresh public roster if modal is open
+        const rosterModal = document.getElementById('rosterModal');
+        if (rosterModal && rosterModal.style.display === 'flex') {
+            generatePublicRoster();
+        }
+        // Refresh today's doctor
+        updateLiveStatus();
+    });
 
     // Add Enter Key for PIN
     const pinInput = document.getElementById('adminPinInput');
@@ -374,7 +390,43 @@ function switchAdminTab(tab, event) {
     }
 }
 
-// --- NEW ADMIN TOOLS: INVENTORY MAGAGEMENT ---
+// --- MISSING FUNCTION DEFINITIONS (Roster Admin + Promo) ---
+
+function getRosterRules() {
+    // Read from Firebase cache (LocalStorage key set by firebaseListen)
+    return JSON.parse(localStorage.getItem('fb_roster_rules') || '[]');
+}
+
+function saveRosterRules(rules) {
+    firebaseSave('roster/rules', rules);
+}
+
+function populateDoctorSelect() {
+    const sel = document.getElementById('rosterDocSelect');
+    if (!sel) return;
+    sel.innerHTML = '';
+    DOCTORS.forEach(doc => {
+        sel.innerHTML += `<option value="${doc}">${doc}</option>`;
+    });
+}
+
+function loadPromo() {
+    firebaseLoad('promo', null).then(promo => {
+        if (!promo || !promo.active) return;
+        const section = document.getElementById('promoSection');
+        if (section) {
+            section.style.display = 'block';
+            const title = document.getElementById('promoTitle');
+            const desc = document.getElementById('promoDesc');
+            const img = document.getElementById('promoBg');
+            if (title) title.textContent = promo.title || '';
+            if (desc) desc.textContent = promo.description || '';
+            if (img && promo.imageUrl) img.src = promo.imageUrl;
+        }
+    });
+}
+
+// --- INVENTORY MANAGEMENT (Firebase-Backed) ---
 
 function toggleInventoryForm() {
     const form = document.getElementById('inventoryForm');
@@ -384,7 +436,15 @@ function toggleInventoryForm() {
 function loadInventory() {
     const list = document.getElementById('inventoryList');
     const empty = document.getElementById('inventoryEmpty');
-    let items = JSON.parse(localStorage.getItem('adminInventory') || '[]');
+
+    // Load from Firebase (async) with LocalStorage fallback
+    firebaseLoad('inventory', []).then(items => {
+        renderInventory(items, list, empty);
+    });
+}
+
+function renderInventory(items, list, empty) {
+    if (!list) return;
 
     // 1. Filter Logic
     const searchTerm = document.getElementById('invSearch') ? document.getElementById('invSearch').value.toLowerCase() : '';
@@ -399,11 +459,11 @@ function loadInventory() {
 
     if (items.length === 0) {
         list.innerHTML = '';
-        empty.style.display = 'block';
+        if (empty) empty.style.display = 'block';
         return;
     }
 
-    empty.style.display = 'none';
+    if (empty) empty.style.display = 'none';
     let html = '';
 
     // Sort by Expiry Date (Ascending)
@@ -414,7 +474,6 @@ function loadInventory() {
     });
 
     items.forEach((item) => {
-        // Expiry Check
         let statusClass = '';
         let statusBadge = '';
 
@@ -432,7 +491,6 @@ function loadInventory() {
             }
         }
 
-        // Category Badge Color
         const catColors = {
             'Medicine': 'bg-primary',
             'Supplements': 'bg-success',
@@ -450,7 +508,6 @@ function loadInventory() {
                 ${statusBadge}
             </td>
             <td>
-                 <!-- Hidden for mobile space optimization if needed -->
                  <span class="small text-muted">${item.category || 'Medicine'}</span>
             </td>
             <td>
@@ -474,14 +531,14 @@ function filterInventory() {
 }
 
 function updateStock(index, change) {
-    const items = JSON.parse(localStorage.getItem('adminInventory') || '[]');
-    if (items[index]) {
-        let newQty = parseInt(items[index].qty) + change;
-        if (newQty < 0) newQty = 0;
-        items[index].qty = newQty;
-        localStorage.setItem('adminInventory', JSON.stringify(items));
-        loadInventory();
-    }
+    firebaseLoad('inventory', []).then(items => {
+        if (items[index]) {
+            let newQty = parseInt(items[index].qty) + change;
+            if (newQty < 0) newQty = 0;
+            items[index].qty = newQty;
+            firebaseSave('inventory', items).then(() => loadInventory());
+        }
+    });
 }
 
 function addInventoryItem() {
@@ -492,36 +549,36 @@ function addInventoryItem() {
 
     if (!name || isNaN(qty)) return alert("Name and Quantity are required");
 
-    const items = JSON.parse(localStorage.getItem('adminInventory') || '[]');
+    firebaseLoad('inventory', []).then(items => {
+        // Consolidation Logic: Check for same Name + Expiry
+        const existingIndex = items.findIndex(item =>
+            item.name.toLowerCase() === name.toLowerCase() &&
+            item.expiry === expiry
+        );
 
-    // Consolidation Logic: Check for same Name + Expiry
-    const existingIndex = items.findIndex(item =>
-        item.name.toLowerCase() === name.toLowerCase() &&
-        item.expiry === expiry
-    );
+        if (existingIndex !== -1) {
+            items[existingIndex].qty = parseInt(items[existingIndex].qty) + qty;
+            alert(`Updated stock for ${items[existingIndex].name}. New Qty: ${items[existingIndex].qty}`);
+        } else {
+            items.push({ name, qty, expiry, category });
+        }
 
-    if (existingIndex !== -1) {
-        items[existingIndex].qty = parseInt(items[existingIndex].qty) + qty;
-        alert(`Updated stock for ${items[existingIndex].name}. New Qty: ${items[existingIndex].qty}`);
-    } else {
-        items.push({ name, qty, expiry, category });
-    }
-
-    localStorage.setItem('adminInventory', JSON.stringify(items));
-
-    // Reset Form
-    document.getElementById('invName').value = '';
-    document.getElementById('invQty').value = '';
-    toggleInventoryForm();
-    loadInventory();
+        firebaseSave('inventory', items).then(() => {
+            // Reset Form
+            document.getElementById('invName').value = '';
+            document.getElementById('invQty').value = '';
+            toggleInventoryForm();
+            loadInventory();
+        });
+    });
 }
 
 function deleteInventoryItem(index) {
     if (!confirm("Remove this item permanently?")) return;
-    const items = JSON.parse(localStorage.getItem('adminInventory') || '[]');
-    items.splice(index, 1);
-    localStorage.setItem('adminInventory', JSON.stringify(items));
-    loadInventory();
+    firebaseLoad('inventory', []).then(items => {
+        items.splice(index, 1);
+        firebaseSave('inventory', items).then(() => loadInventory());
+    });
 }
 
 // --- PUBLIC ROSTER VIEW (PATIENT MODAL) ---
@@ -540,56 +597,55 @@ function closeRosterModal() {
 
 function generatePublicRoster() {
     const list = document.getElementById('publicRosterList');
-    const rules = getRosterRules();
-    let html = '';
 
-    const now = new Date();
+    // Load rules from Firebase (async)
+    firebaseLoad('roster/rules', []).then(rules => {
+        let html = '';
+        const now = new Date();
 
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(now);
-        d.setDate(now.getDate() + i);
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(now);
+            d.setDate(now.getDate() + i);
 
-        const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
-        const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-        const dateISO = d.toISOString().split('T')[0];
-        const dayIdx = d.getDay();
+            const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const dateISO = d.toISOString().split('T')[0];
+            const dayIdx = d.getDay();
 
-        // Resolve Doctor + Shift
-        // 1. Date Rule
-        const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
-        // 2. Weekly Rule
-        const weekRule = rules.find(r => r.type === 'weekly' && r.day === dayIdx);
+            // Resolve Doctor + Shift (priority: date rule > weekly rule > default)
+            const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
+            const weekRule = rules.find(r => r.type === 'weekly' && r.day === dayIdx);
 
-        let docName = "";
-        let shift = "Full Day";
+            let docName = "";
+            let shift = "Full Day";
 
-        if (dateRule) {
-            docName = dateRule.doc;
-            shift = dateRule.shift;
-        } else if (weekRule) {
-            docName = weekRule.doc;
-            shift = weekRule.shift;
-        } else {
-            // Default
-            if (dayIdx === 0) docName = "Dr. Wong (Locum)";
-            else if (dayIdx === 2 || dayIdx === 4 || dayIdx === 6) docName = "Dr. Amin (Specialist)";
-            else docName = "Dr. Sara (General)";
+            if (dateRule) {
+                docName = dateRule.doc;
+                shift = dateRule.shift;
+            } else if (weekRule) {
+                docName = weekRule.doc;
+                shift = weekRule.shift;
+            } else {
+                // Default hardcoded schedule
+                if (dayIdx === 0) docName = "Dr. Wong (Locum)";
+                else if (dayIdx === 2 || dayIdx === 4 || dayIdx === 6) docName = "Dr. Amin (Specialist)";
+                else docName = "Dr. Sara (General)";
+            }
+
+            html += `
+            <li class="list-group-item">
+                <div class="roster-date text-center lh-1">
+                    <div class="small text-muted text-uppercase">${dayStr}</div>
+                    <div class="h5 mb-0">${d.getDate()}</div>
+                </div>
+                <div class="roster-info">
+                    <div class="fw-bold text-dark">${docName}</div>
+                    <div class="small text-muted">${shift}</div>
+                </div>
+            </li>`;
         }
 
-        html += `
-        <li class="list-group-item">
-            <div class="roster-date text-center lh-1">
-                <div class="small text-muted text-uppercase">${dayStr}</div>
-                <div class="h5 mb-0">${d.getDate()}</div>
-            </div>
-            <div class="roster-info">
-                <div class="fw-bold text-dark">${docName}</div>
-                <div class="small text-muted">${shift}</div>
-            </div>
-        </li>`;
-    }
-
-    if (list) list.innerHTML = html;
+        if (list) list.innerHTML = html;
+    });
 }
 
 function updateDoctorRoster(isOpen) {
@@ -604,17 +660,31 @@ function updateDoctorRoster(isOpen) {
 
     const now = new Date();
     const day = now.getDay();
+    const dateISO = now.toISOString().split('T')[0];
 
-    // HARDCODED WEEKLY SCHEDULE (Static Logic)
-    // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-    let doctorName = "";
+    // Check Firebase rules first, then fall back to hardcoded
+    firebaseLoad('roster/rules', []).then(rules => {
+        let doctorName = "";
 
-    if (day === 0) doctorName = "Dr. Wong (Locum)"; // Sunday
-    else if (day === 2 || day === 4 || day === 6) doctorName = "Dr. Amin (Specialist)"; // Tue, Thu, Sat
-    else doctorName = "Dr. Sara (General)"; // Mon, Wed, Fri
+        // Priority 1: Date-specific rule
+        const dateRule = rules.find(r => r.type === 'date' && r.date === dateISO);
+        // Priority 2: Weekly rule
+        const weekRule = rules.find(r => r.type === 'weekly' && r.day === day);
 
-    if (docText) docText.innerHTML = `<span class="fw-bold">${doctorName}</span>`;
-    if (topDocText) topDocText.innerHTML = doctorName;
+        if (dateRule) {
+            doctorName = dateRule.doc;
+        } else if (weekRule) {
+            doctorName = weekRule.doc;
+        } else {
+            // Default hardcoded schedule
+            if (day === 0) doctorName = "Dr. Wong (Locum)";
+            else if (day === 2 || day === 4 || day === 6) doctorName = "Dr. Amin (Specialist)";
+            else doctorName = "Dr. Sara (General)";
+        }
+
+        if (docText) docText.innerHTML = `<span class="fw-bold">${doctorName}</span>`;
+        if (topDocText) topDocText.innerHTML = doctorName;
+    });
 }
 
 // --- PUBLIC HEALTH TOOLS ---
