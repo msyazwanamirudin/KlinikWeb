@@ -357,7 +357,7 @@ function verifyAdminPin() {
             // Success
             document.getElementById('adminPinScreen').style.display = 'none';
             document.getElementById('adminControlScreen').style.display = 'block';
-            // NEW: No Roster Render needed here
+            loadInventory(); // Auto-load stock items
             enableDebugMode(); // UNLOCK INSPECT ELEMENT
 
             // Reset Attempts
