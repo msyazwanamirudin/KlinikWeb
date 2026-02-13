@@ -749,10 +749,20 @@ h4,
     position: relative;
 }
 
-color: white;
-border-bottom-right-radius: 2px;
-box-shadow: 0 4px 15px rgba(15, 118, 110, 0.2);
-margin-left: auto;
+.msg-user {
+    background: var(--primary);
+    color: white;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 4px 15px rgba(15, 118, 110, 0.2);
+    margin-left: auto;
+}
+
+.msg-bot {
+    background: white;
+    color: var(--dark);
+    border-bottom-left-radius: 2px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-right: auto;
 }
 
 .typing-dots {
