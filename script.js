@@ -348,11 +348,14 @@ function handleUserChoice(choice) {
 function processChatFlow(choice) {
     // 0. Global Intercepts
     if (choice === 'Yes, Book Now') {
+        const currentService = chatState.bookingData.service;
+        chatState.bookingData = {}; // Clear everything to avoid stale data
+
         // Preserve context if coming from a flow
         if (chatState.flow && chatState.flow !== 'booking') {
             chatState.bookingData.service = `Assessment (${chatState.flow})`;
         } else {
-            chatState.bookingData.service = 'General Booking';
+            chatState.bookingData.service = currentService || 'General Booking';
         }
         startBookingFlow();
         return;
@@ -361,6 +364,7 @@ function processChatFlow(choice) {
     // 1. Main Menu Selection
     if (chatState.flow === null) {
         if (choice === 'Check Symptoms') {
+            chatState.answers = []; // Reset answers
             saveState();
             addMessage("I can help assess your condition. What seems to be the main issue?");
             addQuickReplies(['High Fever (Dengue?)', 'General Fever/Flu', 'Other / Pain', 'Back']);
@@ -371,6 +375,7 @@ function processChatFlow(choice) {
         } else if (choice === 'Other / Pain') {
             startFlow('general');
         } else if (choice === 'Book Appointment') {
+            chatState.bookingData = {}; // Clear previous data
             chatState.bookingData.service = 'General Booking';
             startBookingFlow();
         } else if (choice === 'Fertility Info') {
@@ -378,6 +383,7 @@ function processChatFlow(choice) {
             addMessage("Dr. Alia is our fertility expert. Connect with us for a Follicle Scan (RM60).");
             addQuickReplies(['Book Scan', 'Chat with Specialist', 'Back']);
         } else if (choice === 'Book Scan') {
+            chatState.bookingData = {}; // Clear previous data
             chatState.bookingData.service = 'Follicle Scan';
             startBookingFlow();
         } else if (choice === 'Chat with Specialist') {
