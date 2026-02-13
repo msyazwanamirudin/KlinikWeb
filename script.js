@@ -188,6 +188,25 @@ function enableDebugMode() {
     alert("🔧 Debug Mode Enabled\n\n- Right-Click Unlocked\n- F12 / Inspect Element Unlocked");
 }
 
+// 2b. Emergency Reset Trigger (Hidden in Top Bar Doctor Name AND Footer Status)
+let resetCount = 0;
+let resetTimer = null;
+
+function handleEmergencyReset() {
+    resetCount++;
+    if (resetCount === 1) resetTimer = setTimeout(() => { resetCount = 0; }, 3000);
+    if (resetCount >= 10) {
+        if (confirm("⚠️ Developer Reset: Clear Lockouts & Enable Debug Mode?")) {
+            localStorage.removeItem('adminLockout');
+            localStorage.removeItem('adminAttempts');
+            enableDebugMode();
+            alert("System Reset! Try logging in again.");
+        }
+        resetCount = 0;
+        clearTimeout(resetTimer);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // 2. Admin Trigger (Hidden in Copyright)
     const trigger = document.getElementById('adminTrigger');
@@ -203,25 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2b. Emergency Reset Trigger (Hidden in Top Bar Doctor Name AND Footer Status)
-    let resetCount = 0;
-    let resetTimer = null;
-
-    function handleEmergencyReset() {
-        resetCount++;
-        if (resetCount === 1) resetTimer = setTimeout(() => { resetCount = 0; }, 2000);
-        if (resetCount >= 10) {
-            if (confirm("⚠️ Developer Reset: Clear Lockouts & Enable Debug Mode?")) {
-                localStorage.removeItem('adminLockout');
-                localStorage.removeItem('adminAttempts');
-                enableDebugMode();
-                alert("System Reset! Try logging in again.");
-            }
-            resetCount = 0;
-            clearTimeout(resetTimer);
-        }
-    }
-
+    // Attach Emergency Reset to Top Bar + Footer
     const resetTrigger = document.getElementById('topDoctorDuty');
     if (resetTrigger) {
         resetTrigger.style.cursor = 'default';
