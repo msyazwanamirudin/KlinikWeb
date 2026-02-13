@@ -129,9 +129,102 @@ function updateLiveStatus() {
     updateDoctorRoster(isOpen);
 }
 
+// --- ADMIN ROSTER CONTROL (Secret Panel) ---
+let clickCount = 0;
+let clickTimer = null;
+const ADMIN_PIN = "8888"; // Simple Verification PIN
+
+document.addEventListener('DOMContentLoaded', () => {
+    const trigger = document.getElementById('adminTrigger');
+    if (trigger) {
+        trigger.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => { clickCount = 0; }, 2000); // Reset after 2s
+            }
+            if (clickCount >= 5) {
+                openAdminModal();
+                clickCount = 0;
+                clearTimeout(clickTimer);
+            }
+        });
+    }
+});
+
+function openAdminModal() {
+    const modal = document.getElementById('adminModal');
+    const pinScreen = document.getElementById('adminPinScreen');
+    const controlScreen = document.getElementById('adminControlScreen');
+    const pinInput = document.getElementById('adminPinInput');
+
+    if (modal) {
+        modal.style.display = 'flex';
+        // Reset state
+        pinScreen.style.display = 'block';
+        controlScreen.style.display = 'none';
+        pinInput.value = '';
+        document.getElementById('pinError').style.display = 'none';
+        pinInput.focus();
+    }
+}
+
+function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function verifyAdminPin() {
+    const input = document.getElementById('adminPinInput').value;
+    if (input === ADMIN_PIN) {
+        document.getElementById('adminPinScreen').style.display = 'none';
+        document.getElementById('adminControlScreen').style.display = 'block';
+
+        // Load current override if any
+        const current = localStorage.getItem('doctorOverride');
+        if (current) document.getElementById('manualDoctorName').value = current;
+    } else {
+        document.getElementById('pinError').style.display = 'block';
+    }
+}
+
+function saveDoctorOverride() {
+    const name = document.getElementById('manualDoctorName').value.trim();
+    if (name) {
+        localStorage.setItem('doctorOverride', name);
+        alert(`Success! Doctor on duty set to: ${name}`);
+        updateLiveStatus(); // Refresh immediately
+        closeAdminModal();
+    }
+}
+
+function clearDoctorOverride() {
+    localStorage.removeItem('doctorOverride');
+    alert("Reset! Roster is now back to automatic schedule.");
+    updateLiveStatus();
+    closeAdminModal();
+}
+
+
 function updateDoctorRoster(isOpen) {
     const docText = document.getElementById('doctorDutyText'); // Footer
     const topDocText = document.getElementById('topDoctorDuty'); // Top Bar
+
+    // 1. Check for Manual Override (Admin)
+    const override = localStorage.getItem('doctorOverride');
+
+    if (override) {
+        const htmlContent = `<span class="fw-bold text-warning">${override} <i class="fas fa-lock small ms-1" title="Manual Override"></i></span>`;
+        if (docText) docText.innerHTML = htmlContent;
+        if (topDocText) topDocText.innerHTML = override;
+        return; // Skip auto logic if override is present
+    }
+
+    if (!isOpen) {
+        const closedText = "<span class='text-muted'>-</span>";
+        if (docText) docText.innerHTML = closedText;
+        if (topDocText) topDocText.innerHTML = "-";
+        return;
+    }
 
     const now = new Date();
     const day = now.getDay(); // 0 = Sun, 1 = Mon ...
@@ -150,13 +243,12 @@ function updateDoctorRoster(isOpen) {
     }
 
     const htmlContent = `<span class="fw-bold">${doctorName}</span>`;
-    const closedContent = "<span class='text-muted'>-</span>";
 
     // Update Footer
-    if (docText) docText.innerHTML = isOpen ? htmlContent : closedContent;
+    if (docText) docText.innerHTML = htmlContent;
 
     // Update Top Bar
-    if (topDocText) topDocText.innerHTML = isOpen ? doctorName : "-";
+    if (topDocText) topDocText.innerHTML = doctorName;
 }
 
 updateLiveStatus();

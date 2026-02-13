@@ -631,10 +631,45 @@
                     </div>
                     <!-- Doctor on DutySystem -->
                     <div class="mb-3">
-                        <small class="text-white-50 d-block mb-1">Doctor on Duty:</small>
+                        <small class="text-white-50 d-block mb-1" id="adminTrigger" style="cursor: help;">Doctor on
+                            Duty:</small>
                         <div class="d-flex align-items-center">
                             <i class="fas fa-user-md text-primary me-2"></i>
                             <span id="doctorDutyText" class="text-white">Loading...</span>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Admin Modal (No Backend) -->
+                    <div id="adminModal" class="admin-modal" style="display: none;">
+                        <div class="admin-content">
+                            <h5 class="text-dark mb-3 fw-bold">👨‍⚕️ Manage Roster</h5>
+
+                            <!-- Screen 1: PIN -->
+                            <div id="adminPinScreen">
+                                <p class="text-muted small mb-2">Enter Admin PIN to verify identity:</p>
+                                <input type="password" id="adminPinInput" class="form-control mb-3 text-center"
+                                    placeholder="****" maxlength="6">
+                                <button onclick="verifyAdminPin()" class="btn btn-primary w-100 btn-sm">Verify</button>
+                                <p id="pinError" class="text-danger small mt-2 text-center" style="display:none;">
+                                    Invalid PIN</p>
+                            </div>
+
+                            <!-- Screen 2: Controls -->
+                            <div id="adminControlScreen" style="display: none;">
+                                <p class="text-muted small mb-1">Set Active Doctor (Override Schedule)</p>
+                                <input type="text" id="manualDoctorName" class="form-control mb-3"
+                                    placeholder="e.g. Dr. Ali">
+
+                                <button onclick="saveDoctorOverride()" class="btn btn-success w-100 btn-sm mb-2">Set
+                                    Active Doctor</button>
+                                <button onclick="clearDoctorOverride()"
+                                    class="btn btn-outline-secondary w-100 btn-sm mb-3">Reset to Auto-Schedule</button>
+
+                                <hr>
+                                <button onclick="closeAdminModal()" class="btn btn-link text-muted btn-sm w-100">Close
+                                    Panel</button>
+                            </div>
+                            <div class="close-modal" onclick="closeAdminModal()">&times;</div>
                         </div>
                     </div>
                     <ul class="list-unstyled footer-links text-white-50">
