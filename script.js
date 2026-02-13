@@ -162,8 +162,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Initialize Logic
     populateDoctorSelect();
     renderRosterRules();
-    loadPromo();
+    loadPromo(); // Ensure this runs on load
     updateLiveStatus(); // Initial Roster Check
+
+    // Add Enter Key for PIN
+    const pinInput = document.getElementById('adminPinInput');
+    if (pinInput) {
+        pinInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') verifyAdminPin();
+        });
+    }
 });
 
 // --- UI MANAGERS ---
@@ -860,50 +868,43 @@ function handleBookingStep(choice) {
     }
 }
 
+// 2. Updated WhatsApp Format
 function finishBooking() {
     const { name, date, time, service } = chatState.bookingData;
-    // Removed 'report' from destructuring to avoid sending it
 
-    let finalMsg = `Booking Confirmed for *${name}*.<br>📅 ${date} at ${time}<br><br>Please click below to send this to our WhatsApp for final confirmation.`;
-    addMessage(finalMsg);
+    showTyping(() => {
+        let finalMsg = `Booking Confirmed for *${name}*.<br>📅 ${date} at ${time}<br><br>Please click below to send this to our WhatsApp for final confirmation.`;
 
-    // Formatted WhatsApp Message (Simplified)
-    // Using standard URI component encoding, emojis should work. 
-    // Ensuring clean spacing.
-    let waMsg = `*BOOKING REQUEST*\n\n`;
-    waMsg += `👤 *Name:* ${name}\n`;
-    waMsg += `📅 *Date:* ${date}\n`;
-    waMsg += `🕒 *Time:* ${time}\n`;
-    waMsg += `🏥 *Service:* ${service || 'General Appointment'}\n`;
+        // Manual construction to avoid using addMessage recursively with typing
+        const chatBody = document.getElementById('chatBody');
+        const div = document.createElement('div');
+        div.className = 'bot-message slide-in';
+        div.innerHTML = finalMsg;
+        chatBody.appendChild(div);
+        scrollToBottom();
 
-    // Note: Q&A Report removed from WhatsApp message as requested
+        // New Requested Format
+        let waMsg = `👤 Name: ${name}\n`;
+        waMsg += `📅 Date: ${date}\n`;
+        waMsg += `🕒 Time: ${time}\n`;
+        waMsg += `🏥Service: ${service || 'General'}`;
 
-    const waUrl = `https://wa.me/60172032048?text=${encodeURIComponent(waMsg)}`;
+        const waUrl = `https://wa.me/60172032048?text=${encodeURIComponent(waMsg)}`;
 
-    const chatBody = document.getElementById('chatBody');
-    const div = document.createElement('div');
-    div.className = 'quick-replies';
+        const linkDiv = document.createElement('div');
+        linkDiv.className = 'text-center mt-3 slide-in';
+        linkDiv.innerHTML = `<a href="${waUrl}" target="_blank" class="btn btn-success rounded-pill px-4"><i class="fab fa-whatsapp me-2"></i>Send to Clinic</a>`;
+        chatBody.appendChild(linkDiv);
+        scrollToBottom();
 
-    // WhatsApp Button
-    const btn = document.createElement('div');
-    btn.className = 'chip';
-    btn.style.background = '#22c55e';
-    btn.style.color = 'white';
-    btn.innerHTML = '<i class="fab fa-whatsapp"></i> Send to WhatsApp';
-    btn.onclick = () => window.open(waUrl, '_blank');
-
-    // Menu Button (Reset / New Session)
-    const menuBtn = document.createElement('div');
-    menuBtn.className = 'chip';
-    menuBtn.innerText = "Main Menu";
-    menuBtn.onclick = () => {
-        resetChat(); // Clears screen as requested ("hide past answer")
-    };
-
-    div.appendChild(btn);
-    div.appendChild(menuBtn);
-    chatBody.appendChild(div);
-    chatBody.scrollTop = chatBody.scrollHeight;
+        // Menu Button
+        const menuBtn = document.createElement('div');
+        menuBtn.className = 'chip';
+        menuBtn.innerText = "Main Menu";
+        menuBtn.onclick = () => resetChat();
+        chatBody.appendChild(menuBtn);
+        scrollToBottom();
+    });
 }
 
 function addQuickReplies(options) {
