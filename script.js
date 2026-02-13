@@ -464,6 +464,13 @@ function updateDoctorRoster(isOpen) {
 
 
 // --- PROMO ENGINE ---
+const DEFAULT_PROMO = {
+    active: true,
+    title: "Vibrant Health for All",
+    desc: "Experience AI-powered assessments and premium care. Walk-ins welcome!",
+    img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80"
+};
+
 function savePromo(e) {
     e.preventDefault();
     const promoData = {
@@ -478,8 +485,8 @@ function savePromo(e) {
 }
 
 function loadPromoForm() {
-    const data = JSON.parse(localStorage.getItem('promoData') || '{}');
-    document.getElementById('promoActive').checked = data.active || false;
+    const data = JSON.parse(localStorage.getItem('promoData')) || DEFAULT_PROMO;
+    document.getElementById('promoActive').checked = data.active;
     document.getElementById('promoTitleInput').value = data.title || '';
     document.getElementById('promoDescInput').value = data.desc || '';
     document.getElementById('promoImgInput').value = data.img || '';
@@ -495,7 +502,7 @@ function loadPromoForm() {
 }
 
 function loadPromo() {
-    const data = JSON.parse(localStorage.getItem('promoData') || '{}');
+    const data = JSON.parse(localStorage.getItem('promoData')) || DEFAULT_PROMO;
     const section = document.getElementById('promoSection');
 
     if (data.active) {
