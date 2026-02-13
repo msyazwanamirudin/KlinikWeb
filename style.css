@@ -1,20 +1,19 @@
 :root {
     /* -- Clinical & Professional Palette -- */
     --primary: #0f766e;
-    /* Teal 700 - Trustworthy & Medical */
     --primary-dark: #115e59;
-    /* Teal 800 */
-    --secondary: #2dd4bf;
-    /* Teal 400 - Fresh & Welcoming */
-    /* Teal 700 - Professional, Deep, Trustworthy */
     --secondary: #ccfbf1;
-    /* Teal 100 - Soft, approachable background */
     --accent: #d97706;
-    /* Amber 600 - Warmth, critical alerts, attention */
     --dark: #1e293b;
-    /* Slate 800 - Modern/Neutral Text */
     --light: #f8fafc;
-    /* Slate 50 - Very clean, clinical background */
+
+    /* -- Layout & Glass Tokens -- */
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --font-heading: 'Space Grotesk', sans-serif;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 html {
@@ -71,34 +70,6 @@ body.modal-open {
     padding-right: 15px;
 }
 
-
-.admin-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 800px;
-    /* Wider for dashboard */
-    position: relative;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    transform: scale(0.95);
-    animation: zoomIn 0.3s forwards 0.1s;
-}
-
-@keyframes zoomIn {
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.close-modal-btn {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #94a3b8;
-    line-height: 1;
-}
-
 .nav-pills .nav-link.active {
     background-color: var(--primary);
 }
@@ -134,17 +105,7 @@ body.modal-open {
 }
 
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
 
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
 
 input,
 textarea {
@@ -163,28 +124,10 @@ h2,
 h3,
 h4,
 h5,
-h6 {
+h6,
+.display-font {
     font-family: var(--font-heading);
     color: #0f172a;
-    /* Slate 900 */
-}
-
-@keyframes illusionMove {
-    0% {
-        background-position: 0 0;
-    }
-
-    100% {
-        background-position: 100px 200px;
-    }
-}
-
-h1,
-h2,
-h3,
-h4,
-.display-font {
-    font-family: 'Space Grotesk', sans-serif;
     letter-spacing: -0.03em;
 }
 
@@ -474,33 +417,7 @@ h4,
     transform: rotate(10deg);
 }
 
-/* --- Reviews / Testimonials --- */
-.testimonial-card {
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.02);
-    height: 100%;
-}
-
-.testimonial-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    border-color: rgba(15, 118, 110, 0.1);
-}
-
-.avatar-circle {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.2rem;
-}
+/* (Testimonial + Avatar styles moved to bottom with doctor/card section) */
 
 
 
@@ -730,7 +647,9 @@ footer a.fs-5:hover {
     bottom: 110px;
     right: 30px;
     width: 380px;
+    max-width: calc(100vw - 20px);
     height: 550px;
+    max-height: calc(100vh - 140px);
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
@@ -740,6 +659,14 @@ footer a.fs-5:hover {
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.05);
     animation: slideUp 0.3s ease;
+}
+
+@media (max-width: 420px) {
+    .chat-window {
+        right: 10px;
+        bottom: 100px;
+        width: calc(100vw - 20px);
+    }
 }
 
 @keyframes slideUp {
@@ -1068,18 +995,27 @@ footer a.fs-5:hover {
 .admin-content {
     background: white;
     width: 95%;
-    /* Better for mobile */
     max-width: 900px;
-    /* Wider for Inventory */
     border-radius: 12px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
     max-height: 90vh;
-    /* Prevent overflow */
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Hide scrollbar for container */
     position: relative;
+    animation: zoomIn 0.3s forwards;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Header (Sticky) */
@@ -1119,4 +1055,11 @@ footer a.fs-5:hover {
     background: #ef4444;
     color: white;
     transform: rotate(90deg);
+}
+
+/* --- Admin Trigger (Prevent text selection on rapid clicks) --- */
+#adminTrigger {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }

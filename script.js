@@ -37,7 +37,7 @@ window.addEventListener('scroll', function () {
     sections.forEach(section => {
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
-        if (pageYOffset >= (sectionTop - 150)) {
+        if (window.scrollY >= (sectionTop - 150)) {
             const id = section.getAttribute('id');
             if (id) current = id;
         }
@@ -83,21 +83,30 @@ document.querySelectorAll('a[href="#home"]').forEach(anchor => {
 // --- Typing Effect (Simple) ---
 const words = ["Your Family", "Your Future", "Your Baby", "Your Health"];
 let i = 0;
+let typeInterval = null;
 
 function typeWriter() {
     const element = document.getElementById("typewriter");
-    // Simple rotation for demo purposes
-    setInterval(() => {
+    if (typeInterval) return; // Prevent duplicate intervals
+    typeInterval = setInterval(() => {
         i = (i + 1) % words.length;
         element.style.opacity = 0;
         setTimeout(() => {
-            element.innerHTML = words[i];
+            element.textContent = words[i];
             element.style.opacity = 1;
         }, 500);
     }, 3000);
 }
 document.getElementById("typewriter").style.transition = "opacity 0.5s";
 typeWriter();
+
+// --- HTML Sanitization Helper (XSS Prevention) ---
+function escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 
 // --- LIVE STATUS LOGIC (Refined & Synced) ---
 function updateLiveStatus() {
@@ -231,6 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Admin Trigger (Hidden in Copyright)
     const trigger = document.getElementById('adminTrigger');
     if (trigger) {
+        // Prevent browser text-search on double-click
+        trigger.addEventListener('dblclick', (e) => e.preventDefault());
+        trigger.addEventListener('mousedown', (e) => {
+            if (e.detail > 1) e.preventDefault(); // Prevent text selection on rapid clicks
+        });
         trigger.addEventListener('click', () => {
             clickCount++;
             if (clickCount === 1) clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
@@ -503,7 +517,7 @@ function renderInventory(items, list, empty) {
         html += `
         <tr class="${statusClass}">
             <td>
-                <div class="fw-bold text-dark">${item.name}</div>
+                <div class="fw-bold text-dark">${escapeHTML(item.name)}</div>
                 <span class="badge ${badgeClass}" style="font-size:0.7rem">${item.category || 'Medicine'}</span>
                 ${statusBadge}
             </td>
@@ -761,11 +775,10 @@ function calculateDueDate() {
 
 
 
-updateLiveStatus();
 setInterval(updateLiveStatus, 60000);
 
-// --- HIDE STATUS BAR ON FOOTER SCROLL ---
-document.addEventListener('DOMContentLoaded', () => {
+// --- HIDE STATUS BAR ON FOOTER SCROLL (runs on load) ---
+(function () {
     const footer = document.getElementById('mainFooter');
     const statusBar = document.querySelector('.status-bar');
     const navbar = document.querySelector('.navbar');
@@ -800,9 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         observer.observe(footer);
     }
-
-
-});
+})();
 
 
 // --- WHATSAPP BOOKING LOGIC (With Confirmation) ---
