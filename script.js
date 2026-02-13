@@ -226,7 +226,6 @@ function verifyAdminPin() {
     if (document.getElementById('adminPinInput').value === ADMIN_PIN) {
         document.getElementById('adminPinScreen').style.display = 'none';
         document.getElementById('adminControlScreen').style.display = 'block';
-        loadPromoForm(); // Pre-fill form
         renderRosterRules(); // Refresh list
     } else {
         document.getElementById('pinError').style.display = 'block';
@@ -241,11 +240,6 @@ function switchAdminTab(tab, event) {
 
     if (tab === 'roster') {
         document.getElementById('tabRoster').style.display = 'block';
-    } else {
-        document.getElementById('tabPromo').style.display = 'block';
-        // Force redraw for image preview if needed
-        const preview = document.getElementById('promoImgPreview');
-        if (preview && preview.src) preview.style.display = 'block';
     }
 
     // robust active class toggling
@@ -463,79 +457,7 @@ function updateDoctorRoster(isOpen) {
 }
 
 
-// --- PROMO ENGINE ---
-const DEFAULT_PROMO = {
-    active: true,
-    title: "Vibrant Health for All",
-    desc: "Experience AI-powered assessments and premium care. Walk-ins welcome!",
-    img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80"
-};
 
-function savePromo(e) {
-    e.preventDefault();
-    const promoData = {
-        active: document.getElementById('promoActive').checked,
-        title: document.getElementById('promoTitleInput').value,
-        desc: document.getElementById('promoDescInput').value,
-        img: document.getElementById('promoImgInput').value
-    };
-    localStorage.setItem('promoData', JSON.stringify(promoData));
-    loadPromo();
-    alert("Promo Updated!");
-}
-
-function loadPromoForm() {
-    const data = JSON.parse(localStorage.getItem('promoData')) || DEFAULT_PROMO;
-    document.getElementById('promoActive').checked = data.active;
-    document.getElementById('promoTitleInput').value = data.title || '';
-    document.getElementById('promoDescInput').value = data.desc || '';
-    document.getElementById('promoImgInput').value = data.img || '';
-
-    // Initial Preview Load
-    const preview = document.getElementById('promoImgPreview');
-    if (data.img) {
-        preview.src = data.img;
-        preview.style.display = 'block';
-    } else {
-        preview.style.display = 'none';
-    }
-}
-
-function loadPromo() {
-    const data = JSON.parse(localStorage.getItem('promoData')) || DEFAULT_PROMO;
-    const section = document.getElementById('promoSection');
-
-    if (data.active) {
-        section.classList.remove('d-none');
-        document.getElementById('promoTitle').innerText = data.title || "Special Offer";
-        // Ensure description is visible even on mobile
-        const desc = data.desc || "";
-        document.getElementById('promoText').innerText = desc;
-        document.getElementById('promoText').style.display = desc ? 'block' : 'none';
-
-        const img = document.getElementById('promoImage');
-        if (data.img) {
-            img.src = data.img;
-            img.parentElement.classList.remove('d-none');
-            img.parentElement.classList.add('d-block');
-        } else {
-            img.src = "";
-            img.parentElement.classList.remove('d-block');
-            img.parentElement.classList.add('d-none');
-        }
-    } else {
-        section.classList.add('d-none');
-    }
-}
-
-function resetPromo() {
-    if (confirm("Reset promo settings to default? This will clear your custom text/image.")) {
-        localStorage.removeItem('promoData');
-        loadPromoForm(); // Reloads form with defaults
-        loadPromo(); // Reloads page display with defaults
-        alert("Reset to Default!");
-    }
-}
 
 updateLiveStatus();
 setInterval(updateLiveStatus, 60000);
@@ -577,64 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(footer);
     }
 
-    // Promo Image Live Preview & Error Handling
-    const promoBgInput = document.getElementById('promoImgInput');
-    const preview = document.getElementById('promoImgPreview');
-    const fileInput = document.getElementById('promoImgUpload');
 
-    if (promoBgInput && preview) {
-        // Handle URL Input Change
-        promoBgInput.addEventListener('input', function () {
-            if (this.value) {
-                preview.src = this.value;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-        });
-
-        // Handle Image Load Error
-        preview.addEventListener('error', function () {
-            if (this.src && this.src !== window.location.href && !this.src.startsWith('data:image')) {
-                // alert("Cannot load this image..."); // Removed strict alert
-                this.style.display = 'none';
-                const errorMsg = document.getElementById('imgErrorMsg');
-                if (errorMsg) {
-                    errorMsg.style.display = 'block';
-                    errorMsg.textContent = "Unable to load image. It might be blocked (hotlink protection) or invalid.";
-                }
-            }
-        });
-
-        // Reset error on successful load (or new input)
-        preview.addEventListener('load', function () {
-            const errorMsg = document.getElementById('imgErrorMsg');
-            if (errorMsg) errorMsg.style.display = 'none';
-        });
-    }
-
-    // Handle Local File Upload (Base64)
-    if (fileInput) {
-        fileInput.addEventListener('change', function () {
-            const file = this.files[0];
-            if (file) {
-                if (file.size > 2 * 1024 * 1024) { // 2MB Check
-                    alert("File is too large! Please upload an image smaller than 2MB.");
-                    this.value = ''; // Reset
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const base64 = e.target.result;
-                    document.getElementById('promoImgInput').value = base64; // Set to input
-                    document.getElementById('promoImgPreview').src = base64; // Preview
-                    document.getElementById('promoImgPreview').style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    }
 });
 
 
