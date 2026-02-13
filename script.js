@@ -516,12 +516,24 @@ function loadPromo() {
         const img = document.getElementById('promoImage');
         if (data.img) {
             img.src = data.img;
-            document.getElementById('promoImgCol').style.display = 'block';
+            img.parentElement.classList.remove('d-none');
+            img.parentElement.classList.add('d-block');
         } else {
-            document.getElementById('promoImgCol').style.display = 'none';
+            img.src = "";
+            img.parentElement.classList.remove('d-block');
+            img.parentElement.classList.add('d-none');
         }
     } else {
-        if (section) section.classList.add('d-none');
+        section.classList.add('d-none');
+    }
+}
+
+function resetPromo() {
+    if (confirm("Reset promo settings to default? This will clear your custom text/image.")) {
+        localStorage.removeItem('promoData');
+        loadPromoForm(); // Reloads form with defaults
+        loadPromo(); // Reloads page display with defaults
+        alert("Reset to Default!");
     }
 }
 
