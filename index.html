@@ -802,9 +802,19 @@
                                             <label class="small text-muted">Image URL</label>
                                             <input type="text" id="promoImgInput" class="form-control form-control-sm"
                                                 placeholder="https://...">
+
+                                            <div class="text-center my-2 small text-muted">- OR -</div>
+
+                                            <label class="small text-muted">Upload Image (Local)</label>
+                                            <input type="file" id="promoImgUpload" accept="image/*"
+                                                class="form-control form-control-sm mb-1">
+                                            <small class="text-danger d-block mb-2" style="font-size: 0.75rem;">
+                                                <i class="fas fa-exclamation-triangle me-1"></i> Note: Large images
+                                                (>2MB) may slow down the site.
+                                            </small>
+
                                             <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                <i class="fas fa-info-circle me-1"></i> Note: Please ensure the URL is a
-                                                direct link to an image (ends in .jpg, .png, etc).
+                                                <i class="fas fa-info-circle me-1"></i> Preview:
                                             </small>
                                             <img id="promoImgPreview" src="" class="img-fluid rounded mt-2 border"
                                                 style="display: none; max-height: 150px; object-fit: cover; width: 100%;">

@@ -284,12 +284,25 @@ function addRosterRule() {
     }
 
     const rules = getRosterRules();
+
+    // VALIDATION: Check for duplicate rule (Same Doctor + Same Day/Date)
+    const existing = rules.find(r =>
+        r.doc === doc &&
+        ((type === 'weekly' && r.type === 'weekly' && r.day === rule.day) ||
+            (type === 'date' && r.type === 'date' && r.date === rule.date))
+    );
+
+    if (existing) {
+        alert(`Creation Failed:\n${doc} already has a rule for this ${type === 'weekly' ? 'day' : 'date'}.`);
+        return;
+    }
+
     rules.push(rule);
     localStorage.setItem('rosterRules', JSON.stringify(rules));
 
     renderRosterRules();
     updateLiveStatus(); // Apply immediately
-    alert("Rule Added!");
+    alert("Rule Added Successfully!");
 }
 
 function deleteRule(id) {
@@ -533,6 +546,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
         observer.observe(footer);
     }
+
+    // Promo Image Live Preview & Error Handling
+    const promoBgInput = document.getElementById('promoImgInput');
+    const preview = document.getElementById('promoImgPreview');
+    const fileInput = document.getElementById('promoImgUpload');
+
+    if (promoBgInput && preview) {
+        // Handle URL Input Change
+        promoBgInput.addEventListener('input', function () {
+            if (this.value) {
+                preview.src = this.value;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        // Handle Image Load Error
+        preview.addEventListener('error', function () {
+            if (this.src && this.src !== window.location.href && !this.src.startsWith('data:image')) {
+                alert("Cannot load this image. The website hosting it might be blocking access (Hotlinking protection) or the URL is invalid.\n\nTry a direct link from Unsplash or use the Upload feature.");
+                this.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle Local File Upload (Base64)
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) { // 2MB Check
+                    alert("File is too large! Please upload an image smaller than 2MB.");
+                    this.value = ''; // Reset
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64 = e.target.result;
+                    document.getElementById('promoImgInput').value = base64; // Set to input
+                    document.getElementById('promoImgPreview').src = base64; // Preview
+                    document.getElementById('promoImgPreview').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 });
 
 
@@ -689,10 +750,13 @@ function handleUserChoice(choice) {
     toggleInput(false);
     showTyping();
 
+    // Randomize Think Time (0.5s - 1.0s)
+    const delay = Math.floor(Math.random() * 500) + 500;
+
     setTimeout(() => {
         removeTyping();
         processChatFlow(choice);
-    }, 600);
+    }, delay);
 }
 
 function processChatFlow(choice) {
@@ -870,13 +934,13 @@ function startBookingFlow() {
 
 function askBookingQuestion() {
     if (chatState.step === 0) {
-        addMessage("Great! To secure your slot, please type your **Full Name**.");
+        addMessage("That sounds good! To get started with your booking, could you please type your **Full Name**?");
         toggleInput(true);
     } else if (chatState.step === 1) {
-        addMessage(`Thanks, ${chatState.bookingData.name}. When would you like to visit?`);
+        addMessage(`Thanks, ${chatState.bookingData.name}. What date works best for you to come in?`);
         addQuickReplies(['Today', 'Tomorrow', 'Custom Date', 'Back']);
     } else if (chatState.step === 2) {
-        addMessage("Preferred Time Slot?");
+        addMessage(`Got it. What time do you prefer, ${chatState.bookingData.name}?`);
         addQuickReplies(['Morning (9-12)', 'Afternoon (2-5)', 'Evening (6-9)', 'Custom Time', 'Back']);
     }
 }
@@ -916,6 +980,16 @@ function handleBookingStep(choice) {
 // which processes user input and then calls `processChatFlow`.
 // The instruction implies this structure for randomizing typing delay.
 function handleUserChoice(choice) {
+    const qr = document.getElementById('quickReplies');
+    if (qr) qr.remove();
+
+    if (choice === 'Start Over' || choice === 'Back to Start') { resetChat(); return; }
+    if (choice === 'Back') {
+        addMessage("Back", true); // Log 'Back' action
+        goBack();
+        return;
+    }
+
     addMessage(choice, true); // Display user's choice
     toggleInput(false); // Disable input while processing
     showTyping(); // Show typing indicator
@@ -1024,7 +1098,7 @@ function finishBooking() {
         removeTyping();
 
         // Final Message Construction
-        let finalMsg = `Booking Confirmed for *${name}*.<br>📅 ${date} at ${time}<br><br>Please click below to send this to our WhatsApp for final confirmation.`;
+        let finalMsg = `All set, <b>${name}</b>! I've locked in your appointment for <br>📅 ${date} at ${time}.<br><br>Please click below to send this to our WhatsApp for final confirmation.`;
 
         const chatBody = document.getElementById('chatBody');
         const div = document.createElement('div');
@@ -1036,19 +1110,28 @@ function finishBooking() {
         // New Requested Format
         let waMsg = `👤 Name: ${name}\n`;
         waMsg += `📅 Date: ${date}\n`;
-        linkDiv.className = 'text-center mt-3 slide-in';
-        linkDiv.innerHTML = `<a href="${waUrl}" target="_blank" class="btn btn-success rounded-pill px-4"><i class="fab fa-whatsapp me-2"></i>Send to Clinic</a>`;
-        chatBody.appendChild(linkDiv);
-        scrollToBottom();
+        waMsg += `⏰ Time: ${time}\n`;
+        waMsg += `🏥 Service: ${service || 'General Booking'}\n`;
+        waMsg += `--------------------------------\n`;
+        waMsg += `Hi, I would like to confirm my appointment.`;
 
-        // Menu Button
-        const menuBtn = document.createElement('div');
-        menuBtn.className = 'chip';
-        menuBtn.innerText = "Main Menu";
-        menuBtn.onclick = () => resetChat();
-        chatBody.appendChild(menuBtn);
-        scrollToBottom();
-    });
+        // Create WhatsApp Button
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-success btn-sm w-100 mt-2 rounded-pill';
+        btn.innerHTML = '<i class="fab fa-whatsapp me-2"></i> Send to WhatsApp';
+        btn.onclick = () => {
+            const phone = "60172032048";
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waMsg)}`, '_blank');
+        };
+        div.appendChild(btn);
+
+        // Reset Chat Option
+        setTimeout(() => {
+            addMessage("Is there anything else I can help you with?");
+            addQuickReplies(['Back to Start']);
+        }, 1000);
+
+    }, delay);
 }
 
 function addQuickReplies(options) {
