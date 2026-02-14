@@ -611,6 +611,11 @@ function switchAdminTab(tab, event) {
 let latestRosterRules = [];
 let _adminRosterViewMode = 'weekly'; // 'weekly' or 'monthly'
 let _adminRosterViewMonth = new Date();
+let _adminRosterViewWeek = new Date();
+// Align to current Monday
+const _d = _adminRosterViewWeek.getDay();
+const _diff = _adminRosterViewWeek.getDate() - _d + (_d === 0 ? -6 : 1);
+_adminRosterViewWeek.setDate(_diff);
 
 function switchAdminRosterView(mode) {
     _adminRosterViewMode = mode;
@@ -631,6 +636,18 @@ function switchAdminRosterView(mode) {
 function changeAdminRosterMonth(delta) {
     _adminRosterViewMonth.setMonth(_adminRosterViewMonth.getMonth() + delta);
     renderAdminMonthlyOverview(latestRosterRules || []);
+}
+
+function changeAdminRosterWeek(delta) {
+    _adminRosterViewWeek.setDate(_adminRosterViewWeek.getDate() + (delta * 7));
+    renderWeeklyOverview(latestRosterRules || []);
+}
+
+function getWeekOfMonth(date) {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const dayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Mon=0 .. Sun=6
+    const adjustedDate = date.getDate() + dayOfWeek;
+    return Math.ceil(adjustedDate / 7);
 }
 
 function loadRosterAdmin() {
@@ -744,13 +761,27 @@ function renderWeeklyOverview(rules) {
     const container = document.getElementById('adminWeeklyOverview');
     if (!container) return;
 
-    const now = new Date();
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Use selected week state
+    const startOfWeek = new Date(_adminRosterViewWeek);
+    const weekNum = getWeekOfMonth(startOfWeek);
+    const monthName = startOfWeek.toLocaleDateString('en-GB', { month: 'short' });
+    const weekLabel = `Week ${weekNum} of ${monthName}`;
 
     let html = `<div class="border rounded shadow-sm overflow-hidden">
-        <div class="bg-primary text-white px-3 py-2 d-flex align-items-center gap-2">
-            <i class="fas fa-calendar-week"></i>
-            <span class="fw-bold small text-uppercase">Weekly Overview</span>
+        <div class="bg-primary text-white px-3 py-2 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-calendar-week"></i>
+                <span class="fw-bold small text-uppercase">Weekly Overview</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-link text-white p-0 hover-opacity" onclick="changeAdminRosterWeek(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="fw-bold small mx-1" style="min-width: 90px; text-align: center;">${weekLabel}</span>
+                <button class="btn btn-sm btn-link text-white p-0 hover-opacity" onclick="changeAdminRosterWeek(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
         </div>
         <div class="table-responsive">
         <table class="table table-bordered table-sm mb-0 align-middle roster-week-table" style="font-size: 0.8rem;">
@@ -767,54 +798,46 @@ function renderWeeklyOverview(rules) {
             </thead>
             <tbody><tr>`;
 
-    // Build 7 columns (Mon=1 to Sun=0)
-    const weekOrder = [1, 2, 3, 4, 5, 6, 0]; // Mon to Sun
-    weekOrder.forEach(dayIdx => {
-        // Find the next occurrence of this day
-        const d = new Date(now);
-        const today = d.getDay();
-        let daysAhead = dayIdx - today;
-        if (daysAhead < 0) daysAhead += 7;
-        d.setDate(d.getDate() + daysAhead);
-        const dateISO = d.toISOString().split('T')[0];
-        const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    // Build 7 columns (Mon=0 to Sun=6 iteration logic)
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
 
-        // Filter Rules (Priority: Date > Weekly)
+        const dateISO = d.toISOString().split('T')[0];
+        const dayIdx = d.getDay(); // 0=Sun, 1=Mon... but loop is 0=Mon.
+        // wait, i=0 is Mon. startOfWeek is Mon.
+        // d.getDay() for Mon is 1.
+
+        const today = new Date();
+        const isToday = d.toDateString() === today.toDateString();
+
+        // Filter rules
         const dateRules = rules.filter(r => r.type === 'date' && r.date === dateISO);
         const weekRules = rules.filter(r => r.type === 'weekly' && r.day === dayIdx);
+        let activeRules = dateRules.length > 0 ? dateRules : (weekRules.length > 0 ? weekRules : []);
 
-        let activeRules = [];
-        if (dateRules.length > 0) activeRules = dateRules;
-        else if (weekRules.length > 0) activeRules = weekRules;
-
-        const isToday = daysAhead === 0;
-        const cellHighlight = isToday ? 'background-color: #f0fdfa; border-left: 3px solid #0d9488;' : '';
-
-        let cellContent = `<div class="text-muted small mb-1">${dateStr}</div>`;
-
-        if (activeRules.length > 0) {
-            activeRules.forEach(r => {
-                const isOff = r.shift === 'Off';
-                if (isOff) {
-                    cellContent += `<div class="text-danger small">❌ OFF</div>`;
-                } else {
-                    cellContent += `<div class="mb-1">
-                        <div class="fw-bold small">${r.doc.split(' ')[0]} ${r.doc.split(' ')[1] || ''}</div>
-                        <div style="font-size:0.7rem;" class="text-muted">${r.shift}</div>
-                    </div>`;
-                }
-            });
-        } else {
-            // Default
-            let docName = "Dr. Sara";
+        // Default
+        if (activeRules.length === 0) {
+            let docName = "Dr. Hanim";
             if (dayIdx === 0) docName = "Dr. Wong";
             else if (dayIdx === 2 || dayIdx === 4 || dayIdx === 6) docName = "Dr. Amin";
-            cellContent += `<div class="fw-bold small text-muted">${docName}</div>
-                <div style="font-size:0.7rem;" class="text-muted">Full Day</div>`;
+            activeRules = [{ doc: docName, shift: 'Full Day' }];
         }
 
-        html += `<td class="text-center p-2" style="${cellHighlight}">${cellContent}</td>`;
-    });
+        let cellContent = `<div class="fw-bold mb-1 text-secondary" style="font-size:0.7rem;">${d.getDate()}/${d.getMonth() + 1}</div>`;
+
+        activeRules.forEach(r => {
+            const isOff = r.shift === 'Off';
+            const style = isOff ? 'text-decoration: line-through; color: #999;' : 'color: #0d6efd; font-weight: 600;';
+            const shortDoc = r.doc.replace(/ \(.*\)/, '');
+            cellContent += `<div style="${style}">${shortDoc}</div>`;
+            if (!isOff) cellContent += `<div class="text-muted" style="font-size:0.7rem;">${r.shift}</div>`;
+            else cellContent += `<div class="text-danger" style="font-size:0.7rem;">OFF</div>`;
+        });
+
+        const bgClass = isToday ? 'bg-warning bg-opacity-10' : '';
+        html += `<td class="text-center p-2 ${bgClass}">${cellContent}</td>`;
+    }
 
     html += `</tr></tbody></table></div></div>`;
     container.innerHTML = html;
@@ -858,16 +881,16 @@ function renderRosterList(rules) {
         let badge = '';
 
         if (rule.type === 'weekly') {
-            when = `Every <b>${days[rule.day]}</b>`;
-            badge = `<span class="badge bg-info text-dark">Weekly</span>`;
+            when = `Every < b > ${days[rule.day]}</b > `;
+            badge = `< span class="badge bg-info text-dark" > Weekly</span > `;
         } else {
             const d = new Date(rule.date);
-            when = `<b>${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b> (${days[d.getDay()]})`;
-            badge = `<span class="badge bg-primary">Date</span>`;
+            when = `< b > ${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b > (${days[d.getDay()]})`;
+            badge = `< span class="badge bg-primary" > Date</span > `;
         }
 
         html += `
-        <tr>
+        < tr >
             <td class="text-center">
                 <input type="checkbox" class="form-check-input rule-checkbox" 
                     value="${rule._origIdx}" onchange="updateBatchButtons()">
@@ -881,7 +904,7 @@ function renderRosterList(rules) {
                 <button onclick="editRosterRule(${rule._origIdx})" class="btn btn-outline-primary btn-sm border-0 me-1" title="Edit/Copy"><i class="fas fa-pen"></i></button>
                 <button onclick="deleteRosterRule(${rule._origIdx})" class="btn btn-outline-danger btn-sm border-0" title="Delete"><i class="fas fa-trash"></i></button>
             </td>
-        </tr>`;
+        </tr > `;
     });
 
     list.innerHTML = html;
@@ -902,7 +925,7 @@ function deleteSelectedRules() {
     const checked = document.querySelectorAll('.rule-checkbox:checked');
     if (checked.length === 0) return;
 
-    if (!confirm(`Are you sure you want to delete ${checked.length} selected rules?`)) return;
+    if (!confirm(`Are you sure you want to delete ${checked.length} selected rules ? `)) return;
 
     const indices = Array.from(checked).map(cb => parseInt(cb.value));
     // Sort descending to splice correctly
@@ -1051,7 +1074,7 @@ function addRosterRule() {
         });
 
         if (duplicates.length > 0) {
-            alert(`Error: Duplicate assignments found:\n` + duplicates.slice(0, 3).join('\n') + (duplicates.length > 3 ? '\n...' : ''));
+            alert(`Error: Duplicate assignments found: \n` + duplicates.slice(0, 3).join('\n') + (duplicates.length > 3 ? '\n...' : ''));
             return;
         }
 
@@ -1066,7 +1089,7 @@ function addRosterRule() {
                     r.type === 'weekly' && r.day === dayOfWeek && r.doc === newRule.doc
                 );
                 if (weeklyConflict) {
-                    conflicts.push(`${newRule.doc} already has a recurring ${days[dayOfWeek]} rule. Delete the weekly rule first.`);
+                    conflicts.push(`${newRule.doc} already has a recurring ${days[dayOfWeek]} rule.Delete the weekly rule first.`);
                 }
             } else if (newRule.type === 'weekly') {
                 // Check if this doctor already has date-specific rules on this weekday
@@ -1075,13 +1098,13 @@ function addRosterRule() {
                     return new Date(r.date).getDay() === newRule.day;
                 });
                 if (dateConflict) {
-                    conflicts.push(`${newRule.doc} already has a date-specific rule on a ${days[newRule.day]}. Delete it first.`);
+                    conflicts.push(`${newRule.doc} already has a date - specific rule on a ${days[newRule.day]}. Delete it first.`);
                 }
             }
         });
 
         if (conflicts.length > 0) {
-            alert(`Error: Schedule conflict detected:\n` + conflicts.slice(0, 3).join('\n') + (conflicts.length > 3 ? '\n...' : ''));
+            alert(`Error: Schedule conflict detected: \n` + conflicts.slice(0, 3).join('\n') + (conflicts.length > 3 ? '\n...' : ''));
             return;
         }
 
@@ -1114,7 +1137,7 @@ function populateDoctorSelect() {
     if (!sel) return;
     sel.innerHTML = '';
     DOCTORS.forEach(doc => {
-        sel.innerHTML += `<option value="${doc}">${doc}</option>`;
+        sel.innerHTML += `< option value = "${doc}" > ${doc}</option > `;
     });
 }
 
@@ -1181,7 +1204,7 @@ function renderInventory(items, list, empty) {
                 statusBadge = '<span class="badge bg-danger ms-1">EXPIRED</span>';
             } else if (daysLeft < 60) {
                 statusClass = 'table-warning';
-                statusBadge = `<span class="badge bg-warning text-dark ms-1">Exp: ${item.expiry}</span>`;
+                statusBadge = `< span class="badge bg-warning text-dark ms-1" > Exp: ${item.expiry}</span > `;
             }
         }
 
@@ -1195,7 +1218,7 @@ function renderInventory(items, list, empty) {
         const badgeClass = catColors[item.category] || 'bg-secondary';
 
         html += `
-        <tr class="${statusClass}">
+        < tr class="${statusClass}" >
             <td>
                 <div class="fw-bold text-dark">${escapeHTML(item.name)}</div>
                 <span class="badge ${badgeClass}" style="font-size:0.7rem">${item.category || 'Medicine'}</span>
@@ -1214,7 +1237,7 @@ function renderInventory(items, list, empty) {
             <td class="text-end">
                 <button onclick="deleteInventoryItem(${item.originalIndex})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button>
             </td>
-        </tr>`;
+        </tr > `;
     });
 
     list.innerHTML = html;
@@ -1254,7 +1277,7 @@ function addInventoryItem() {
 
         if (existingIndex !== -1) {
             items[existingIndex].qty = parseInt(items[existingIndex].qty) + qty;
-            alert(`Updated stock for ${items[existingIndex].name}. New Qty: ${items[existingIndex].qty}`);
+            alert(`Updated stock for ${items[existingIndex].name}.New Qty: ${items[existingIndex].qty} `);
         } else {
             items.push({ name, qty, expiry, category });
         }
@@ -1318,10 +1341,10 @@ function calculateBMI() {
         }
 
         resultDiv.innerHTML = `
-            <div>BMI: <span class="display-6 fw-bold ${color}">${bmi}</span></div>
+        < div > BMI: <span class="display-6 fw-bold ${color}">${bmi}</span></div >
             <div class="fw-bold ${color}">${status}</div>
             <div class="small text-muted mt-1"><i class="fas fa-info-circle me-1"></i>${advice}</div>
-        `;
+    `;
     }, 800);
 }
 
@@ -1343,10 +1366,10 @@ function calculateDueDate() {
         const dateStr = due.toLocaleDateString('en-US', options);
 
         resultDiv.innerHTML = `
-            <div class="small text-muted mb-1">Estimated Due Date:</div>
+        < div class="small text-muted mb-1" > Estimated Due Date:</div >
             <div class="h5 fw-bold text-primary mb-0">${dateStr}</div>
             <div class="small text-muted mt-1">based on 40-week gestation</div>
-        `;
+    `;
     }, 800);
 }
 
@@ -1406,10 +1429,10 @@ function bookViaWhatsApp(serviceName, details = "") {
     let message = `Hi Klinik, I would like to book an appointment.`;
 
     if (serviceName) {
-        message += `\nService: ${serviceName}`;
+        message += `\nService: ${serviceName} `;
     }
     if (details) {
-        message += `\nDetails: ${details}`;
+        message += `\nDetails: ${details} `;
     }
 
     message += `\n\nCould you please let me know the available slots?`;
