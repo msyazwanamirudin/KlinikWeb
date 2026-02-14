@@ -713,7 +713,14 @@
                         <a href="javascript:void(0)" onclick="openRosterModal()"
                             class="text-primary small text-decoration-none">
                             <i class="fas fa-calendar-alt me-1"></i> View Full Schedule
+                            <i class="fas fa-calendar-alt me-1"></i> View Full Schedule
                         </a>
+                        <div class="mt-2 border-top border-secondary pt-2">
+                            <a href="javascript:void(0)" onclick="openAdminModal()"
+                                class="text-white-50 small text-decoration-none hover-white">
+                                <i class="fas fa-lock me-1"></i> Admin Login
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Patient Roster View Modal -->
@@ -774,16 +781,21 @@
                                 <div class="close-modal-btn" onclick="closeAdminModal()">&times;</div>
                             </div>
 
-                            <!-- Screen 1: PIN -->
-                            <div id="adminPinScreen">
-                                <p class="text-muted small mb-2 text-center">Enter PIN to access CMS:</p>
-                                <input type="password" id="adminPinInput" class="form-control mb-3 text-center"
-                                    placeholder="****" maxlength="6"
-                                    onkeydown="if(event.key==='Enter')verifyAdminPin()">
-                                <button onclick="verifyAdminPin()" class="btn btn-primary w-100 btn-sm">Verify
-                                    Identity</button>
-                                <p id="pinError" class="text-danger small mt-2 text-center" style="display:none;">
-                                    Invalid PIN</p>
+                            <!-- Screen 1: Login -->
+                            <div id="adminLoginScreen">
+                                <p class="text-muted small mb-3 text-center">Secure Admin Access</p>
+                                <div class="mb-3">
+                                    <input type="email" id="adminEmailInput" class="form-control text-center"
+                                        placeholder="Email Address">
+                                </div>
+                                <div class="mb-3">
+                                    <input type="password" id="adminPasswordInput" class="form-control text-center"
+                                        placeholder="Password" onkeydown="if(event.key==='Enter')verifyAdminLogin()">
+                                </div>
+                                <button onclick="verifyAdminLogin()" class="btn btn-primary w-100 btn-sm">Login to
+                                    Dashboard</button>
+                                <p id="loginError" class="text-danger small mt-2 text-center" style="display:none;">
+                                    Invalid Credentials</p>
                             </div>
 
                             <!-- Screen 2: Dashboard -->
