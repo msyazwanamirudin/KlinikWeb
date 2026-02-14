@@ -474,7 +474,7 @@ function closeAdminModal() {
 function verifyAdminLogin() {
     const errorMsg = document.getElementById('loginError');
     const email = document.getElementById('adminEmailInput').value.trim();
-    const password = document.getElementById('adminPasswordInput').value;
+    const password = document.getElementById('adminPasswordInput').value.trim();
 
     // Check Lockout
     const lockout = JSON.parse(localStorage.getItem('adminLockout') || '{}');
@@ -486,6 +486,10 @@ function verifyAdminLogin() {
 
     // Verify
     sha256(password).then(hash => {
+        console.log("Login Attempt:", email);
+        console.log("Hash Generated:", hash);
+        console.log("Hash Expected:", ADMIN_HASH_SHA);
+
         if (email === ADMIN_EMAIL && hash === ADMIN_HASH_SHA) {
             // Success
             document.getElementById('adminLoginScreen').style.display = 'none';
