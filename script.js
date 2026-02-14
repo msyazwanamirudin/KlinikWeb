@@ -365,9 +365,9 @@ function generatePublicRoster() {
 // --- ADVANCED ADMIN SYSTEM (LocalStorage CMS) ---
 
 // Security Constants
-// SHA-256 for "Admin2024!"
-const ADMIN_HASH_SHA = "5a55c7873ed7338f35d782adb513d336a36086ddec0fa4b6444fda6d440387c2";
-const ADMIN_EMAIL = "admin@klinikhaya.com";
+// SHA-256 for "Admin2026"
+const ADMIN_HASH_SHA = "8d90ed647b948fa80c3c9bbf5316c78f151723f52fb9d6101f818af8afff69ec";
+const ADMIN_EMAIL = "admin@klinik.com";
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_TIME = 100 * 365 * 24 * 60 * 60 * 1000; // Permanent Lockout
 
