@@ -112,10 +112,11 @@ function escapeHTML(str) {
 // Populated once at page load, reused everywhere. No repeated reads.
 let _cachedRosterRules = null; // null = not yet loaded
 let _cachedInventory = null;
+let _cachedPromo = null;
+let _cachedDoctors = null;
 
 function getCachedRoster() {
     if (_cachedRosterRules !== null) return Promise.resolve(_cachedRosterRules);
-    // First load: fetch from Firebase once, then cache
     return firebaseLoad('roster/rules', []).then(rules => {
         _cachedRosterRules = rules || [];
         return _cachedRosterRules;
@@ -123,8 +124,24 @@ function getCachedRoster() {
 }
 
 function invalidateRosterCache() {
-    // Called after admin makes changes — forces next read from Firebase
     _cachedRosterRules = null;
+}
+
+function getCachedPromo() {
+    if (_cachedPromo !== null) return Promise.resolve(_cachedPromo);
+    return firebaseLoad('promo', { enabled: false, items: [] }).then(data => {
+        _cachedPromo = data || { enabled: false, items: [] };
+        if (!_cachedPromo.items) _cachedPromo.items = [];
+        return _cachedPromo;
+    });
+}
+
+function getCachedDoctors() {
+    if (_cachedDoctors !== null) return Promise.resolve(_cachedDoctors);
+    return firebaseLoad('doctors', null).then(docs => {
+        _cachedDoctors = (docs && Array.isArray(docs) && docs.length > 0) ? docs : [...DEFAULT_DOCTORS];
+        return _cachedDoctors;
+    });
 }
 
 // --- LIVE STATUS LOGIC (Refined & Synced) ---
@@ -372,11 +389,7 @@ const DEFAULT_DOCTORS = [
 ];
 let DOCTORS = [...DEFAULT_DOCTORS];
 
-// Utility: Escape HTML to prevent XSS
-function escapeHTML(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
+// (escapeHTML defined above at line ~103 using DOM-based approach)
 
 function loadDoctors() {
     return firebaseLoad('doctors', null).then(docs => {
@@ -385,6 +398,7 @@ function loadDoctors() {
         } else {
             DOCTORS = [...DEFAULT_DOCTORS];
         }
+        _cachedDoctors = DOCTORS;
         populateDoctorSelect();
         renderDoctorList();
         return DOCTORS;
@@ -539,9 +553,7 @@ function verifyAdminLogin() {
 
     // Verify
     sha256(password).then(hash => {
-        console.log("Login Attempt:", email);
-        console.log("Hash Generated:", hash);
-        console.log("Hash Expected:", ADMIN_HASH_SHA);
+        // Credentials intentionally not logged for security
 
         if (email === ADMIN_EMAIL && hash === ADMIN_HASH_SHA) {
             // Success
@@ -551,17 +563,27 @@ function verifyAdminLogin() {
             loadDoctors();
             enableDebugMode();
 
-            // Activate Listeners
+            // Activate real-time listeners (sync admin devices)
             firebaseListen('inventory', (data) => {
-                localStorage.setItem('fb_inventory', JSON.stringify(data || []));
+                _cachedInventory = data || [];
+                localStorage.setItem('fb_inventory', JSON.stringify(_cachedInventory));
             });
             firebaseListen('roster/rules', (data) => {
-                localStorage.setItem('fb_roster_rules', JSON.stringify(data || []));
                 _cachedRosterRules = data || [];
+                localStorage.setItem('fb_roster_rules', JSON.stringify(_cachedRosterRules));
                 const rosterModal = document.getElementById('rosterModal');
                 if (rosterModal && rosterModal.style.display === 'flex') {
                     generatePublicRoster();
                 }
+            });
+            firebaseListen('promo', (data) => {
+                _cachedPromo = data || { enabled: false, items: [] };
+                if (!_cachedPromo.items) _cachedPromo.items = [];
+                promoData = _cachedPromo;
+            });
+            firebaseListen('doctors', (data) => {
+                _cachedDoctors = (data && Array.isArray(data) && data.length > 0) ? data : [...DEFAULT_DOCTORS];
+                DOCTORS = _cachedDoctors;
             });
 
             // Reset Attempts
@@ -1310,14 +1332,14 @@ function loadPromoAdmin() {
     firebaseLoad('promo', { enabled: false, items: [] }).then(data => {
         promoData = data || { enabled: false, items: [] };
         if (!promoData.items) promoData.items = [];
+        _cachedPromo = promoData;
         renderPromoAdmin();
     });
 }
 
 function loadPromoPublic() {
-    firebaseLoad('promo', { enabled: false, items: [] }).then(data => {
-        promoData = data || { enabled: false, items: [] };
-        if (!promoData.items) promoData.items = [];
+    getCachedPromo().then(data => {
+        promoData = data;
         renderPromoPublic();
     });
 }

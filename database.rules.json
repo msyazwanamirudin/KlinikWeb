@@ -8,6 +8,14 @@
             ".read": true,
             ".write": true
         },
+        "promo": {
+            ".read": true,
+            ".write": true
+        },
+        "doctors": {
+            ".read": true,
+            ".write": true
+        },
         "$other": {
             ".read": false,
             ".write": false
