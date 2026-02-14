@@ -903,6 +903,31 @@ footer a.fs-5:hover {
     color: var(--secondary);
 }
 
+/* --- Doctor Social Icons (Always Visible) --- */
+.doctor-social-inline {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.doctor-social-inline a {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.doctor-social-inline a:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.15);
+}
+
 /* --- Testimonial Cards --- */
 .testimonial-card {
     background: white;

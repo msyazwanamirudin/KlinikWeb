@@ -259,9 +259,15 @@
                         </div>
                         <div class="p-4 text-center">
                             <h4 class="fw-bold mb-1">Dr. Alia Syamim</h4>
-                            <p class="text-primary small fw-bold mb-3">Medical Director & Fertility Specialist</p>
-                            <p class="text-muted small">"Passionate about helping couples achieve their dream of
+                            <p class="text-primary small fw-bold mb-2">Medical Director & Fertility Specialist</p>
+                            <p class="text-muted small mb-2">"Passionate about helping couples achieve their dream of
                                 parenthood through holistic and modern approaches."</p>
+                            <div class="doctor-social-inline">
+                                <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" title="Instagram"><i
+                                        class="fab fa-instagram"></i></a>
+                                <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" title="LinkedIn"><i
+                                        class="fab fa-linkedin-in"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -279,9 +285,15 @@
                         </div>
                         <div class="p-4 text-center">
                             <h4 class="fw-bold mb-1">Dr. Sarah Lee</h4>
-                            <p class="text-primary small fw-bold mb-3">Pediatrician & Child Wellness</p>
-                            <p class="text-muted small">"Ensuring your little ones grow up healthy and strong with
+                            <p class="text-primary small fw-bold mb-2">Pediatrician & Child Wellness</p>
+                            <p class="text-muted small mb-2">"Ensuring your little ones grow up healthy and strong with
                                 gentle, compassionate care."</p>
+                            <div class="doctor-social-inline">
+                                <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" title="Instagram"><i
+                                        class="fab fa-instagram"></i></a>
+                                <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" title="LinkedIn"><i
+                                        class="fab fa-linkedin-in"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -299,9 +311,16 @@
                         </div>
                         <div class="p-4 text-center">
                             <h4 class="fw-bold mb-1">Dr. Hanim</h4>
-                            <p class="text-primary small fw-bold mb-3">General Practitioner</p>
-                            <p class="text-muted small">"Dedicated to providing holistic family medicine with a gentle
+                            <p class="text-primary small fw-bold mb-2">General Practitioner</p>
+                            <p class="text-muted small mb-2">"Dedicated to providing holistic family medicine with a
+                                gentle
                                 touch."</p>
+                            <div class="doctor-social-inline">
+                                <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" title="Instagram"><i
+                                        class="fab fa-instagram"></i></a>
+                                <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" title="LinkedIn"><i
+                                        class="fab fa-linkedin-in"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -926,6 +945,13 @@
                                             <input type="date" id="invExpirySearch" class="form-control form-control-sm"
                                                 style="width:auto;" onchange="filterInventory()"
                                                 title="Filter by expiry date">
+                                            <select id="invSortBy" class="form-select form-select-sm"
+                                                style="width:auto;" onchange="setInventorySort(this.value)">
+                                                <option value="expiry">Sort: Expiry</option>
+                                                <option value="name">Sort: Name (A-Z)</option>
+                                                <option value="category">Sort: Category</option>
+                                                <option value="stock">Sort: Stock (Low→High)</option>
+                                            </select>
                                         </div>
                                     </div>
 
@@ -1176,9 +1202,16 @@
                                                 placeholder="Image URL (e.g. https://...)"
                                                 oninput="previewPromoImage()">
                                         </div>
+                                        <div class="mb-2">
+                                            <label class="btn btn-outline-secondary btn-sm w-100">
+                                                <i class="fas fa-upload me-1"></i>Upload from Device
+                                                <input type="file" accept="image/*" style="display:none;"
+                                                    onchange="handlePromoFileUpload(this)">
+                                            </label>
+                                        </div>
                                         <div id="promoImagePreview" class="mb-2 text-center p-2 border rounded bg-white"
                                             style="min-height:60px;">
-                                            <span class="text-muted small">Enter a URL above to preview</span>
+                                            <span class="text-muted small">Enter a URL or upload an image</span>
                                         </div>
                                         <div class="mb-2">
                                             <input type="text" id="promoText" class="form-control form-control-sm"
@@ -1186,6 +1219,16 @@
                                         </div>
                                         <button onclick="addPromoItem()" class="btn btn-success btn-sm w-100"><i
                                                 class="fas fa-plus me-1"></i>Add Promo</button>
+                                        <div class="mt-2 p-2 bg-white border rounded">
+                                            <small class="text-muted d-block"><i
+                                                    class="fas fa-lightbulb text-warning me-1"></i><strong>Tips:</strong></small>
+                                            <small class="text-muted d-block">• Use JPG/PNG/WebP images under 500
+                                                KB</small>
+                                            <small class="text-muted d-block">• Recommended size: 1200×400 px
+                                                (landscape)</small>
+                                            <small class="text-muted d-block">• Changes sync to all devices in
+                                                real-time</small>
+                                        </div>
                                     </div>
 
                                     <!-- Promo Item List -->

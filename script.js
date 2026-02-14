@@ -435,10 +435,12 @@ function renderDoctorList() {
         list.innerHTML = '<div class="text-muted small text-center p-2">No doctors registered</div>';
         return;
     }
-    list.innerHTML = DOCTORS.map((doc, i) => `
+    // Sort alphabetically for display
+    const sorted = DOCTORS.map((doc, i) => ({ name: doc, idx: i })).sort((a, b) => a.name.localeCompare(b.name));
+    list.innerHTML = sorted.map(item => `
         <div class="d-flex justify-content-between align-items-center border-bottom py-1 px-2">
-            <span class="small">${escapeHTML(doc)}</span>
-            <button onclick="removeDoctor(${i})" class="btn btn-outline-danger btn-sm border-0 py-0" title="Remove">
+            <span class="small">${escapeHTML(item.name)}</span>
+            <button onclick="removeDoctor(${item.idx})" class="btn btn-outline-danger btn-sm border-0 py-0" title="Remove">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -1156,12 +1158,21 @@ function populateDoctorSelect() {
     if (!sel) return;
     sel.innerHTML = '';
     DOCTORS.forEach(doc => {
-        sel.innerHTML += `< option value = "${doc}" > ${doc}</option > `;
+        const opt = document.createElement('option');
+        opt.value = doc;
+        opt.textContent = doc;
+        sel.appendChild(opt);
     });
 }
 
 // --- INVENTORY MANAGEMENT ---
 let latestInventory = [];
+let _invSortBy = 'expiry'; // default sort: expiry
+
+function setInventorySort(sortBy) {
+    _invSortBy = sortBy;
+    filterInventory();
+}
 
 function toggleInventoryForm() {
     const form = document.getElementById('inventoryForm');
@@ -1204,12 +1215,26 @@ function renderInventory(items, list, empty) {
     if (empty) empty.style.display = 'none';
     let html = '';
 
-    // Sort by Expiry Date (Ascending)
-    items.sort((a, b) => {
-        if (!a.expiry) return 1;
-        if (!b.expiry) return -1;
-        return new Date(a.expiry) - new Date(b.expiry);
-    });
+    // Sort logic based on _invSortBy
+    switch (_invSortBy) {
+        case 'name':
+            items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            break;
+        case 'category':
+            items.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+            break;
+        case 'stock':
+            items.sort((a, b) => parseInt(a.qty || 0) - parseInt(b.qty || 0));
+            break;
+        case 'expiry':
+        default:
+            items.sort((a, b) => {
+                if (!a.expiry) return 1;
+                if (!b.expiry) return -1;
+                return new Date(a.expiry) - new Date(b.expiry);
+            });
+            break;
+    }
 
     items.forEach((item) => {
         let statusClass = '';
@@ -1378,16 +1403,48 @@ function previewPromoImage() {
 function addPromoItem() {
     const imageUrl = document.getElementById('promoImageUrl').value.trim();
     const text = document.getElementById('promoText').value.trim();
-    if (!imageUrl) return alert('Image URL is required');
+    if (!imageUrl) return alert('Please provide an image (URL or upload)');
 
     promoData.items.push({ image: imageUrl, text: text });
+    _cachedPromo = promoData;
     firebaseSave('promo', promoData).then(() => {
         document.getElementById('promoImageUrl').value = '';
         document.getElementById('promoText').value = '';
-        document.getElementById('promoImagePreview').innerHTML = '<span class="text-muted small">Enter a URL above to preview</span>';
+        document.getElementById('promoImagePreview').innerHTML = '<span class="text-muted small">Enter a URL or upload an image</span>';
         renderPromoAdmin();
         renderPromoPublic();
     });
+}
+
+function handlePromoFileUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // Validate file type and size
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+        alert('Please upload a valid image file (JPG, PNG, WebP, or GIF)');
+        input.value = '';
+        return;
+    }
+    if (file.size > 500 * 1024) { // 500 KB limit
+        alert('Image too large. Please use an image under 500 KB to stay within Firebase free tier.');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const base64 = e.target.result;
+        document.getElementById('promoImageUrl').value = base64;
+        // Show preview
+        const preview = document.getElementById('promoImagePreview');
+        preview.innerHTML = `
+            <img src="${base64}" class="img-fluid rounded" style="max-height:150px;" alt="Preview">
+            <div class="text-success small mt-1"><i class="fas fa-check-circle me-1"></i>Image loaded (${(file.size / 1024).toFixed(0)} KB)</div>
+        `;
+    };
+    reader.readAsDataURL(file);
 }
 
 function deletePromoItem(index) {
