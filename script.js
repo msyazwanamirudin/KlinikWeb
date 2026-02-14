@@ -1436,6 +1436,24 @@ function bookViaWhatsApp(serviceName, details = "") {
     window.open(url, '_blank');
 }
 
+
+// --- Contact Modal Logic ---
+function openContactModal() {
+    const modal = document.getElementById('contactModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
+}
+
+function closeContactModal() {
+    const modal = document.getElementById('contactModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+}
+
 // --- Chat Bot Logic (Refined) ---
 let chatState = {
     step: 0,
