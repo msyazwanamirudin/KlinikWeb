@@ -602,11 +602,6 @@ function switchAdminTab(tab, event) {
     }
 }
 
-
-// --- ROSTER ADMIN LOGIC ---
-
-// --- ROSTER ADMIN LOGIC ---
-
 // --- ADMIN ROSTER STATE ---
 let latestRosterRules = [];
 let _adminRosterViewMode = 'weekly'; // 'weekly' or 'monthly'
@@ -1341,7 +1336,7 @@ function calculateBMI() {
         }
 
         resultDiv.innerHTML = `
-        < div > BMI: <span class="display-6 fw-bold ${color}">${bmi}</span></div >
+        <div> BMI: <span class="display-6 fw-bold ${color}">${bmi}</span></div>
             <div class="fw-bold ${color}">${status}</div>
             <div class="small text-muted mt-1"><i class="fas fa-info-circle me-1"></i>${advice}</div>
     `;
@@ -1366,7 +1361,7 @@ function calculateDueDate() {
         const dateStr = due.toLocaleDateString('en-US', options);
 
         resultDiv.innerHTML = `
-        < div class="small text-muted mb-1" > Estimated Due Date:</div >
+        <div class="small text-muted mb-1">Estimated Due Date:</div>
             <div class="h5 fw-bold text-primary mb-0">${dateStr}</div>
             <div class="small text-muted mt-1">based on 40-week gestation</div>
     `;
