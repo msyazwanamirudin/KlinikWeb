@@ -662,7 +662,7 @@ function flushBandwidthEstimate() {
 function checkFirebaseUsage() {
     const container = document.getElementById('firebaseUsageAlerts');
     if (!container) return;
-    container.innerHTML = '<div class="text-center text-muted small py-2"><i class="fas fa-spinner fa-spin me-1"></i>Checking Firebase usage...</div>';
+    container.innerHTML = '<div class="text-center text-muted small py-2"><i class="fas fa-spinner fa-spin me-1"></i>Checking usage...</div>';
 
     const paths = ['roster/rules', 'inventory', 'promo', 'doctors'];
     const monthKey = new Date().toISOString().slice(0, 7);
@@ -676,13 +676,10 @@ function checkFirebaseUsage() {
 
         let totalStorageBytes = 0;
         let totalBase64Bytes = 0;
-        const alerts = [];
 
         dataResults.forEach((data, i) => {
             if (data !== null) {
-                const jsonStr = JSON.stringify(data);
-                totalStorageBytes += new Blob([jsonStr]).size;
-
+                totalStorageBytes += new Blob([JSON.stringify(data)]).size;
                 if (paths[i] === 'promo' && data.items) {
                     data.items.forEach(item => {
                         if (item.image && item.image.startsWith('data:')) {
@@ -694,72 +691,54 @@ function checkFirebaseUsage() {
         });
 
         const storageMB = totalStorageBytes / (1024 * 1024);
-        const storagePercent = (storageMB / FB_LIMITS.storageMB) * 100;
+        const storagePercent = Math.min((storageMB / FB_LIMITS.storageMB) * 100, 100);
 
         const bandwidthBytes = (usageData.bytes || 0) + _sessionBandwidthBytes;
         const bandwidthMB = bandwidthBytes / (1024 * 1024);
-        const bandwidthPercent = (bandwidthMB / FB_LIMITS.bandwidthMB) * 100;
+        const bandwidthPercent = Math.min((bandwidthMB / FB_LIMITS.bandwidthMB) * 100, 100);
 
         const base64MB = totalBase64Bytes / (1024 * 1024);
+        const base64Percent = Math.min((base64MB / FB_LIMITS.base64WarnMB) * 100, 100);
 
         flushBandwidthEstimate();
 
-        if (storagePercent >= FB_THRESHOLD * 100) {
-            const level = storagePercent >= 100 ? 'danger' : 'warning';
-            const icon = storagePercent >= 100 ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
-            alerts.push(`
-                <div class="alert alert-${level} alert-dismissible fade show py-2 px-3 mb-2 small" role="alert">
-                    <i class="fas ${icon} me-1"></i>
-                    <strong>Storage ${storagePercent.toFixed(1)}%</strong> — Using ${storageMB.toFixed(2)} MB of ${FB_LIMITS.storageMB} MB.
-                    ${storagePercent >= 100 ? 'Limit exceeded! Delete old data.' : 'Approaching limit.'}
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
-                </div>
-            `);
-        }
+        const barColor = (pct) => pct >= 100 ? '#dc3545' : pct >= 85 ? '#f0ad4e' : '#198754';
+        const dot = (pct) => pct >= 100 ? '\ud83d\udd34' : pct >= 85 ? '\ud83d\udfe1' : '\ud83d\udfe2';
+        const hasWarn = storagePercent >= 85 || bandwidthPercent >= 85 || base64Percent >= 85;
+        const accent = hasWarn ? (storagePercent >= 100 || bandwidthPercent >= 100 ? '#dc3545' : '#f0ad4e') : '#198754';
 
-        if (bandwidthPercent >= FB_THRESHOLD * 100) {
-            const level = bandwidthPercent >= 100 ? 'danger' : 'warning';
-            const icon = bandwidthPercent >= 100 ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
-            alerts.push(`
-                <div class="alert alert-${level} alert-dismissible fade show py-2 px-3 mb-2 small" role="alert">
-                    <i class="fas ${icon} me-1"></i>
-                    <strong>Download ${bandwidthPercent.toFixed(1)}%</strong> — Est. ${bandwidthMB.toFixed(1)} MB of ${(FB_LIMITS.bandwidthMB / 1024).toFixed(0)} GB this month.
-                    ${bandwidthPercent >= 100 ? 'Limit exceeded! Reduce data usage.' : 'Approaching monthly limit.'}
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+        const row = (ico, lbl, used, limit, pct, last) => `
+            <div style="display:flex;align-items:center;gap:8px;${last ? '' : 'margin-bottom:6px;'}">
+                <span style="font-size:0.65rem;">${dot(pct)}</span>
+                <span style="font-size:0.72rem;color:#555;min-width:72px;white-space:nowrap;"><i class="fas ${ico}" style="width:13px;text-align:center;color:${barColor(pct)};margin-right:3px;font-size:0.65rem;"></i>${lbl}</span>
+                <div style="flex:1;background:#e9ecef;border-radius:3px;height:5px;overflow:hidden;">
+                    <div style="width:${Math.max(pct, 1)}%;height:100%;background:${barColor(pct)};border-radius:3px;transition:width 0.6s ease;"></div>
                 </div>
-            `);
-        }
+                <span style="font-size:0.65rem;color:#999;min-width:88px;text-align:right;">${used} / ${limit}</span>
+            </div>`;
 
-        if (base64MB >= FB_LIMITS.base64WarnMB * FB_THRESHOLD) {
-            const level = base64MB >= FB_LIMITS.base64WarnMB ? 'danger' : 'warning';
-            alerts.push(`
-                <div class="alert alert-${level} alert-dismissible fade show py-2 px-3 mb-2 small" role="alert">
-                    <i class="fas fa-image me-1"></i>
-                    <strong>Base64 Images: ${base64MB.toFixed(1)} MB</strong> — Large embedded images drain bandwidth.
-                    Use external image URLs (Imgur, Cloudinary) instead.
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+        const fmtSize = (mb) => mb < 1 ? (mb * 1024).toFixed(0) + ' KB' : mb.toFixed(1) + ' MB';
+
+        container.innerHTML = `
+            <div style="border:1px solid ${accent}30;border-left:3px solid ${accent};border-radius:8px;padding:10px 14px 10px 12px;background:${hasWarn ? '#fffdf5' : '#f8fdf8'};position:relative;">
+                <div onclick="this.parentElement.style.display='none'" style="position:absolute;top:6px;right:10px;cursor:pointer;color:#bbb;font-size:0.85rem;line-height:1;padding:2px 4px;border-radius:4px;" onmouseover="this.style.color='#666';this.style.background='#0001'" onmouseout="this.style.color='#bbb';this.style.background='none'">&times;</div>
+                <div style="font-size:0.72rem;font-weight:700;color:${accent};margin-bottom:8px;display:flex;align-items:center;gap:5px;">
+                    <i class="fas ${hasWarn ? 'fa-exclamation-triangle' : 'fa-shield-alt'}" style="font-size:0.65rem;"></i>
+                    ${hasWarn ? 'Firebase Usage Warning' : 'Firebase — All Clear'}
                 </div>
-            `);
-        }
+                ${row('fa-database', 'Storage', fmtSize(storageMB), '1 GB', storagePercent, false)}
+                ${row('fa-download', 'Bandwidth', fmtSize(bandwidthMB), '10 GB/mo', bandwidthPercent, base64MB <= 0)}
+                ${base64MB > 0 ? row('fa-image', 'Base64 Img', fmtSize(base64MB), '5 MB', base64Percent, true) : ''}
+                ${hasWarn ? '<div style="font-size:0.65rem;color:#9a6700;margin-top:6px;border-top:1px solid #f0e6c8;padding-top:5px;"><i class="fas fa-lightbulb me-1" style="color:#e6a817;"></i>Use external image URLs (Imgur, Cloudinary) to reduce usage.</div>' : ''}
+            </div>`;
 
-        if (alerts.length === 0) {
-            container.innerHTML = `
-                <div class="alert alert-success py-2 px-3 mb-2 small alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-1"></i>
-                    <strong>Firebase OK</strong> — Storage: ${storageMB.toFixed(2)} MB | Downloads: ${bandwidthMB.toFixed(1)} MB/mo
-                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = alerts.join('');
-        }
-
-        console.log(`📊 Firebase Usage — Storage: ${storageMB.toFixed(2)} MB | Bandwidth: ${bandwidthMB.toFixed(1)} MB | Base64: ${base64MB.toFixed(1)} MB`);
+        console.log(`\ud83d\udcca Firebase Usage \u2014 Storage: ${storageMB.toFixed(2)} MB | Bandwidth: ${bandwidthMB.toFixed(1)} MB | Base64: ${base64MB.toFixed(1)} MB`);
     }).catch(err => {
         console.warn('Firebase usage check failed:', err);
         container.innerHTML = '';
     });
 }
+
 
 // --- ADMIN ROSTER STATE ---
 let latestRosterRules = [];
