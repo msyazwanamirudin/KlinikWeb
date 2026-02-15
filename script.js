@@ -11,7 +11,7 @@ window.addEventListener('load', () => {
 
 // --- Navbar Scroll Effect & ScrollSpy ---
 const navLinks = document.querySelectorAll('.nav-link');
-const sections = document.querySelectorAll('section, footer'); // Include Footer
+const sections = document.querySelectorAll('section, footer');
 
 // --- Mobile Navbar Auto-Collapse on Link Click ---
 navLinks.forEach(link => {
@@ -26,14 +26,14 @@ navLinks.forEach(link => {
 
 window.addEventListener('scroll', function () {
     const nav = document.querySelector('.navbar');
-    // Scrolled Effect
+
     if (window.scrollY > 50) nav.classList.add('scrolled');
     else nav.classList.remove('scrolled');
 
-    // ScrollSpy Logic
+
     let current = '';
 
-    // Standard Spy
+
     sections.forEach(section => {
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
@@ -43,22 +43,20 @@ window.addEventListener('scroll', function () {
         }
     });
 
-    // FORCE CONTACT ACTIVE AT BOTTOM OF PAGE
-    // (Fixes issue where footer is too short to trigger standard spy)
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
         current = 'mainFooter';
     }
 
     navLinks.forEach(link => {
         link.classList.remove('active-nav');
-        // Robust null check for href
+
         const href = link.getAttribute('href');
         if (href && href.includes(current) && current !== '') {
             link.classList.add('active-nav');
         }
     });
 
-    // Back To Top Visibility
+
     const backToTop = document.getElementById('backToTop');
     if (window.scrollY > 300) {
         backToTop.classList.add('show');
@@ -75,7 +73,7 @@ function scrollToTop(e) {
 
 document.getElementById('backToTop').addEventListener('click', scrollToTop);
 
-// Ensure "Home" link in navbar also scrolls to absolute top
+
 document.querySelectorAll('a[href="#home"]').forEach(anchor => {
     anchor.addEventListener('click', scrollToTop);
 });
@@ -108,8 +106,7 @@ function escapeHTML(str) {
     return div.innerHTML;
 }
 
-// --- GLOBAL IN-MEMORY CACHE (Firebase Free Tier Optimization) ---
-// Populated once at page load, reused everywhere. No repeated reads.
+// --- GLOBAL IN-MEMORY CACHE ---
 let _cachedRosterRules = null; // null = not yet loaded
 let _cachedInventory = null;
 let _cachedPromo = null;
@@ -155,10 +152,6 @@ function updateLiveStatus() {
     const footerText = document.getElementById('footerStatusText');
     const footerDot = document.getElementById('footerStatusDot');
 
-    // Logic:
-    // Open: 9AM - 10PM (except break)
-    // Break: 12PM - 2PM
-    // Closed: 10PM - 9AM
 
     const isBreak = hour >= 12 && hour < 14;
     const isOpen = hour >= 9 && hour < 22;
@@ -171,23 +164,23 @@ function updateLiveStatus() {
     if (isOpen) {
         if (isBreak) {
             text = "Doctor on Break (Resume 2:00 PM)";
-            color = "#eab308"; // Yellow
+            color = "#eab308";
             shadow = "none";
             anim = "none";
         } else {
-            text = "Clinic Open"; // Removed Queue Status
-            color = "#22c55e"; // Green
+            text = "Clinic Open";
+            color = "#22c55e";
             shadow = "0 0 10px #22c55e";
             anim = "pulse 2s infinite";
         }
     } else {
         text = "Clinic Closed (Opens 9:00 AM)";
-        color = "#ef4444"; // Red
+        color = "#ef4444";
         shadow = "none";
         anim = "none";
     }
 
-    // Update Top Bar
+
     if (statusText) statusText.innerHTML = text;
     if (statusDot) {
         statusDot.style.backgroundColor = color;
@@ -195,7 +188,7 @@ function updateLiveStatus() {
         statusDot.style.animation = anim;
     }
 
-    // Update Footer
+
     if (footerText) footerText.innerHTML = text;
     if (footerDot) {
         footerDot.style.backgroundColor = color;
@@ -222,7 +215,7 @@ function updateDoctorRoster(isOpen) {
     const day = now.getDay();
     const dateISO = now.toISOString().split('T')[0];
 
-    // Use CACHED roster rules (no Firebase read on every tick)
+
     getCachedRoster().then(rules => {
         const dateRules = rules.filter(r => r.type === 'date' && r.date === dateISO);
         const weekRules = rules.filter(r => r.type === 'weekly' && r.day === day);
@@ -290,27 +283,27 @@ function generatePublicRoster() {
         const today = new Date();
         const todayISO = today.toISOString().split('T')[0];
 
-        // Calendar math
+
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month + 1, 0);
         const daysInMonth = lastDay.getDate();
-        // Monday=0 start: convert JS getDay (Sun=0) to Mon=0
+
         let startDow = firstDay.getDay() - 1;
         if (startDow < 0) startDow = 6;
 
-        // Build header row
+
         const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         let html = '<div class="roster-cal-grid">';
         dayHeaders.forEach(dh => {
             html += `<div class="roster-cal-header">${dh}</div>`;
         });
 
-        // Empty cells before first day
+
         for (let e = 0; e < startDow; e++) {
             html += '<div class="roster-cal-cell roster-cal-empty"></div>';
         }
 
-        // Day cells
+
         for (let day = 1; day <= daysInMonth; day++) {
             const d = new Date(year, month, day);
             const dateISO = d.toISOString().split('T')[0];
@@ -318,13 +311,11 @@ function generatePublicRoster() {
             const isToday = dateISO === todayISO;
             const isPast = d < today && !isToday;
 
-            // Filter rules (Priority: Date > Weekly)
+
             const dateRules = rules.filter(r => r.type === 'date' && r.date === dateISO);
             const weekRules = rules.filter(r => r.type === 'weekly' && r.day === dayIdx);
             let activeRules = dateRules.length > 0 ? dateRules : (weekRules.length > 0 ? weekRules : []);
 
-            // No fallback — default is empty (no doctor on duty)
-            // activeRules stays empty if no rules set
 
             const todayClass = isToday ? ' roster-cal-today' : '';
             const pastClass = isPast ? ' roster-cal-past' : '';
@@ -336,7 +327,7 @@ function generatePublicRoster() {
             activeRules.forEach(r => {
                 const isOff = r.shift === 'Off';
                 const shiftClass = isOff ? 'roster-shift-off' : 'roster-shift-on';
-                const docDisplay = r.doc.replace(/ \(.*\)/, ''); // Shorten: remove specialty
+                const docDisplay = r.doc.replace(/ \(.*\)/, '');
                 const shiftLabel = isOff ? 'OFF' : r.shift;
                 html += `<div class="roster-cal-entry ${shiftClass}">`;
                 html += `<span class="roster-doc-name">${isOff ? '<s>' + docDisplay + '</s>' : docDisplay}</span>`;
@@ -347,7 +338,7 @@ function generatePublicRoster() {
             html += `</div>`;
         }
 
-        // Empty cells after last day to fill the grid row
+
         const totalCells = startDow + daysInMonth;
         const remainder = totalCells % 7;
         if (remainder > 0) {
@@ -364,14 +355,13 @@ function generatePublicRoster() {
 
 // --- ADVANCED ADMIN SYSTEM (LocalStorage CMS) ---
 
-// Security Constants
-// SHA-256 for "Admin2026"
+
 const ADMIN_HASH_SHA = "8d90ed647b948fa80c3c9bbf5316c78f151723f52fb9d6101f818af8afff69ec";
 const ADMIN_EMAIL = "admin@klinik.com";
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_TIME = 100 * 365 * 24 * 60 * 60 * 1000; // Permanent Lockout
 
-// SHA-256 Helper (Async)
+
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -379,7 +369,7 @@ async function sha256(message) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Data: Registered Doctors (dynamic, stored in Firebase)
+
 const DEFAULT_DOCTORS = [
     "Dr. Alia Syamim (Fertility)",
     "Dr. Sarah Lee (Pediatric)",
@@ -389,7 +379,7 @@ const DEFAULT_DOCTORS = [
 ];
 let DOCTORS = [...DEFAULT_DOCTORS];
 
-// (escapeHTML defined above at line ~103 using DOM-based approach)
+
 
 function loadDoctors() {
     return firebaseLoad('doctors', null).then(docs => {
@@ -426,7 +416,7 @@ function removeDoctor(index) {
     firebaseSave('doctors', DOCTORS).then(() => {
         populateDoctorSelect();
         renderDoctorList();
-        // Also remove all roster rules for this doctor
+
         firebaseLoad('roster/rules', []).then(rules => {
             const cleaned = rules.filter(r => r.doc !== docName);
             if (cleaned.length !== rules.length) {
@@ -446,7 +436,7 @@ function renderDoctorList() {
         list.innerHTML = '<div class="text-muted small text-center p-2">No doctors registered</div>';
         return;
     }
-    // Sort alphabetically for display
+
     const sorted = DOCTORS.map((doc, i) => ({ name: String(doc || ''), idx: i })).sort((a, b) => a.name.localeCompare(b.name));
     list.innerHTML = sorted.map(item => `
         <div class="d-flex justify-content-between align-items-center border-bottom py-1 px-2">
@@ -461,7 +451,7 @@ function renderDoctorList() {
 // 1. Security: Disable Right Click & Inspect Shortcuts
 function blockContextMenu(event) { event.preventDefault(); }
 function blockShortcuts(event) {
-    // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+
     if (event.key === 'F12' ||
         (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J')) ||
         (event.ctrlKey && event.key === 'u')) {
@@ -475,22 +465,22 @@ document.addEventListener('keydown', blockShortcuts);
 function enableDebugMode() {
     document.removeEventListener('contextmenu', blockContextMenu);
     document.removeEventListener('keydown', blockShortcuts);
-    // Alert removed to be less intrusive on login
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initialize Logic — Load doctors from Firebase first
+
     loadDoctors();
 
-    // 2. ONE-SHOT Firebase read at page load
+
     getCachedRoster().then(() => {
         updateLiveStatus();
     });
 
-    // 3. Load promo section on public page
+
     loadPromoPublic();
 
-    // 3. Add Enter Key for Password
+
     const passInput = document.getElementById('adminPasswordInput');
     if (passInput) {
         passInput.addEventListener('keyup', (e) => {
@@ -505,12 +495,12 @@ function openAdminModal() {
     document.getElementById('adminLoginScreen').style.display = 'block';
     document.getElementById('adminControlScreen').style.display = 'none';
 
-    // Clear inputs
+
     document.getElementById('adminEmailInput').value = '';
     document.getElementById('adminPasswordInput').value = '';
     document.getElementById('loginError').style.display = 'none';
 
-    // Developer Backdoor: Double click prompt to reset lockout
+
     const title = document.querySelector('#adminLoginScreen p');
     if (title) {
         title.ondblclick = () => {
@@ -525,7 +515,7 @@ function openAdminModal() {
 
     document.body.classList.add('modal-open');
 
-    // Hide Public Elements
+
     const nav = document.getElementById('navbar-main');
     const topBtn = document.getElementById('backToTop');
     const chatBtn = document.querySelector('.chat-widget-btn');
@@ -541,7 +531,7 @@ function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
     document.body.classList.remove('modal-open');
 
-    // Restore Public Elements
+
     const nav = document.getElementById('navbar-main');
     const topBtn = document.getElementById('backToTop');
     const chatBtn = document.querySelector('.chat-widget-btn');
@@ -556,7 +546,7 @@ function verifyAdminLogin() {
     const email = document.getElementById('adminEmailInput').value.trim();
     const password = document.getElementById('adminPasswordInput').value.trim();
 
-    // Check Lockout
+
     const lockout = JSON.parse(localStorage.getItem('adminLockout') || '{}');
     if (lockout.active && Date.now() < lockout.until) {
         errorMsg.style.display = 'block';
@@ -564,19 +554,20 @@ function verifyAdminLogin() {
         return;
     }
 
-    // Verify
+
     sha256(password).then(hash => {
-        // Credentials intentionally not logged for security
+
 
         if (email === ADMIN_EMAIL && hash === ADMIN_HASH_SHA) {
-            // Success
+
             document.getElementById('adminLoginScreen').style.display = 'none';
             document.getElementById('adminControlScreen').style.display = 'block';
             loadInventory();
             loadDoctors();
             enableDebugMode();
+            checkFirebaseUsage();
 
-            // Activate real-time listeners (sync admin devices)
+
             firebaseListen('inventory', (data) => {
                 _cachedInventory = data || [];
                 localStorage.setItem('fb_inventory', JSON.stringify(_cachedInventory));
@@ -599,11 +590,11 @@ function verifyAdminLogin() {
                 DOCTORS = _cachedDoctors;
             });
 
-            // Reset Attempts
+
             localStorage.removeItem('adminLockout');
             localStorage.removeItem('adminAttempts');
         } else {
-            // Failure
+
             let attempts = parseInt(localStorage.getItem('adminAttempts') || 0) + 1;
             localStorage.setItem('adminAttempts', attempts);
 
@@ -622,7 +613,7 @@ function verifyAdminLogin() {
 
 function switchAdminTab(tab, event) {
     if (event) event.preventDefault();
-    // Only one tab now, but keeping structure if we add more later
+
     document.querySelectorAll('.admin-tab-pane').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-pills .nav-link').forEach(el => el.classList.remove('active'));
 
@@ -646,6 +637,128 @@ function switchAdminTab(tab, event) {
     if (event && event.currentTarget) {
         event.currentTarget.classList.add('active');
     }
+}
+
+// --- FIREBASE USAGE MONITORING ---
+const FB_LIMITS = {
+    storageMB: 1024,
+    bandwidthMB: 10240,
+    connections: 100,
+    base64WarnMB: 5
+};
+const FB_THRESHOLD = 0.85;
+
+function flushBandwidthEstimate() {
+    if (_sessionBandwidthBytes === 0) return Promise.resolve();
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const path = `_usage/${monthKey}`;
+    return firebaseLoad(path, { bytes: 0 }).then(usage => {
+        const updated = { bytes: (usage.bytes || 0) + _sessionBandwidthBytes };
+        _sessionBandwidthBytes = 0;
+        return firebaseSave(path, updated).then(() => updated);
+    });
+}
+
+function checkFirebaseUsage() {
+    const container = document.getElementById('firebaseUsageAlerts');
+    if (!container) return;
+    container.innerHTML = '<div class="text-center text-muted small py-2"><i class="fas fa-spinner fa-spin me-1"></i>Checking Firebase usage...</div>';
+
+    const paths = ['roster/rules', 'inventory', 'promo', 'doctors'];
+    const monthKey = new Date().toISOString().slice(0, 7);
+
+    Promise.all([
+        ...paths.map(p => firebaseLoad(p, null)),
+        firebaseLoad(`_usage/${monthKey}`, { bytes: 0 })
+    ]).then(results => {
+        const dataResults = results.slice(0, paths.length);
+        const usageData = results[paths.length];
+
+        let totalStorageBytes = 0;
+        let totalBase64Bytes = 0;
+        const alerts = [];
+
+        dataResults.forEach((data, i) => {
+            if (data !== null) {
+                const jsonStr = JSON.stringify(data);
+                totalStorageBytes += new Blob([jsonStr]).size;
+
+                if (paths[i] === 'promo' && data.items) {
+                    data.items.forEach(item => {
+                        if (item.image && item.image.startsWith('data:')) {
+                            totalBase64Bytes += new Blob([item.image]).size;
+                        }
+                    });
+                }
+            }
+        });
+
+        const storageMB = totalStorageBytes / (1024 * 1024);
+        const storagePercent = (storageMB / FB_LIMITS.storageMB) * 100;
+
+        const bandwidthBytes = (usageData.bytes || 0) + _sessionBandwidthBytes;
+        const bandwidthMB = bandwidthBytes / (1024 * 1024);
+        const bandwidthPercent = (bandwidthMB / FB_LIMITS.bandwidthMB) * 100;
+
+        const base64MB = totalBase64Bytes / (1024 * 1024);
+
+        flushBandwidthEstimate();
+
+        if (storagePercent >= FB_THRESHOLD * 100) {
+            const level = storagePercent >= 100 ? 'danger' : 'warning';
+            const icon = storagePercent >= 100 ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+            alerts.push(`
+                <div class="alert alert-${level} alert-dismissible fade show py-2 px-3 mb-2 small" role="alert">
+                    <i class="fas ${icon} me-1"></i>
+                    <strong>Storage ${storagePercent.toFixed(1)}%</strong> — Using ${storageMB.toFixed(2)} MB of ${FB_LIMITS.storageMB} MB.
+                    ${storagePercent >= 100 ? 'Limit exceeded! Delete old data.' : 'Approaching limit.'}
+                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+        }
+
+        if (bandwidthPercent >= FB_THRESHOLD * 100) {
+            const level = bandwidthPercent >= 100 ? 'danger' : 'warning';
+            const icon = bandwidthPercent >= 100 ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+            alerts.push(`
+                <div class="alert alert-${level} alert-dismissible fade show py-2 px-3 mb-2 small" role="alert">
+                    <i class="fas ${icon} me-1"></i>
+                    <strong>Download ${bandwidthPercent.toFixed(1)}%</strong> — Est. ${bandwidthMB.toFixed(1)} MB of ${(FB_LIMITS.bandwidthMB / 1024).toFixed(0)} GB this month.
+                    ${bandwidthPercent >= 100 ? 'Limit exceeded! Reduce data usage.' : 'Approaching monthly limit.'}
+                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+        }
+
+        if (base64MB >= FB_LIMITS.base64WarnMB * FB_THRESHOLD) {
+            const level = base64MB >= FB_LIMITS.base64WarnMB ? 'danger' : 'warning';
+            alerts.push(`
+                <div class="alert alert-${level} alert-dismissible fade show py-2 px-3 mb-2 small" role="alert">
+                    <i class="fas fa-image me-1"></i>
+                    <strong>Base64 Images: ${base64MB.toFixed(1)} MB</strong> — Large embedded images drain bandwidth.
+                    Use external image URLs (Imgur, Cloudinary) instead.
+                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+        }
+
+        if (alerts.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-success py-2 px-3 mb-2 small alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-1"></i>
+                    <strong>Firebase OK</strong> — Storage: ${storageMB.toFixed(2)} MB | Downloads: ${bandwidthMB.toFixed(1)} MB/mo
+                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = alerts.join('');
+        }
+
+        console.log(`📊 Firebase Usage — Storage: ${storageMB.toFixed(2)} MB | Bandwidth: ${bandwidthMB.toFixed(1)} MB | Base64: ${base64MB.toFixed(1)} MB`);
+    }).catch(err => {
+        console.warn('Firebase usage check failed:', err);
+        container.innerHTML = '';
+    });
 }
 
 // --- ADMIN ROSTER STATE ---
@@ -692,13 +805,13 @@ function getWeekOfMonth(date) {
 }
 
 function loadRosterAdmin() {
-    invalidateRosterCache(); // Force fresh read from Firebase
+    invalidateRosterCache();
     firebaseLoad('roster/rules', []).then(rules => {
-        _cachedRosterRules = rules || []; // Update in-memory cache
+        _cachedRosterRules = rules || [];
         latestRosterRules = rules;
         renderRosterList(rules);
 
-        // Render based on current mode
+
         if (_adminRosterViewMode === 'weekly') {
             renderWeeklyOverview(rules);
         } else {
@@ -716,7 +829,7 @@ function renderAdminMonthlyOverview(rules) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
 
-    // Update month label
+
     if (label) {
         label.textContent = viewDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
     }
@@ -724,26 +837,26 @@ function renderAdminMonthlyOverview(rules) {
     const today = new Date();
     const todayISO = today.toISOString().split('T')[0];
 
-    // Calendar math
+
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     let startDow = firstDay.getDay() - 1;
     if (startDow < 0) startDow = 6;
 
-    // Build header row
+
     const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     let html = '<div class="roster-cal-grid">';
     dayHeaders.forEach(dh => {
         html += `<div class="roster-cal-header">${dh}</div>`;
     });
 
-    // Empty cells before first day
+
     for (let e = 0; e < startDow; e++) {
         html += '<div class="roster-cal-cell roster-cal-empty"></div>';
     }
 
-    // Day cells
+
     for (let day = 1; day <= daysInMonth; day++) {
         const d = new Date(year, month, day);
         const dateISO = d.toISOString().split('T')[0];
@@ -751,13 +864,12 @@ function renderAdminMonthlyOverview(rules) {
         const isToday = dateISO === todayISO;
         const isPast = d < today && !isToday;
 
-        // Filter rules (Priority: Date > Weekly)
+
         const dateRules = rules.filter(r => r.type === 'date' && r.date === dateISO);
         const weekRules = rules.filter(r => r.type === 'weekly' && r.day === dayIdx);
         let activeRules = dateRules.length > 0 ? dateRules : (weekRules.length > 0 ? weekRules : []);
 
-        // No fallback — default is empty (no doctor on duty)
-        // activeRules stays empty if no rules set
+
 
         const todayClass = isToday ? ' roster-cal-today' : '';
         const pastClass = isPast ? ' roster-cal-past' : '';
@@ -769,7 +881,7 @@ function renderAdminMonthlyOverview(rules) {
         activeRules.forEach(r => {
             const isOff = r.shift === 'Off';
             const shiftClass = isOff ? 'roster-shift-off' : 'roster-shift-on';
-            const docDisplay = r.doc.replace(/ \(.*\)/, ''); // Shorten
+            const docDisplay = r.doc.replace(/ \(.*\)/, '');
             const shiftLabel = isOff ? 'OFF' : r.shift;
             html += `<div class="roster-cal-entry ${shiftClass}">`;
             html += `<span class="roster-doc-name">${isOff ? '<s>' + docDisplay + '</s>' : docDisplay}</span>`;
@@ -780,7 +892,7 @@ function renderAdminMonthlyOverview(rules) {
         html += `</div>`;
     }
 
-    // Empty cells after last day to fill the grid row
+
     const totalCells = startDow + daysInMonth;
     const remainder = totalCells % 7;
     if (remainder > 0) {
@@ -797,7 +909,7 @@ function renderWeeklyOverview(rules) {
     const container = document.getElementById('adminWeeklyOverview');
     if (!container) return;
 
-    // Use selected week state
+
     const startOfWeek = new Date(_adminRosterViewWeek);
     const weekNum = getWeekOfMonth(startOfWeek);
     const monthName = startOfWeek.toLocaleDateString('en-GB', { month: 'short' });
@@ -834,26 +946,23 @@ function renderWeeklyOverview(rules) {
             </thead>
             <tbody><tr>`;
 
-    // Build 7 columns (Mon=0 to Sun=6 iteration logic)
+
     for (let i = 0; i < 7; i++) {
         const d = new Date(startOfWeek);
         d.setDate(startOfWeek.getDate() + i);
 
         const dateISO = d.toISOString().split('T')[0];
-        const dayIdx = d.getDay(); // 0=Sun, 1=Mon... but loop is 0=Mon.
-        // wait, i=0 is Mon. startOfWeek is Mon.
-        // d.getDay() for Mon is 1.
+        const dayIdx = d.getDay();
 
         const today = new Date();
         const isToday = d.toDateString() === today.toDateString();
 
-        // Filter rules
+
         const dateRules = rules.filter(r => r.type === 'date' && r.date === dateISO);
         const weekRules = rules.filter(r => r.type === 'weekly' && r.day === dayIdx);
         let activeRules = dateRules.length > 0 ? dateRules : (weekRules.length > 0 ? weekRules : []);
 
-        // No fallback — default is empty (no doctor on duty)
-        // activeRules stays empty if no rules set
+
 
         let cellContent = `<div class="fw-bold mb-1 text-secondary" style="font-size:0.7rem;">${d.getDate()}/${d.getMonth() + 1}</div>`;
 
@@ -880,7 +989,7 @@ function renderRosterList(rules) {
     const btnDelete = document.getElementById('btnDeleteSelected');
     if (!list) return;
 
-    // Reset Batch Button
+
     if (btnDelete) btnDelete.disabled = true;
     const selectAll = document.getElementById('selectAllRules');
     if (selectAll) selectAll.checked = false;
@@ -893,15 +1002,15 @@ function renderRosterList(rules) {
 
     if (empty) empty.style.display = 'none';
 
-    // 1. Map to preserve original index (Fixes sorting bug)
+
     let displayRules = rules.map((r, i) => ({ ...r, _origIdx: i }));
 
-    // 2. Sort: Dates first (descending), then Weekly (Mon-Sun)
+
     displayRules.sort((a, b) => {
         if (a.type === 'date' && b.type === 'weekly') return -1;
         if (a.type === 'weekly' && b.type === 'date') return 1;
         if (a.type === 'date' && b.type === 'date') return new Date(a.date) - new Date(b.date);
-        return a.day - b.day; // Weekly
+        return a.day - b.day;
     });
 
     let html = '';
@@ -959,7 +1068,7 @@ function deleteSelectedRules() {
     if (!confirm(`Are you sure you want to delete ${checked.length} selected rules ? `)) return;
 
     const indices = Array.from(checked).map(cb => parseInt(cb.value));
-    // Sort descending to splice correctly
+
     indices.sort((a, b) => b - a);
 
     firebaseLoad('roster/rules', []).then(rules => {
@@ -977,25 +1086,25 @@ function clearAllRules() {
     if (!confirm("⚠️ DANGER: Are you sure you want to delete ALL roster rules?")) return;
     if (!confirm("🔴 DOUBLE CHECK: This actions cannot be undone. Confirm clear all?")) return;
 
-    firebaseSave('roster/rules', []); // Save empty array
+    firebaseSave('roster/rules', []);
     invalidateRosterCache();
     loadRosterAdmin();
     alert("All rules cleared.");
 }
 
-let _editingRuleIndex = -1; // -1 = adding new, >= 0 = editing existing
+let _editingRuleIndex = -1;
 
 function editRosterRule(index) {
     const rule = latestRosterRules[index];
     if (!rule) return;
 
-    _editingRuleIndex = index; // Track which rule we're editing
+    _editingRuleIndex = index;
 
-    // Open Form
+
     const form = document.getElementById('rosterForm');
     form.style.display = 'block';
 
-    // Populate Data
+
     if (rule.type === 'weekly') {
         document.getElementById('ruleWeekly').checked = true;
         document.getElementById('rosterDay').value = rule.day;
@@ -1009,11 +1118,11 @@ function editRosterRule(index) {
     document.getElementById('rosterDocSelect').value = rule.doc;
     document.getElementById('rosterShift').value = rule.shift;
 
-    // Update button text to show editing mode
+
     const saveBtn = form.querySelector('button[onclick="addRosterRule()"]');
     if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Update Rule';
 
-    // Scroll to form
+
     form.scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -1021,14 +1130,14 @@ function toggleRosterForm() {
     const form = document.getElementById('rosterForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
     if (form.style.display === 'block') {
-        // Reset to "Add new" mode when opening via Add Rule button
+
         _editingRuleIndex = -1;
         document.getElementById('ruleDate').checked = true;
         document.getElementById('rosterDateStart').value = '';
         document.getElementById('rosterDateEnd').value = '';
         document.getElementById('rosterShift').value = 'Full Day';
         toggleRuleInputs();
-        // Reset save button text
+
         const saveBtn = form.querySelector('button[onclick="addRosterRule()"]');
         if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Rule';
     }
@@ -1064,10 +1173,10 @@ function addRosterRule() {
         }
 
         if (endDateVal) {
-            // Range Logic
+
             let curr = new Date(startDateVal);
             const end = new Date(endDateVal);
-            // Safety Limit: Max 30 days range
+
             const diffTime = Math.abs(end - curr);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             if (diffDays > 31) return alert("Range too large. Max 31 days allowed.");
@@ -1081,7 +1190,7 @@ function addRosterRule() {
                 curr.setDate(curr.getDate() + 1);
             }
         } else {
-            // Single Date
+
             newRulesToAdd.push({
                 type: 'date',
                 date: startDateVal,
@@ -1094,11 +1203,10 @@ function addRosterRule() {
         let conflicts = [];
         let duplicates = [];
 
-        // Check conflicts for ALL new rules (skip self when editing)
+
         newRulesToAdd.forEach(newRule => {
             let existingIndex = -1;
-            // STRICT DUPLICATE CHECK: Same Doctor, Same Day, Same Shift
-            // Skip the rule being edited (_editingRuleIndex) to allow updates
+
             if (newRule.type === 'weekly') {
                 existingIndex = rules.findIndex((r, idx) =>
                     idx !== _editingRuleIndex &&
@@ -1131,8 +1239,7 @@ function addRosterRule() {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         newRulesToAdd.forEach(newRule => {
             if (newRule.type === 'date') {
-                // Check if this doctor already has a weekly rule for this day of week
-                // Skip the rule being edited
+
                 const dateObj = new Date(newRule.date);
                 const dayOfWeek = dateObj.getDay();
                 const weeklyConflict = rules.find((r, idx) =>
@@ -1143,8 +1250,7 @@ function addRosterRule() {
                     conflicts.push(`${newRule.doc} already has a recurring ${days[dayOfWeek]} rule. Delete the weekly rule first.`);
                 }
             } else if (newRule.type === 'weekly') {
-                // Check if this doctor already has date-specific rules on this weekday
-                // Skip the rule being edited
+
                 const dateConflict = rules.find((r, idx) => {
                     if (idx === _editingRuleIndex) return false;
                     if (r.type !== 'date' || r.doc !== newRule.doc) return false;
@@ -1161,7 +1267,7 @@ function addRosterRule() {
             return;
         }
 
-        // If editing, replace the existing rule; otherwise append
+
         if (_editingRuleIndex >= 0 && newRulesToAdd.length === 1) {
             rules[_editingRuleIndex] = newRulesToAdd[0];
         } else {
@@ -1169,11 +1275,11 @@ function addRosterRule() {
         }
 
         firebaseSave('roster/rules', rules).then(() => {
-            _editingRuleIndex = -1; // Reset editing mode
+            _editingRuleIndex = -1;
             invalidateRosterCache();
             const form = document.getElementById('rosterForm');
             form.style.display = 'none';
-            // Reset save button text
+
             const saveBtn = form.querySelector('button[onclick="addRosterRule()"]');
             if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Rule';
             loadRosterAdmin();
@@ -1208,7 +1314,7 @@ function populateDoctorSelect() {
 
 // --- INVENTORY MANAGEMENT ---
 let latestInventory = [];
-let _invSortBy = 'name'; // default sort: name
+let _invSortBy = 'name';
 
 function setInventorySort(sortBy) {
     _invSortBy = sortBy;
@@ -1224,9 +1330,9 @@ function loadInventory() {
     const list = document.getElementById('inventoryList');
     const empty = document.getElementById('inventoryEmpty');
 
-    // Load from Firebase (async) with LocalStorage fallback
+
     firebaseLoad('inventory', []).then(items => {
-        latestInventory = items; // Cache for local filtering
+        latestInventory = items;
         renderInventory(items, list, empty);
     });
 }
@@ -1234,11 +1340,11 @@ function loadInventory() {
 function renderInventory(items, list, empty) {
     if (!list) return;
 
-    // 1. Filter Logic
+
     const searchTerm = document.getElementById('invSearch') ? document.getElementById('invSearch').value.toLowerCase() : '';
     const filterCat = document.getElementById('invFilterCategory') ? document.getElementById('invFilterCategory').value : 'All';
 
-    // Add original index to allow updates on filtered list
+
     items = items.map((item, index) => ({ ...item, originalIndex: index })).filter(item => {
         const matchName = item.name.toLowerCase().includes(searchTerm);
         const matchCat = filterCat === 'All' || item.category === filterCat;
@@ -1358,7 +1464,7 @@ function addInventoryItem() {
     if (!name || isNaN(qty)) return alert("Name and Quantity are required");
 
     firebaseLoad('inventory', []).then(items => {
-        // Consolidation Logic: Check for same Name + Expiry
+
         const existingIndex = items.findIndex(item =>
             item.name.toLowerCase() === name.toLowerCase() &&
             item.expiry === expiry
@@ -1372,7 +1478,7 @@ function addInventoryItem() {
         }
 
         firebaseSave('inventory', items).then(() => {
-            // Reset Form
+
             document.getElementById('invName').value = '';
             document.getElementById('invQty').value = '';
             document.getElementById('invExpiry').value = '';
@@ -1461,14 +1567,14 @@ function handlePromoFileUpload(input) {
     const file = input.files[0];
     if (!file) return;
 
-    // Validate file type and size
+
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
         alert('Please upload a valid image file (JPG, PNG, WebP, or GIF)');
         input.value = '';
         return;
     }
-    if (file.size > 500 * 1024) { // 500 KB limit
+    if (file.size > 500 * 1024) {
         alert('Image too large. Please use an image under 500 KB to stay within Firebase free tier.');
         input.value = '';
         return;
@@ -1478,7 +1584,7 @@ function handlePromoFileUpload(input) {
     reader.onload = (e) => {
         const base64 = e.target.result;
         document.getElementById('promoImageUrl').value = base64;
-        // Show preview
+
         const preview = document.getElementById('promoImagePreview');
         preview.innerHTML = `
             <img src="${base64}" class="img-fluid rounded" style="max-height:150px;" alt="Preview">
@@ -1582,7 +1688,7 @@ function calculateBMI() {
     const h = parseFloat(hInput.value) / 100;
     const w = parseFloat(wInput.value);
 
-    // Loading State
+
     resultDiv.innerHTML = '<span class="text-primary"><i class="fas fa-spinner fa-spin me-2"></i>Calculating...</span>';
 
     setTimeout(() => {
@@ -1624,12 +1730,12 @@ function calculateDueDate() {
     const lmp = new Date(lmpInput.value);
     if (isNaN(lmp)) return alert("Select a date");
 
-    // Loading State
+
     resultDiv.innerHTML = '<span class="text-primary"><i class="fas fa-spinner fa-spin me-2"></i>Calculating...</span>';
 
     setTimeout(() => {
         const due = new Date(lmp);
-        due.setDate(lmp.getDate() + 280); // +40 Weeks
+        due.setDate(lmp.getDate() + 280);
 
         const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
         const dateStr = due.toLocaleDateString('en-US', options);
@@ -1645,7 +1751,6 @@ function calculateDueDate() {
 
 
 
-// Throttled: 5 min interval (clinic status only changes at 9AM/12PM/2PM/10PM)
 setInterval(updateLiveStatus, 300000);
 
 // --- HIDE STATUS BAR ON FOOTER SCROLL (runs on load) ---
@@ -1653,7 +1758,7 @@ setInterval(updateLiveStatus, 300000);
     const footer = document.getElementById('mainFooter');
     const statusBar = document.querySelector('.status-bar');
     const navbar = document.querySelector('.navbar');
-    const contactLink = document.querySelector('a[href="#mainFooter"]'); // Select Contact Link
+    const contactLink = document.querySelector('a[href="#mainFooter"]');
 
     if (footer && statusBar) {
         const observer = new IntersectionObserver((entries) => {
@@ -1662,25 +1767,25 @@ setInterval(updateLiveStatus, 300000);
                     statusBar.classList.add('hidden-bar');
                     if (navbar) navbar.classList.add('move-up');
 
-                    // Manually Activate Contact Link
+
                     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
                     if (contactLink) {
                         contactLink.classList.add('active');
-                        contactLink.classList.add('active-nav'); // Just to be safe with styles
+                        contactLink.classList.add('active-nav');
                     }
 
                 } else {
                     statusBar.classList.remove('hidden-bar');
                     if (navbar) navbar.classList.remove('move-up');
 
-                    // Remove Manual Active (Bootstrap Spy takes over for others)
+
                     if (contactLink) {
                         contactLink.classList.remove('active');
                         contactLink.classList.remove('active-nav');
                     }
                 }
             });
-        }, { threshold: 0.1 }); // Trigger when 10% of footer is visible
+        }, { threshold: 0.1 });
 
         observer.observe(footer);
     }
@@ -1689,7 +1794,7 @@ setInterval(updateLiveStatus, 300000);
 
 // --- WHATSAPP BOOKING LOGIC (With Confirmation) ---
 function bookViaWhatsApp(serviceName, details = "") {
-    // Confirmation
+
     const confirmAction = confirm("We are redirecting you to WhatsApp to complete your booking securely. Continue?");
 
     if (!confirmAction) return;

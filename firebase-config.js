@@ -1,16 +1,3 @@
-// ============================================
-// 🔥 FIREBASE CONFIGURATION
-// ============================================
-// INSTRUCTIONS: Replace the placeholder values below
-// with your own Firebase project config.
-//
-// 1. Go to https://console.firebase.google.com
-// 2. Create a project → Add a Web App
-// 3. Copy YOUR config and paste it below
-// 4. Go to Build → Realtime Database → Create Database
-//    → Start in Test Mode → Select Singapore region
-// ============================================
-
 const firebaseConfig = {
     apiKey: "AIzaSyBdIWdGi1jYkwmFmR3wUTIKMQT_dpPm7-I",
     authDomain: "klinik-447c7.firebaseapp.com",
@@ -35,13 +22,20 @@ try {
 // FIREBASE HELPER FUNCTIONS
 // ============================================
 
+// Bandwidth estimation tracker (bytes downloaded this session)
+let _sessionBandwidthBytes = 0;
+function _trackBandwidth(data) {
+    if (data !== null && data !== undefined) {
+        _sessionBandwidthBytes += new Blob([JSON.stringify(data)]).size;
+    }
+}
+
 /**
  * Save data to Firebase (with LocalStorage backup)
  * @param {string} path - Firebase path (e.g. 'inventory', 'roster/rules')
  * @param {*} data - Data to save
  */
 function firebaseSave(path, data) {
-    // Always save to LocalStorage as backup
     localStorage.setItem('fb_' + path.replace(/\//g, '_'), JSON.stringify(data));
 
     if (db) {
@@ -64,20 +58,17 @@ function firebaseLoad(path, fallback = null) {
             .then(snapshot => {
                 const data = snapshot.val();
                 if (data !== null) {
-                    // Cache to LocalStorage
                     localStorage.setItem('fb_' + path.replace(/\//g, '_'), JSON.stringify(data));
+                    _trackBandwidth(data);
                     return data;
                 }
-                // Firebase has no data, check LocalStorage
                 return JSON.parse(localStorage.getItem('fb_' + path.replace(/\//g, '_')) || JSON.stringify(fallback));
             })
             .catch(err => {
                 console.warn(`⚠️ Firebase load failed for ${path}:`, err.message);
-                // Offline fallback
                 return JSON.parse(localStorage.getItem('fb_' + path.replace(/\//g, '_')) || JSON.stringify(fallback));
             });
     }
-    // No Firebase — pure LocalStorage
     return Promise.resolve(JSON.parse(localStorage.getItem('fb_' + path.replace(/\//g, '_')) || JSON.stringify(fallback)));
 }
 
@@ -92,6 +83,7 @@ function firebaseListen(path, callback) {
             const data = snapshot.val();
             if (data !== null) {
                 localStorage.setItem('fb_' + path.replace(/\//g, '_'), JSON.stringify(data));
+                _trackBandwidth(data);
             }
             callback(data);
         });
