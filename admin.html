@@ -166,7 +166,7 @@
                 <button class="dash-tab active" onclick="switchTab('inventory',this)">📦 Inventory</button>
                 <button class="dash-tab" onclick="switchTab('roster',this)">📅 Roster</button>
                 <button class="dash-tab" onclick="switchTab('promo',this)">🎉 Promo</button>
-                <button class="dash-tab" onclick="switchTab('expenses',this)">💰 Expenses</button>
+                <button class="dash-tab" onclick="switchTab('cashflow',this)">💰 Cash Flow</button>
                 <button class="dash-tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
             </div>
             <!-- Inventory Pane -->
@@ -400,24 +400,35 @@
                     </div>
                 </div>
             </div>
-            <!-- Expenses Pane -->
-            <div class="dash-pane" id="paneExpenses">
+            <!-- Cash Flow Pane -->
+            <div class="dash-pane" id="paneCashflow">
                 <div class="dash-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold small text-uppercase mb-0" style="color:var(--primary-light)"><i
-                                class="fas fa-receipt me-1"></i>Expense Tracker</h6>
-                        <button onclick="toggleExpenseForm()" class="btn btn-primary btn-sm rounded-pill px-3"><i
-                                class="fas fa-plus me-1"></i>Add Expense</button>
+                                class="fas fa-exchange-alt me-1"></i>Cash Flow Tracker</h6>
+                        <button onclick="toggleCashFlowForm()" class="btn btn-primary btn-sm rounded-pill px-3"><i
+                                class="fas fa-plus me-1"></i>Add Transaction</button>
                     </div>
-                    <!-- Add Expense Form -->
-                    <div id="expenseForm" class="p-3 rounded mb-3 border"
+                    <!-- Add Transaction Form -->
+                    <div id="cfForm" class="p-3 rounded mb-3 border"
                         style="display:none;background:rgba(255,255,255,0.03)">
-                        <h6 class="fw-bold mb-2">New Expense</h6>
+                        <h6 class="fw-bold mb-2">New Transaction</h6>
+                        <!-- Type Toggle -->
+                        <div class="btn-group w-100 mb-2" role="group">
+                            <input type="radio" class="btn-check" name="cfType" id="cfTypeIncome" value="income"
+                                onchange="updateCFCategories()">
+                            <label class="btn btn-outline-success btn-sm" for="cfTypeIncome"><i
+                                    class="fas fa-arrow-up me-1"></i>Income</label>
+                            <input type="radio" class="btn-check" name="cfType" id="cfTypeExpense" value="expense"
+                                checked onchange="updateCFCategories()">
+                            <label class="btn btn-outline-danger btn-sm" for="cfTypeExpense"><i
+                                    class="fas fa-arrow-down me-1"></i>Expense</label>
+                        </div>
                         <div class="row g-2 mb-2">
-                            <div class="col-6"><input type="date" id="expDate" class="form-control form-control-sm">
+                            <div class="col-6"><input type="date" id="cfDate" class="form-control form-control-sm">
                             </div>
                             <div class="col-6">
-                                <select id="expCategory" class="form-select form-select-sm">
+                                <select id="cfCategory" class="form-select form-select-sm">
                                     <option value="Supplies">Supplies</option>
                                     <option value="Utilities">Utilities</option>
                                     <option value="Payroll">Payroll</option>
@@ -427,52 +438,54 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="mb-2"><input type="text" id="expDesc" class="form-control form-control-sm"
+                        <div class="mb-2"><input type="text" id="cfDesc" class="form-control form-control-sm"
                                 placeholder="Description"></div>
-                        <div class="mb-2"><input type="number" id="expAmount" class="form-control form-control-sm"
+                        <div class="mb-2"><input type="number" id="cfAmount" class="form-control form-control-sm"
                                 placeholder="Amount (RM)" step="0.01" min="0"></div>
                         <div class="d-flex gap-2">
-                            <button onclick="addExpense()" class="btn btn-success btn-sm flex-grow-1">Save</button>
-                            <button onclick="toggleExpenseForm()"
+                            <button onclick="addCashFlowEntry()"
+                                class="btn btn-success btn-sm flex-grow-1">Save</button>
+                            <button onclick="toggleCashFlowForm()"
                                 class="btn btn-outline-secondary btn-sm">Cancel</button>
                         </div>
                     </div>
-                    <!-- Monthly Summary -->
-                    <div id="expenseSummary" class="mb-3"></div>
-                    <!-- Filter -->
+                    <!-- Summary Cards -->
+                    <div id="cfSummary" class="mb-3"></div>
+                    <!-- Filters -->
                     <div class="d-flex gap-2 flex-wrap mb-3">
-                        <select id="expFilterMonth" class="form-select form-select-sm" style="width:auto;"
-                            onchange="renderExpenses()">
+                        <select id="cfFilterMonth" class="form-select form-select-sm" style="width:auto;"
+                            onchange="renderCashFlow()">
                             <option value="all">All Months</option>
                         </select>
-                        <select id="expFilterCategory" class="form-select form-select-sm" style="width:auto;"
-                            onchange="renderExpenses()">
+                        <select id="cfFilterType" class="form-select form-select-sm" style="width:auto;"
+                            onchange="renderCashFlow()">
+                            <option value="all">All Types</option>
+                            <option value="income">Income Only</option>
+                            <option value="expense">Expense Only</option>
+                        </select>
+                        <select id="cfFilterCategory" class="form-select form-select-sm" style="width:auto;"
+                            onchange="renderCashFlow()">
                             <option value="All">All Categories</option>
-                            <option value="Supplies">Supplies</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Payroll">Payroll</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Equipment">Equipment</option>
-                            <option value="Others">Others</option>
                         </select>
                     </div>
-                    <!-- Expense Table -->
+                    <!-- Transaction Table -->
                     <div class="table-responsive border rounded" style="max-height:50vh">
                         <table class="table table-hover mb-0 align-middle" style="font-size:0.85rem">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th style="width:20%">Date</th>
-                                    <th style="width:35%">Description</th>
-                                    <th style="width:20%">Category</th>
-                                    <th style="width:15%" class="text-end">Amount</th>
+                                    <th style="width:15%">Date</th>
+                                    <th style="width:10%">Type</th>
+                                    <th style="width:30%">Description</th>
+                                    <th style="width:18%">Category</th>
+                                    <th style="width:17%" class="text-end">Amount</th>
                                     <th style="width:10%"></th>
                                 </tr>
                             </thead>
-                            <tbody id="expenseList"></tbody>
+                            <tbody id="cfList"></tbody>
                         </table>
-                        <div id="expenseEmpty" class="text-center p-4 text-muted" style="display:none"><i
-                                class="fas fa-receipt fs-1 mb-2" style="color:#475569"></i><br>No expenses recorded.
-                        </div>
+                        <div id="cfEmpty" class="text-center p-4 text-muted" style="display:none"><i
+                                class="fas fa-exchange-alt fs-1 mb-2" style="color:#475569"></i><br>No transactions
+                            recorded.</div>
                     </div>
                 </div>
             </div>

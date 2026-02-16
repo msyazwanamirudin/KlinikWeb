@@ -104,7 +104,7 @@ function switchTab(tab, btn) {
     if (tab === 'roster') { loadRosterAdmin(); loadDoctors(); }
     if (tab === 'promo') loadPromoAdmin();
     if (tab === 'analytics') loadAnalytics();
-    if (tab === 'expenses') loadExpenses();
+    if (tab === 'cashflow') loadCashFlow();
     if (tab === 'settings') loadSettings();
 }
 
@@ -651,10 +651,12 @@ function loadAnalytics() {
             return false;
         });
 
-        // Expense stats
+        // Cash flow stats
         const thisMonth = now.toISOString().slice(0, 7);
-        const monthExpenses = expList.filter(e => (e.date || '').startsWith(thisMonth));
-        const monthTotal = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+        const monthEntries = expList.filter(e => (e.date || '').startsWith(thisMonth));
+        const monthIncome = monthEntries.filter(e => e.type === 'income').reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+        const monthExpenses = monthEntries.filter(e => e.type !== 'income').reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+        const monthNet = monthIncome - monthExpenses;
 
         // Build analytics HTML
         let html = '';
@@ -665,7 +667,16 @@ function loadAnalytics() {
         html += statCard('fa-boxes', '#14b8a6', items.length, 'Total Items');
         html += statCard('fa-user-md', '#818cf8', doctors.length, 'Doctors');
         html += statCard('fa-calendar-check', '#fbbf24', rosterRules.length, 'Roster Rules');
-        html += statCard('fa-receipt', '#fb7185', 'RM ' + monthTotal.toFixed(0), 'This Month');
+        const netColor = monthNet >= 0 ? '#34d399' : '#fb7185';
+        html += statCard('fa-exchange-alt', netColor, (monthNet >= 0 ? '+' : '') + 'RM ' + monthNet.toFixed(0), 'Net This Month');
+        html += '</div>';
+
+        // Cash flow mini-summary
+        html += '<h6 class="fw-bold small text-uppercase mb-2" style="color:#94a3b8"><i class="fas fa-chart-bar me-1"></i>Cash Flow This Month</h6>';
+        html += '<div class="row g-2 mb-4">';
+        html += `<div class="col-4"><div class="p-2 rounded border text-center" style="background:rgba(52,211,153,0.06)"><div style="font-size:0.65rem;color:#94a3b8">Income</div><div class="fw-bold" style="font-size:0.95rem;color:#34d399">RM ${monthIncome.toFixed(0)}</div></div></div>`;
+        html += `<div class="col-4"><div class="p-2 rounded border text-center" style="background:rgba(251,113,133,0.06)"><div style="font-size:0.65rem;color:#94a3b8">Expenses</div><div class="fw-bold" style="font-size:0.95rem;color:#fb7185">RM ${monthExpenses.toFixed(0)}</div></div></div>`;
+        html += `<div class="col-4"><div class="p-2 rounded border text-center" style="background:rgba(129,140,248,0.06)"><div style="font-size:0.65rem;color:#94a3b8">Net</div><div class="fw-bold" style="font-size:0.95rem;color:${netColor}">${monthNet >= 0 ? '+' : ''}RM ${monthNet.toFixed(0)}</div></div></div>`;
         html += '</div>';
 
         // Alerts section
@@ -718,116 +729,156 @@ function loadAnalytics() {
 }
 
 // ═══════════════════════════════════════════════
-// EXPENSES TAB
+// CASH FLOW TRACKER
 // ═══════════════════════════════════════════════
-let latestExpenses = [];
+let latestCashFlow = [];
+const CF_INCOME_CATS = ['Consultation', 'Procedure', 'Lab Test', 'Pharmacy', 'Insurance', 'Others'];
+const CF_EXPENSE_CATS = ['Supplies', 'Utilities', 'Payroll', 'Maintenance', 'Equipment', 'Others'];
+const CF_CAT_COLORS = {
+    'Consultation': '#14b8a6', 'Procedure': '#818cf8', 'Lab Test': '#a78bfa', 'Pharmacy': '#34d399', 'Insurance': '#38bdf8',
+    'Supplies': '#f97316', 'Utilities': '#818cf8', 'Payroll': '#fbbf24', 'Maintenance': '#fb7185', 'Equipment': '#2dd4bf', 'Others': '#94a3b8'
+};
 
-function toggleExpenseForm() {
-    const f = document.getElementById('expenseForm');
+function toggleCashFlowForm() {
+    const f = document.getElementById('cfForm');
     f.style.display = f.style.display === 'none' ? 'block' : 'none';
     if (f.style.display === 'block') {
-        document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('cfDate').value = new Date().toISOString().slice(0, 10);
+        updateCFCategories();
     }
 }
 
-function loadExpenses() {
+function updateCFCategories() {
+    const sel = document.getElementById('cfCategory');
+    const isIncome = document.getElementById('cfTypeIncome').checked;
+    const cats = isIncome ? CF_INCOME_CATS : CF_EXPENSE_CATS;
+    sel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function loadCashFlow() {
     firebaseLoad('expenses', []).then(data => {
-        latestExpenses = Array.isArray(data) ? data : [];
-        populateExpenseMonthFilter();
-        renderExpenses();
+        latestCashFlow = Array.isArray(data) ? data : [];
+        // Auto-migrate old entries without type
+        let migrated = false;
+        latestCashFlow.forEach(e => { if (!e.type) { e.type = 'expense'; migrated = true; } });
+        if (migrated) firebaseSave('expenses', latestCashFlow);
+        populateCFMonthFilter();
+        populateCFCategoryFilter();
+        renderCashFlow();
     });
 }
 
-function populateExpenseMonthFilter() {
-    const sel = document.getElementById('expFilterMonth');
+function populateCFMonthFilter() {
+    const sel = document.getElementById('cfFilterMonth');
     if (!sel) return;
     const months = new Set();
-    latestExpenses.forEach(e => { if (e.date) months.add(e.date.slice(0, 7)); });
+    latestCashFlow.forEach(e => { if (e.date) months.add(e.date.slice(0, 7)); });
     const sorted = Array.from(months).sort().reverse();
     sel.innerHTML = '<option value="all">All Months</option>';
     sorted.forEach(m => {
         const d = new Date(m + '-01');
-        const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-        sel.innerHTML += `<option value="${m}">${label}</option>`;
+        sel.innerHTML += `<option value="${m}">${d.toLocaleString('default', { month: 'long', year: 'numeric' })}</option>`;
     });
 }
 
-function renderExpenses() {
-    const list = document.getElementById('expenseList');
-    const empty = document.getElementById('expenseEmpty');
-    const summary = document.getElementById('expenseSummary');
+function populateCFCategoryFilter() {
+    const sel = document.getElementById('cfFilterCategory');
+    if (!sel) return;
+    const cats = new Set();
+    latestCashFlow.forEach(e => { if (e.category) cats.add(e.category); });
+    sel.innerHTML = '<option value="All">All Categories</option>';
+    Array.from(cats).sort().forEach(c => { sel.innerHTML += `<option value="${c}">${c}</option>`; });
+}
+
+function renderCashFlow() {
+    const list = document.getElementById('cfList');
+    const empty = document.getElementById('cfEmpty');
+    const summary = document.getElementById('cfSummary');
     if (!list) return;
 
-    const filterMonth = document.getElementById('expFilterMonth') ? document.getElementById('expFilterMonth').value : 'all';
-    const filterCat = document.getElementById('expFilterCategory') ? document.getElementById('expFilterCategory').value : 'All';
+    const fMonth = document.getElementById('cfFilterMonth') ? document.getElementById('cfFilterMonth').value : 'all';
+    const fType = document.getElementById('cfFilterType') ? document.getElementById('cfFilterType').value : 'all';
+    const fCat = document.getElementById('cfFilterCategory') ? document.getElementById('cfFilterCategory').value : 'All';
 
-    let filtered = [...latestExpenses].filter((e, i) => {
-        e._idx = i;
-        if (filterMonth !== 'all' && !(e.date || '').startsWith(filterMonth)) return false;
-        if (filterCat !== 'All' && e.category !== filterCat) return false;
+    let filtered = latestCashFlow.map((e, i) => ({ ...e, _idx: i })).filter(e => {
+        if (fMonth !== 'all' && !(e.date || '').startsWith(fMonth)) return false;
+        if (fType !== 'all' && e.type !== fType) return false;
+        if (fCat !== 'All' && e.category !== fCat) return false;
         return true;
     });
-
-    // Sort by date descending
     filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-    if (filtered.length === 0) {
-        list.innerHTML = '';
-        if (empty) empty.style.display = 'block';
-        if (summary) summary.innerHTML = '';
-        return;
+    // Summary — always based on ALL data (not filtered)
+    const allIncome = latestCashFlow.filter(e => e.type === 'income').reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+    const allExpense = latestCashFlow.filter(e => e.type !== 'income').reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+    const netBalance = allIncome - allExpense;
+
+    let sumHtml = '<div class="row g-2 mb-3">';
+    sumHtml += `<div class="col-4"><div class="p-3 rounded border text-center" style="background:rgba(52,211,153,0.06)"><div style="font-size:0.7rem;color:#94a3b8">Income</div><div class="fw-bold" style="font-size:1.1rem;color:#34d399"><i class="fas fa-arrow-up me-1" style="font-size:0.7rem"></i>RM ${allIncome.toFixed(2)}</div></div></div>`;
+    sumHtml += `<div class="col-4"><div class="p-3 rounded border text-center" style="background:rgba(251,113,133,0.06)"><div style="font-size:0.7rem;color:#94a3b8">Expenses</div><div class="fw-bold" style="font-size:1.1rem;color:#fb7185"><i class="fas fa-arrow-down me-1" style="font-size:0.7rem"></i>RM ${allExpense.toFixed(2)}</div></div></div>`;
+    const netColor = netBalance >= 0 ? '#34d399' : '#fb7185';
+    const netIcon = netBalance >= 0 ? 'fa-chart-line' : 'fa-exclamation-triangle';
+    sumHtml += `<div class="col-4"><div class="p-3 rounded border text-center" style="background:rgba(129,140,248,0.06)"><div style="font-size:0.7rem;color:#94a3b8">Net Balance</div><div class="fw-bold" style="font-size:1.1rem;color:${netColor}"><i class="fas ${netIcon} me-1" style="font-size:0.7rem"></i>RM ${netBalance.toFixed(2)}</div></div></div>`;
+    sumHtml += '</div>';
+
+    // Category breakdown bar (for filtered data)
+    if (filtered.length > 0) {
+        const total = filtered.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+        const catTotals = {};
+        filtered.forEach(e => { const c = e.category || 'Others'; catTotals[c] = (catTotals[c] || 0) + parseFloat(e.amount || 0); });
+        sumHtml += '<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px;margin-bottom:6px">';
+        Object.entries(catTotals).forEach(([cat, amt]) => {
+            sumHtml += `<div style="width:${(amt / total) * 100}%;background:${CF_CAT_COLORS[cat] || '#94a3b8'}" title="${cat}: RM ${amt.toFixed(2)}"></div>`;
+        });
+        sumHtml += '</div><div class="d-flex flex-wrap gap-2">';
+        Object.entries(catTotals).forEach(([cat, amt]) => {
+            sumHtml += `<span style="font-size:0.7rem;color:${CF_CAT_COLORS[cat] || '#94a3b8'}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${CF_CAT_COLORS[cat] || '#94a3b8'};margin-right:3px"></span>${cat}: RM ${amt.toFixed(2)}</span>`;
+        });
+        sumHtml += '</div>';
     }
-    if (empty) empty.style.display = 'none';
-
-    // Summary
-    const total = filtered.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
-    const catTotals = {};
-    filtered.forEach(e => { const c = e.category || 'Others'; catTotals[c] = (catTotals[c] || 0) + parseFloat(e.amount || 0); });
-    const expCatColors = { 'Supplies': '#14b8a6', 'Utilities': '#818cf8', 'Payroll': '#fbbf24', 'Maintenance': '#fb7185', 'Equipment': '#34d399', 'Others': '#94a3b8' };
-
-    let sumHtml = `<div class="p-3 rounded border" style="background:rgba(255,255,255,0.03)"><div class="d-flex justify-content-between align-items-center mb-2"><span style="font-size:0.8rem;color:#94a3b8">Total</span><span class="fw-bold" style="font-size:1.2rem;color:#14b8a6">RM ${total.toFixed(2)}</span></div>`;
-    sumHtml += '<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px">';
-    Object.entries(catTotals).forEach(([cat, amt]) => {
-        const pct = (amt / total) * 100;
-        sumHtml += `<div style="width:${pct}%;background:${expCatColors[cat] || '#94a3b8'}" title="${cat}: RM ${amt.toFixed(2)}"></div>`;
-    });
-    sumHtml += '</div><div class="d-flex flex-wrap gap-2 mt-2">';
-    Object.entries(catTotals).forEach(([cat, amt]) => {
-        sumHtml += `<span style="font-size:0.7rem;color:${expCatColors[cat] || '#94a3b8'}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${expCatColors[cat] || '#94a3b8'};margin-right:3px"></span>${cat}: RM ${amt.toFixed(2)}</span>`;
-    });
-    sumHtml += '</div></div>';
     if (summary) summary.innerHTML = sumHtml;
 
-    // Table rows
-    const catBadge = { 'Supplies': 'bg-primary', 'Utilities': 'bg-info', 'Payroll': 'bg-warning', 'Maintenance': 'bg-danger', 'Equipment': 'bg-success', 'Others': 'bg-secondary' };
+    // Table
+    if (filtered.length === 0) { list.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+    if (empty) empty.style.display = 'none';
+
     let html = '';
     filtered.forEach(e => {
-        html += `<tr><td>${e.date || '—'}</td><td>${escapeHTML(e.desc || '')}</td><td><span class="badge ${catBadge[e.category] || 'bg-secondary'}" style="font-size:0.7rem">${e.category || 'Others'}</span></td><td class="text-end fw-bold">RM ${parseFloat(e.amount || 0).toFixed(2)}</td><td class="text-end"><button onclick="deleteExpense(${e._idx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
+        const isIncome = e.type === 'income';
+        const typeBadge = isIncome
+            ? '<span class="badge bg-success" style="font-size:0.65rem"><i class="fas fa-arrow-up me-1"></i>Income</span>'
+            : '<span class="badge bg-danger" style="font-size:0.65rem"><i class="fas fa-arrow-down me-1"></i>Expense</span>';
+        const amtColor = isIncome ? '#34d399' : '#fb7185';
+        const amtPrefix = isIncome ? '+' : '-';
+        html += `<tr><td>${e.date || '—'}</td><td>${typeBadge}</td><td>${escapeHTML(e.desc || '')}</td><td><span class="badge" style="font-size:0.65rem;background:${CF_CAT_COLORS[e.category] || '#94a3b8'}20;color:${CF_CAT_COLORS[e.category] || '#94a3b8'};border:1px solid ${CF_CAT_COLORS[e.category] || '#94a3b8'}40">${e.category || 'Others'}</span></td><td class="text-end fw-bold" style="color:${amtColor}">${amtPrefix} RM ${parseFloat(e.amount || 0).toFixed(2)}</td><td class="text-end"><button onclick="deleteCashFlowEntry(${e._idx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
     });
     list.innerHTML = html;
 }
 
-function addExpense() {
-    const date = document.getElementById('expDate').value;
-    const desc = document.getElementById('expDesc').value.trim();
-    const amount = parseFloat(document.getElementById('expAmount').value);
-    const category = document.getElementById('expCategory').value;
+function addCashFlowEntry() {
+    const date = document.getElementById('cfDate').value;
+    const desc = document.getElementById('cfDesc').value.trim();
+    const amount = parseFloat(document.getElementById('cfAmount').value);
+    const category = document.getElementById('cfCategory').value;
+    const type = document.getElementById('cfTypeIncome').checked ? 'income' : 'expense';
     if (!desc || isNaN(amount) || amount <= 0) { alert('Please fill in all fields'); return; }
-    latestExpenses.push({ date, desc, amount: amount.toFixed(2), category });
-    firebaseSave('expenses', latestExpenses);
-    document.getElementById('expDesc').value = '';
-    document.getElementById('expAmount').value = '';
-    document.getElementById('expenseForm').style.display = 'none';
-    populateExpenseMonthFilter();
-    renderExpenses();
+    latestCashFlow.push({ date, desc, amount: amount.toFixed(2), category, type });
+    firebaseSave('expenses', latestCashFlow);
+    document.getElementById('cfDesc').value = '';
+    document.getElementById('cfAmount').value = '';
+    document.getElementById('cfForm').style.display = 'none';
+    populateCFMonthFilter();
+    populateCFCategoryFilter();
+    renderCashFlow();
 }
 
-function deleteExpense(index) {
-    if (!confirm('Delete this expense?')) return;
-    latestExpenses.splice(index, 1);
-    firebaseSave('expenses', latestExpenses);
-    populateExpenseMonthFilter();
-    renderExpenses();
+function deleteCashFlowEntry(index) {
+    if (!confirm('Delete this transaction?')) return;
+    latestCashFlow.splice(index, 1);
+    firebaseSave('expenses', latestCashFlow);
+    populateCFMonthFilter();
+    populateCFCategoryFilter();
+    renderCashFlow();
 }
 
 // ═══════════════════════════════════════════════
