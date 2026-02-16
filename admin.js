@@ -444,7 +444,7 @@ function renderRosterList(rules) {
         let whenLabel = '', badgeHtml = '';
         if (rule.type === 'weekly') { whenLabel = 'Every ' + days[rule.day]; badgeHtml = '<span class="badge bg-info text-dark">Weekly</span>'; }
         else { const d = new Date(rule.date + 'T00:00:00'); whenLabel = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' (' + days[d.getDay()] + ')'; badgeHtml = '<span class="badge bg-primary">Date</span>'; }
-        html += `< tr ><td class="text-center"><input type="checkbox" class="form-check-input rule-checkbox" value="${rule._origIdx}" onchange="updateBatchButtons()"></td><td><div class="fw-semibold">${whenLabel}</div><div class="small text-muted">${badgeHtml} &bull; ${escapeHTML(rule.shift)}</div></td><td>${escapeHTML(rule.doc)}</td><td class="text-end"><button onclick="editRosterRule(${rule._origIdx})" class="btn btn-outline-primary btn-sm border-0 me-1"><i class="fas fa-pen"></i></button><button onclick="deleteRosterRule(${rule._origIdx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr > `;
+        html += `<tr><td class="text-center"><input type="checkbox" class="form-check-input rule-checkbox" value="${rule._origIdx}" onchange="updateBatchButtons()"></td><td><div class="fw-semibold">${whenLabel}</div><div class="small text-muted">${badgeHtml} &bull; ${escapeHTML(rule.shift)}</div></td><td>${escapeHTML(rule.doc)}</td><td class="text-end"><button onclick="editRosterRule(${rule._origIdx})" class="btn btn-outline-primary btn-sm border-0 me-1"><i class="fas fa-pen"></i></button><button onclick="deleteRosterRule(${rule._origIdx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
     });
     list.innerHTML = html;
 }
@@ -520,7 +520,7 @@ function previewPromoImage() {
     if (!url) { preview.innerHTML = '<span class="text-muted small">Enter a URL above</span>'; return; }
     preview.innerHTML = '<span style="color:var(--primary-light)" class="small"><i class="fas fa-spinner fa-spin me-1"></i>Loading...</span>';
     const img = new Image();
-    img.onload = () => { preview.innerHTML = `< img src = "${escapeHTML(url)}" class="img-fluid rounded" style = "max-height:150px" alt = "Preview" > <div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>Loaded</div>`; };
+    img.onload = () => { const sizeKB = url.startsWith('data:') ? Math.round(url.length * 0.75 / 1024) : 0; preview.innerHTML = `<img src="${url}" class="img-fluid rounded" style="max-height:150px" alt="Preview"><div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${sizeKB > 0 ? sizeKB + ' KB' : 'Loaded'}</div>`; };
     img.onerror = () => { preview.innerHTML = '<div class="small" style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Failed to load</div>'; };
     img.src = url;
 }
@@ -547,8 +547,8 @@ function renderPromoAdmin() {
     if (!list) return; if (toggle) toggle.checked = promoData.enabled;
     if (promoData.items.length === 0) { list.innerHTML = '<div class="text-center text-muted p-3"><i class="fas fa-images fs-3 mb-2 d-block" style="color:#475569"></i>No promo items yet</div>'; return; }
     list.innerHTML = promoData.items.map((item, i) => `
-            < div class="d-flex gap-2 align-items-start border-bottom py-2" >
-                <img src="${escapeHTML(item.image)}" class="rounded" style="width:60px;height:60px;object-fit:cover" onerror="this.style.background='#1e293b';this.src=''" alt="Promo">
+            <div class="d-flex gap-2 align-items-start border-bottom py-2">
+                <img src="${item.image}" class="rounded" style="width:60px;height:60px;object-fit:cover" onerror="this.style.background='#1e293b';this.src=''" alt="Promo">
                     <div class="flex-grow-1"><div class="small fw-bold text-truncate" style="max-width:200px">${escapeHTML(item.text) || '<em class="text-muted">No caption</em>'}</div><div style="font-size:0.7rem;color:#475569;word-break:break-all">${escapeHTML(item.image).substring(0, 50)}...</div></div>
                     <button onclick="deletePromoItem(${i})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button>
                 </div>`).join('');
