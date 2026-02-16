@@ -743,7 +743,7 @@
                             <i class="fas fa-calendar-alt me-1"></i> View Full Schedule
                         </a>
                         <div class="mt-2 border-top border-secondary pt-2">
-                            <a href="javascript:void(0)" onclick="openAdminModal()"
+                            <a href="admin.html" target="_blank"
                                 class="text-white-50 small text-decoration-none hover-white">
                                 <i class="fas fa-lock me-1"></i> Admin Login
                             </a>
@@ -799,424 +799,60 @@
                         </div>
                     </div>
 
-                    <!-- Hidden Admin Dashboard (No Backend - LocalStorage CMS) -->
-                    <div id="adminModal" class="admin-modal" style="display: none;">
-                        <div class="admin-content admin-dashboard">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h5 class="text-dark mb-0 fw-bold"><i class="fas fa-cogs text-primary me-2"></i>Admin
-                                    Dashboard</h5>
-                                <div class="close-modal-btn" onclick="closeAdminModal()">&times;</div>
-                            </div>
-
-                            <!-- Screen 1: Login -->
-                            <div id="adminLoginScreen">
-                                <p class="text-muted small mb-3 text-center">Secure Admin Access</p>
-                                <div class="mb-3">
-                                    <input type="email" id="adminEmailInput" class="form-control text-center"
-                                        placeholder="Email Address">
-                                </div>
-                                <div class="mb-3">
-                                    <input type="password" id="adminPasswordInput" class="form-control text-center"
-                                        placeholder="Password" onkeydown="if(event.key==='Enter')verifyAdminLogin()">
-                                </div>
-                                <button onclick="verifyAdminLogin()" class="btn btn-primary w-100 btn-sm">Login to
-                                    Dashboard</button>
-                                <p id="loginError" class="text-danger small mt-2 text-center" style="display:none;">
-                                    Invalid Credentials</p>
-                            </div>
-
-                            <!-- Screen 2: Dashboard -->
-                            <div id="adminControlScreen" style="display: none;">
-                                <!-- Firebase Usage Warnings -->
-                                <div id="firebaseUsageAlerts" class="mb-3"></div>
-                                <!-- Tabs -->
-                                <ul class="nav nav-pills mb-3 nav-justified" id="adminTabs">
-                                    <li class="nav-item">
-                                        <button class="nav-link active btn-sm"
-                                            onclick="switchAdminTab('inventory', event)">📦 Inventory</button>
-                                    </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link btn-sm" onclick="switchAdminTab('roster', event)">📅
-                                            Doctor Roster</button>
-                                    </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link btn-sm" onclick="switchAdminTab('promo', event)">🎉
-                                            Promo</button>
-                                    </li>
-                                </ul>
-
-                                <!-- Tab: Inventory Management -->
-                                <div id="tabInventory" class="admin-tab-pane" style="display: block;">
-                                    <div class="d-flex flex-column gap-3 mb-3">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <h6 class="text-primary fw-bold small text-uppercase mb-0">Stock
-                                                Management</h6>
-                                            <button onclick="toggleInventoryForm()"
-                                                class="btn btn-primary btn-sm rounded-pill px-3"><i
-                                                    class="fas fa-plus me-1"></i> Add Item</button>
-                                        </div>
-
-                                        <!-- Search & Filter -->
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            <input type="text" id="invSearch" class="form-control form-control-sm"
-                                                placeholder="Search item..." onkeyup="filterInventory()"
-                                                style="min-width:120px;flex:1;">
-                                            <select id="invFilterCategory" class="form-select form-select-sm"
-                                                style="width: auto;" onchange="filterInventory()">
-                                                <option value="All">All Categories</option>
-                                                <option value="Medicine">Medicine</option>
-                                                <option value="Supplements">Supplements</option>
-                                                <option value="Equipment">Equipment</option>
-                                                <option value="Stationery">Stationery</option>
-                                                <option value="Others">Others</option>
-                                            </select>
-                                            <select id="invSortBy" class="form-select form-select-sm"
-                                                style="width:auto;" onchange="setInventorySort(this.value)">
-                                                <option value="name" selected>Sort: Name (A-Z)</option>
-                                                <option value="category">Sort: Category</option>
-                                                <option value="stock">Sort: Stock (Low→High)</option>
-                                                <option value="stock-desc">Sort: Stock (High→Low)</option>
-                                                <option value="expiry">Sort: Expiry</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <!-- Add Item Form (Hidden) -->
-                                    <div id="inventoryForm" class="bg-light p-3 rounded mb-3 border shadow-sm"
-                                        style="display: none;">
-                                        <h6 class="fw-bold mb-2">New Stock Item</h6>
-                                        <div class="mb-2">
-                                            <select id="invCategory" class="form-select form-select-sm mb-2">
-                                                <option value="Medicine">Medicine</option>
-                                                <option value="Supplements">Supplements</option>
-                                                <option value="Equipment">Equipment</option>
-                                                <option value="Stationery">Stationery</option>
-                                                <option value="Others">Others</option>
-                                            </select>
-                                            <input type="text" id="invName" class="form-control form-control-sm"
-                                                placeholder="Item Name (e.g. Paracetamol 500mg)">
-                                        </div>
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-6">
-                                                <input type="number" id="invQty" class="form-control form-control-sm"
-                                                    placeholder="Qty">
-                                            </div>
-                                            <div class="col-6">
-                                                <input type="date" id="invExpiry" class="form-control form-control-sm">
-                                                <small class="text-muted" style="font-size: 0.7rem;">Expiry
-                                                    (Optional)</small>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <button onclick="addInventoryItem()"
-                                                class="btn btn-success btn-sm flex-grow-1">Save Item</button>
-                                            <button onclick="toggleInventoryForm()"
-                                                class="btn btn-outline-secondary btn-sm">Cancel</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Inventory List -->
-                                    <div class="table-responsive border rounded bg-white shadow-sm"
-                                        style="max-height: 50vh;">
-                                        <table class="table table-hover mb-0 align-middle" style="font-size: 0.9rem;">
-                                            <thead class="table-light sticky-top">
-                                                <tr>
-                                                    <th style="width: 40%;">Item</th>
-                                                    <th style="width: 20%;">Category</th>
-                                                    <th style="width: 30%;">Stock</th>
-                                                    <th style="width: 10%;"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="inventoryList">
-                                                <!-- Populated by JS -->
-                                            </tbody>
-                                        </table>
-                                        <div id="inventoryEmpty" class="text-center p-4 text-muted"
-                                            style="display: none;">
-                                            <i class="fas fa-box-open fs-1 mb-2 text-secondary"></i><br>
-                                            No items found.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Tab: Roster Management -->
-                                <div id="tabRoster" class="admin-tab-pane" style="display: none;">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div class="btn-group" role="group">
-                                            <input type="radio" class="btn-check" name="adminRosterView" id="viewWeekly"
-                                                autocomplete="off" checked onchange="switchAdminRosterView('weekly')">
-                                            <label class="btn btn-outline-primary btn-sm"
-                                                for="viewWeekly">Weekly</label>
-
-                                            <input type="radio" class="btn-check" name="adminRosterView"
-                                                id="viewMonthly" autocomplete="off"
-                                                onchange="switchAdminRosterView('monthly')">
-                                            <label class="btn btn-outline-primary btn-sm"
-                                                for="viewMonthly">Monthly</label>
-                                        </div>
-                                        <button onclick="toggleRosterForm()"
-                                            class="btn btn-primary btn-sm rounded-pill px-3"><i
-                                                class="fas fa-plus me-1"></i> Add Rule</button>
-                                    </div>
-
-                                    <!-- Weekly Overview Table (Admin) -->
-                                    <div id="adminWeeklyOverview" class="mb-3"></div>
-
-                                    <!-- Monthly Overview (Admin) -->
-                                    <div id="adminMonthlyOverview" class="mb-3" style="display: none;">
-                                        <div
-                                            class="d-flex justify-content-between align-items-center mb-2 bg-white p-2 border rounded">
-                                            <button class="btn btn-sm btn-outline-secondary"
-                                                onclick="changeAdminRosterMonth(-1)"><i
-                                                    class="fas fa-chevron-left"></i></button>
-                                            <span id="adminRosterMonthLabel" class="fw-bold text-dark"
-                                                style="font-size: 0.9rem;"></span>
-                                            <button class="btn btn-sm btn-outline-secondary"
-                                                onclick="changeAdminRosterMonth(1)"><i
-                                                    class="fas fa-chevron-right"></i></button>
-                                        </div>
-                                        <div id="adminRosterCalendar" class="roster-calendar-container"></div>
-                                    </div>
-
-                                    <!-- Add Rule Form -->
-                                    <div id="rosterForm" class="bg-light p-3 rounded mb-3 border shadow-sm"
-                                        style="display: none;">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <h6 class="fw-bold mb-0">New Schedule Rule</h6>
-                                            <button type="button" class="btn-close" aria-label="Close"
-                                                onclick="toggleRosterForm()"></button>
-                                        </div>
-
-                                        <!-- Rule Type Toggle -->
-                                        <div class="btn-group w-100 mb-2" role="group">
-                                            <input type="radio" class="btn-check" name="ruleType" id="ruleDate"
-                                                value="date" checked onchange="toggleRuleInputs()">
-                                            <label class="btn btn-outline-primary btn-sm" for="ruleDate">Specific
-                                                Date</label>
-
-                                            <input type="radio" class="btn-check" name="ruleType" id="ruleWeekly"
-                                                value="weekly" onchange="toggleRuleInputs()">
-                                            <label class="btn btn-outline-primary btn-sm" for="ruleWeekly">Weekly
-                                                Recurring</label>
-                                        </div>
-
-                                        <!-- Inputs -->
-                                        <div class="mb-2">
-                                            <div id="inputDateGroup">
-                                                <div class="row g-2">
-                                                    <div class="col-6">
-                                                        <label class="small text-muted">From</label>
-                                                        <input type="date" id="rosterDateStart"
-                                                            class="form-control form-control-sm">
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="small text-muted">To (Optional)</label>
-                                                        <input type="date" id="rosterDateEnd"
-                                                            class="form-control form-control-sm">
-                                                    </div>
-                                                </div>
-                                                <div class="form-text" style="font-size: 0.75rem;">Leave "To" empty for
-                                                    single day.</div>
-                                            </div>
-                                            <div id="inputDayGroup" style="display:none;">
-                                                <label class="small text-muted">Day of Week</label>
-                                                <select id="rosterDay" class="form-select form-select-sm">
-                                                    <option value="1">Monday</option>
-                                                    <option value="2">Tuesday</option>
-                                                    <option value="3">Wednesday</option>
-                                                    <option value="4">Thursday</option>
-                                                    <option value="5">Friday</option>
-                                                    <option value="6">Saturday</option>
-                                                    <option value="0">Sunday</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-7">
-                                                <label class="small text-muted">Doctor</label>
-                                                <select id="rosterDocSelect" class="form-select form-select-sm">
-                                                    <!-- Populated by JS -->
-                                                </select>
-                                            </div>
-                                            <div class="col-5">
-                                                <label class="small text-muted">Shift</label>
-                                                <select id="rosterShift" class="form-select form-select-sm">
-                                                    <option value="Full Day">Full Day</option>
-                                                    <option value="Morning">Morning</option>
-                                                    <option value="Evening">Evening</option>
-                                                    <option value="Off">OFF / Closed</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex gap-2">
-                                            <button onclick="addRosterRule()"
-                                                class="btn btn-success btn-sm flex-grow-1">Save Rule</button>
-                                            <button onclick="toggleRosterForm()"
-                                                class="btn btn-outline-secondary btn-sm">Cancel</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Roles List -->
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <button onclick="deleteSelectedRules()" id="btnDeleteSelected"
-                                                class="btn btn-danger btn-sm" disabled>
-                                                <i class="fas fa-trash me-1"></i> Delete Selected
-                                            </button>
-                                        </div>
-                                        <button onclick="clearAllRules()" class="btn btn-outline-danger btn-sm">
-                                            <i class="fas fa-bomb me-1"></i> Clear All Rules
-                                        </button>
-                                    </div>
-
-                                    <div class="table-responsive border rounded bg-white shadow-sm"
-                                        style="max-height: 50vh;">
-                                        <table class="table table-hover mb-0 align-middle" style="font-size: 0.9rem;">
-                                            <thead class="table-light sticky-top">
-                                                <tr>
-                                                    <th style="width: 40px;" class="text-center">
-                                                        <input type="checkbox" id="selectAllRules"
-                                                            class="form-check-input" onchange="toggleAllRules(this)">
-                                                    </th>
-                                                    <th>When</th>
-                                                    <th>Doctor</th>
-                                                    <th class="text-end">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="rosterList">
-                                                <!-- Populated by JS -->
-                                            </tbody>
-                                        </table>
-                                        <div id="rosterEmpty" class="text-center p-4 text-muted" style="display: none;">
-                                            <i class="fas fa-calendar-times fs-1 mb-2 text-secondary"></i><br>
-                                            No custom rules set.<br>Using default schedule.
-                                        </div>
-                                    </div>
-                                    <!-- Manage Doctors -->
-                                    <div class="bg-light p-3 rounded border mt-3">
-                                        <h6 class="fw-bold mb-2 small text-uppercase text-primary"><i
-                                                class="fas fa-user-md me-1"></i>Manage Doctors</h6>
-                                        <div class="d-flex gap-2 mb-2">
-                                            <input type="text" id="newDoctorName" class="form-control form-control-sm"
-                                                placeholder="e.g. Dr. Ahmad (Surgeon)">
-                                            <button onclick="addDoctor()" class="btn btn-success btn-sm text-nowrap"><i
-                                                    class="fas fa-plus me-1"></i>Add</button>
-                                        </div>
-                                        <div id="doctorManageList" class="border rounded bg-white"
-                                            style="max-height:200px;overflow-y:auto;"></div>
-                                    </div>
-                                </div>
-
-                                <!-- Tab: Promo Management -->
-                                <div id="tabPromo" class="admin-tab-pane" style="display: none;">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="text-primary fw-bold small text-uppercase mb-0">Promo Section</h6>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="promoToggle"
-                                                onchange="togglePromoSection()">
-                                            <label class="form-check-label small" for="promoToggle">Show on Site</label>
-                                        </div>
-                                    </div>
-
-                                    <!-- Add Promo Item Form -->
-                                    <div class="bg-light p-3 rounded mb-3 border shadow-sm">
-                                        <h6 class="fw-bold mb-2 small">Add Promo Item</h6>
-                                        <div class="mb-2">
-                                            <input type="text" id="promoImageUrl" class="form-control form-control-sm"
-                                                placeholder="Image URL (e.g. https://...)"
-                                                oninput="previewPromoImage()">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="btn btn-outline-secondary btn-sm w-100">
-                                                <i class="fas fa-upload me-1"></i>Upload from Device
-                                                <input type="file" accept="image/*" style="display:none;"
-                                                    onchange="handlePromoFileUpload(this)">
-                                            </label>
-                                        </div>
-                                        <div id="promoImagePreview" class="mb-2 text-center p-2 border rounded bg-white"
-                                            style="min-height:60px;">
-                                            <span class="text-muted small">Enter a URL or upload an image</span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input type="text" id="promoText" class="form-control form-control-sm"
-                                                placeholder="Caption / Description (optional)">
-                                        </div>
-                                        <button onclick="addPromoItem()" class="btn btn-success btn-sm w-100"><i
-                                                class="fas fa-plus me-1"></i>Add Promo</button>
-                                        <div class="mt-2 p-2 bg-white border rounded">
-                                            <small class="text-muted d-block"><i
-                                                    class="fas fa-lightbulb text-warning me-1"></i><strong>Tips:</strong></small>
-                                            <small class="text-muted d-block">• Use JPG/PNG/WebP images under 500
-                                                KB</small>
-                                            <small class="text-muted d-block">• Recommended size: 1200×400 px
-                                                (landscape)</small>
-                                            <small class="text-muted d-block">• Changes sync to all devices in
-                                                real-time</small>
-                                        </div>
-                                    </div>
-
-                                    <!-- Promo Item List -->
-                                    <div id="promoItemList" class="border rounded bg-white p-2"
-                                        style="max-height:40vh;overflow-y:auto;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Admin moved to admin.html -->
                     <ul class="list-unstyled footer-links text-white-50">
-                        <li class="mb-2">9:00 AM - 10:00 PM</li>
-                        <li class="mb-2">Open Daily</li>
-                    </ul>
-                </div>
+            <li class="mb-2">9:00 AM - 10:00 PM</li>
+            <li class="mb-2">Open Daily</li>
+        </ul>
+        </div>
 
-                <!-- 2. Contact Us (Moved here, Quick Links deleted) -->
-                <div class="col-lg-4">
-                    <h6 class="text-primary mb-3">Contact Us</h6>
-                    <ul class="list-unstyled text-white-50">
-                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>43000 Bangi, Selangor
-                        </li>
-                        <li class="mb-2"><i class="fas fa-phone me-2"></i>017-2032048</li>
-                        <li class="mb-2"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
-                    </ul>
-                </div>
+        <!-- 2. Contact Us (Moved here, Quick Links deleted) -->
+        <div class="col-lg-4">
+            <h6 class="text-primary mb-3">Contact Us</h6>
+            <ul class="list-unstyled text-white-50">
+                <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>43000 Bangi, Selangor
+                </li>
+                <li class="mb-2"><i class="fas fa-phone me-2"></i>017-2032048</li>
+                <li class="mb-2"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
+            </ul>
+        </div>
 
-                <!-- 3. Map (Unchanged) -->
-                <div class="col-lg-4">
-                    <h6 class="text-primary mb-4">Our Location</h6>
-                    <div class="map-container rounded-3 overflow-hidden shadow-sm">
-                        <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
-                            width="100%" height="250" style="border:0; filter: none !important;" allowfullscreen=""
-                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-                            title="Klinik location on Google Maps"></iframe>
-                    </div>
-                    <div class="mt-2 d-flex gap-2">
-                        <a href="https://www.google.com/maps/search/?api=1&query=Alam+Sari,+43000+Bangi,+Selangor"
-                            target="_blank" class="btn btn-outline-light btn-sm flex-grow-1">
-                            <i class="fab fa-google me-1"></i> Maps
-                        </a>
-                        <a href="https://waze.com/ul?q=Alam+Sari,+43000+Bangi,+Selangor" target="_blank"
-                            class="btn btn-outline-light btn-sm flex-grow-1">
-                            <i class="fab fa-waze me-1"></i> Waze
-                        </a>
-                    </div>
-                </div>
+        <!-- 3. Map (Unchanged) -->
+        <div class="col-lg-4">
+            <h6 class="text-primary mb-4">Our Location</h6>
+            <div class="map-container rounded-3 overflow-hidden shadow-sm">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
+                    width="100%" height="250" style="border:0; filter: none !important;" allowfullscreen=""
+                    loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                    title="Klinik location on Google Maps"></iframe>
             </div>
-            <hr class="border-secondary my-5">
-            <div class="d-flex justify-content-center gap-3 mb-3">
-                <a href="https://facebook.com" target="_blank" class="text-white-50 fs-5" aria-label="Facebook"><i
-                        class="fab fa-facebook-f"></i></a>
-                <a href="https://instagram.com" target="_blank" class="text-white-50 fs-5" aria-label="Instagram"><i
-                        class="fab fa-instagram"></i></a>
-                <a href="https://tiktok.com" target="_blank" class="text-white-50 fs-5" aria-label="TikTok"><i
-                        class="fab fa-tiktok"></i></a>
-                <a href="https://wa.me/60172032048" target="_blank" class="text-white-50 fs-5" aria-label="WhatsApp"><i
-                        class="fab fa-whatsapp"></i></a>
+            <div class="mt-2 d-flex gap-2">
+                <a href="https://www.google.com/maps/search/?api=1&query=Alam+Sari,+43000+Bangi,+Selangor"
+                    target="_blank" class="btn btn-outline-light btn-sm flex-grow-1">
+                    <i class="fab fa-google me-1"></i> Maps
+                </a>
+                <a href="https://waze.com/ul?q=Alam+Sari,+43000+Bangi,+Selangor" target="_blank"
+                    class="btn btn-outline-light btn-sm flex-grow-1">
+                    <i class="fab fa-waze me-1"></i> Waze
+                </a>
             </div>
-            <div class="text-center text-white-50 small" id="adminTrigger" style="cursor: default;">
-                &copy; 2026 Klinik Sdn Bhd. All rights reserved.
-            </div>
+        </div>
+        </div>
+        <hr class="border-secondary my-5">
+        <div class="d-flex justify-content-center gap-3 mb-3">
+            <a href="https://facebook.com" target="_blank" class="text-white-50 fs-5" aria-label="Facebook"><i
+                    class="fab fa-facebook-f"></i></a>
+            <a href="https://instagram.com" target="_blank" class="text-white-50 fs-5" aria-label="Instagram"><i
+                    class="fab fa-instagram"></i></a>
+            <a href="https://tiktok.com" target="_blank" class="text-white-50 fs-5" aria-label="TikTok"><i
+                    class="fab fa-tiktok"></i></a>
+            <a href="https://wa.me/60172032048" target="_blank" class="text-white-50 fs-5" aria-label="WhatsApp"><i
+                    class="fab fa-whatsapp"></i></a>
+        </div>
+        <div class="text-center text-white-50 small" id="adminTrigger" style="cursor: default;">
+            &copy; 2026 Klinik Sdn Bhd. All rights reserved.
+        </div>
         </div>
     </footer>
 

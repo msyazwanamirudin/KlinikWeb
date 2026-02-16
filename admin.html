@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Efficiency Audit | Klinik</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-light: #14b8a6;
+            --dark-bg: #0c1222;
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--dark-bg);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* Animated gradient background */
+        .audit-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: linear-gradient(135deg, #0c1222 0%, #1a1a2e 40%, #0f766e20 100%);
+        }
+
+        .audit-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(15, 118, 110, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Progress bar */
+        .audit-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .audit-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px var(--primary);
+        }
+
+        /* Container */
+        .audit-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        /* Steps */
+        .audit-step {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            animation: stepIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .audit-step.active {
+            display: block;
+        }
+
+        @keyframes stepIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .audit-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px 32px;
+        }
+
+        /* Logo */
+        .audit-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 32px rgba(15, 118, 110, 0.3);
+        }
+
+        .audit-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .audit-subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        /* Buttons */
+        .audit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .audit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(15, 118, 110, 0.4);
+        }
+
+        .audit-btn:active {
+            transform: scale(0.97);
+        }
+
+        .audit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Metric cards */
+        .metric-card {
+            background: var(--glass);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .metric-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin: 0 auto 12px;
+        }
+
+        .metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .metric-label {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Animated counter */
+        .counter-animate {
+            transition: all 0.5s ease;
+        }
+
+        /* Login form */
+        .audit-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            outline: none;
+        }
+
+        .audit-input::placeholder {
+            color: #475569;
+        }
+
+        .audit-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+
+        .login-error {
+            color: #f87171;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* Step indicators */
+        .step-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            background: var(--primary-light);
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .step-dot.done {
+            background: var(--primary);
+        }
+
+        /* Pulse animation for welcome */
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            border: 2px solid var(--primary-light);
+            opacity: 0;
+            animation: pulseRing 2s ease-out infinite;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+        }
+
+        /* Dashboard styles */
+        .dash-container {
+            max-width: 960px;
+            width: 100%;
+        }
+
+        .dash-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 20px;
+        }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .dash-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .dash-logout {
+            padding: 8px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dash-logout:hover {
+            border-color: #f87171;
+            color: #f87171;
+        }
+
+        /* Tab pills for dashboard */
+        .dash-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dash-tab {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Outfit', sans-serif;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .dash-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .dash-tab:hover:not(.active) {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dash-pane {
+            display: none;
+        }
+
+        .dash-pane.active {
+            display: block;
+        }
+
+        /* Override Bootstrap for dark theme */
+        .form-control,
+        .form-select {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #e2e8f0 !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.2) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .form-control::placeholder {
+            color: #475569 !important;
+        }
+
+        .table {
+            color: #cbd5e1;
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.03);
+        }
+
+        .table thead {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .table th {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .table td {
+            border-color: rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+        }
+
+        .table-light {
+            --bs-table-bg: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        .btn-primary {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-light) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary) !important;
+            color: white !important;
+        }
+
+        .btn-outline-danger {
+            color: #fb7185 !important;
+            border-color: rgba(251, 113, 133, 0.3) !important;
+        }
+
+        .btn-outline-danger:hover {
+            background: #be123c !important;
+            color: white !important;
+        }
+
+        .btn-outline-secondary {
+            color: #94a3b8 !important;
+            border-color: rgba(148, 163, 184, 0.2) !important;
+        }
+
+        .btn-success {
+            background: #059669 !important;
+            border-color: #059669 !important;
+        }
+
+        .bg-light {
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        .border {
+            border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .border-bottom {
+            border-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .text-dark {
+            color: #e2e8f0 !important;
+        }
+
+        .text-muted {
+            color: #64748b !important;
+        }
+
+        .fw-bold {
+            color: #f1f5f9;
+        }
+
+        .bg-white {
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        .shadow-sm {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .nav-pills .nav-link {
+            color: #94a3b8;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--primary) !important;
+        }
+
+        .rounded {
+            border-radius: 12px !important;
+        }
+
+        .form-check-input {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Roster calendar dark theme */
+        .roster-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .roster-cal-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.7rem;
+            padding: 6px 2px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .roster-cal-cell {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 4px;
+            min-height: 60px;
+            font-size: 0.7rem;
+        }
+
+        .roster-cal-empty {
+            background: transparent;
+        }
+
+        .roster-cal-today {
+            background: rgba(15, 118, 110, 0.15) !important;
+            border: 1px solid var(--primary);
+        }
+
+        .roster-cal-past {
+            opacity: 0.4;
+        }
+
+        .roster-cal-date {
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 2px;
+        }
+
+        .roster-cal-day-name {
+            display: none;
+        }
+
+        .roster-cal-entry {
+            font-size: 0.65rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            margin-bottom: 1px;
+        }
+
+        .roster-shift-on {
+            background: rgba(15, 118, 110, 0.2);
+            color: var(--primary-light);
+        }
+
+        .roster-shift-off {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fb7185;
+        }
+
+        .roster-doc-name {
+            display: block;
+            font-weight: 600;
+        }
+
+        .roster-shift-label {
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
+
+        /* Firebase alerts override */
+        #firebaseUsageAlerts {
+            color: #cbd5e1;
+        }
+
+        /* Weekly roster table */
+        .roster-week-table td {
+            font-size: 0.75rem;
+        }
+
+        /* Btn group dark */
+        .btn-check:checked+.btn-outline-primary {
+            background: var(--primary) !important;
+            color: white !important;
+            border-color: var(--primary) !important;
+        }
+
+        @media (max-width:768px) {
+            .audit-card {
+                padding: 28px 20px;
+            }
+
+            .audit-title {
+                font-size: 1.4rem;
+            }
+
+            .dash-card {
+                padding: 16px;
+            }
+
+            .dash-tabs {
+                gap: 2px;
+            }
+
+            .dash-tab {
+                padding: 8px 10px;
+                font-size: 0.78rem;
+                min-width: 80px;
+            }
+
+            .metric-card {
+                padding: 14px;
+            }
+
+            .metric-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="audit-bg"></div>
+    <!-- Progress Bar -->
+    <div class="audit-progress">
+        <div class="audit-progress-fill" id="progressFill" style="width:25%"></div>
+    </div>
+
+    <div class="audit-container" id="auditContainer">
+        <!-- Step 1: Welcome -->
+        <div class="audit-step active" id="step1">
+            <div class="audit-card text-center">
+                <div class="step-dots"><span class="step-dot active"></span><span class="step-dot"></span><span
+                        class="step-dot"></span></div>
+                <div class="audit-logo" style="position:relative">
+                    <div class="pulse-ring"></div>
+                    <i class="fas fa-plus"></i>
+                </div>
+                <h1 class="audit-title">Clinic Efficiency Audit</h1>
+                <p class="audit-subtitle">Real-time operational intelligence for Klinik management</p>
+                <div
+                    style="background:var(--glass);border:1px solid var(--card-border);border-radius:14px;padding:20px;margin-bottom:28px;text-align:left">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div
+                            style="width:36px;height:36px;border-radius:10px;background:rgba(15,118,110,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="fas fa-chart-line" style="color:var(--primary-light)"></i></div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.9rem;color:#f1f5f9">Live Metrics</div>
+                            <div style="font-size:0.78rem;color:#64748b">Inventory, roster & promo data in real-time
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div
+                            style="width:36px;height:36px;border-radius:10px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="fas fa-shield-alt" style="color:#818cf8"></i></div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.9rem;color:#f1f5f9">Secure Access</div>
+                            <div style="font-size:0.78rem;color:#64748b">SHA-256 encrypted authentication</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3">
+                        <div
+                            style="width:36px;height:36px;border-radius:10px;background:rgba(244,63,94,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="fas fa-cogs" style="color:#fb7185"></i></div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.9rem;color:#f1f5f9">Full Dashboard</div>
+                            <div style="font-size:0.78rem;color:#64748b">Manage inventory, roster & promotions</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="audit-btn" onclick="goToStep(2)"><span>Begin Audit</span><i
+                        class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Step 2: Live Metrics -->
+        <div class="audit-step" id="step2">
+            <div class="audit-card">
+                <div class="step-dots"><span class="step-dot done"></span><span class="step-dot active"></span><span
+                        class="step-dot"></span></div>
+                <h2 class="audit-title" style="font-size:1.4rem">Live Clinic Metrics</h2>
+                <p class="audit-subtitle">Pulling real-time data from your systems...</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background:rgba(15,118,110,0.15)"><i class="fas fa-boxes"
+                                    style="color:var(--primary-light)"></i></div>
+                            <div class="metric-value" id="metricInventory">—</div>
+                            <div class="metric-label">Stock Items</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background:rgba(99,102,241,0.15)"><i
+                                    class="fas fa-calendar-check" style="color:#818cf8"></i></div>
+                            <div class="metric-value" id="metricRoster">—</div>
+                            <div class="metric-label">Roster Rules</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background:rgba(244,63,94,0.15)"><i class="fas fa-user-md"
+                                    style="color:#fb7185"></i></div>
+                            <div class="metric-value" id="metricDoctors">—</div>
+                            <div class="metric-label">Doctors</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-icon" style="background:rgba(251,191,36,0.15)"><i class="fas fa-bullhorn"
+                                    style="color:#fbbf24"></i></div>
+                            <div class="metric-value" id="metricPromo">—</div>
+                            <div class="metric-label">Promo Status</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="audit-btn" id="btnContinue" onclick="goToStep(3)" disabled><i
+                        class="fas fa-spinner fa-spin" id="scanIcon"></i><span id="scanText">Scanning
+                        systems...</span></button>
+            </div>
+        </div>
+
+        <!-- Step 3: Authenticate -->
+        <div class="audit-step" id="step3">
+            <div class="audit-card">
+                <div class="step-dots"><span class="step-dot done"></span><span class="step-dot done"></span><span
+                        class="step-dot active"></span></div>
+                <div class="audit-logo"><i class="fas fa-lock"></i></div>
+                <h2 class="audit-title" style="font-size:1.4rem">Authenticate</h2>
+                <p class="audit-subtitle">Verify your identity to access the full dashboard</p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <input type="email" class="audit-input" id="adminEmailInput" placeholder="Admin Email"
+                        autocomplete="email">
+                    <input type="password" class="audit-input" id="adminPasswordInput" placeholder="Password"
+                        autocomplete="current-password">
+                </div>
+                <button class="audit-btn" id="loginBtn" onclick="verifyAdminLogin()"><i
+                        class="fas fa-fingerprint"></i><span>Access Dashboard</span></button>
+                <p class="login-error" id="loginError">Invalid credentials</p>
+                <div style="text-align:center;margin-top:16px"><button
+                        style="background:none;border:none;color:#475569;font-size:0.8rem;cursor:pointer"
+                        onclick="goToStep(2)"><i class="fas fa-arrow-left me-1"></i>Back to metrics</button></div>
+            </div>
+        </div>
+
+        <!-- Step 4: Dashboard -->
+        <div class="audit-step" id="step4" style="max-width:960px">
+            <div class="dash-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="audit-logo" style="width:40px;height:40px;border-radius:12px;font-size:1rem;margin:0"><i
+                            class="fas fa-plus"></i></div>
+                    <div><span class="dash-title">Admin Dashboard</span>
+                        <div style="font-size:0.75rem;color:#64748b">Klinik Efficiency Audit</div>
+                    </div>
+                </div>
+                <button class="dash-logout" onclick="location.reload()"><i class="fas fa-sign-out-alt me-1"></i>Log
+                    Out</button>
+            </div>
+            <!-- Firebase Usage -->
+            <div id="firebaseUsageAlerts" class="mb-3"></div>
+            <!-- Tabs -->
+            <div class="dash-tabs" id="dashTabs">
+                <button class="dash-tab active" onclick="switchTab('inventory',this)">📦 Inventory</button>
+                <button class="dash-tab" onclick="switchTab('roster',this)">📅 Roster</button>
+                <button class="dash-tab" onclick="switchTab('promo',this)">🎉 Promo</button>
+            </div>
+            <!-- Inventory Pane -->
+            <div class="dash-pane active" id="paneInventory">
+                <div class="dash-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold small text-uppercase mb-0" style="color:var(--primary-light)">Stock
+                            Management</h6>
+                        <button onclick="toggleInventoryForm()" class="btn btn-primary btn-sm rounded-pill px-3"><i
+                                class="fas fa-plus me-1"></i>Add Item</button>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <input type="text" id="invSearch" class="form-control form-control-sm"
+                            placeholder="Search item..." onkeyup="filterInventory()" style="min-width:120px;flex:1;">
+                        <select id="invFilterCategory" class="form-select form-select-sm" style="width:auto;"
+                            onchange="filterInventory()">
+                            <option value="All">All Categories</option>
+                            <option value="Medicine">Medicine</option>
+                            <option value="Supplements">Supplements</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Stationery">Stationery</option>
+                            <option value="Others">Others</option>
+                        </select>
+                        <select id="invSortBy" class="form-select form-select-sm" style="width:auto;"
+                            onchange="setInventorySort(this.value)">
+                            <option value="name" selected>Sort: Name</option>
+                            <option value="category">Sort: Category</option>
+                            <option value="stock">Sort: Stock ↑</option>
+                            <option value="stock-desc">Sort: Stock ↓</option>
+                            <option value="expiry">Sort: Expiry</option>
+                        </select>
+                    </div>
+                    <div id="inventoryForm" class="p-3 rounded mb-3 border"
+                        style="display:none;background:rgba(255,255,255,0.03)">
+                        <h6 class="fw-bold mb-2">New Stock Item</h6>
+                        <div class="mb-2">
+                            <select id="invCategory" class="form-select form-select-sm mb-2">
+                                <option value="Medicine">Medicine</option>
+                                <option value="Supplements">Supplements</option>
+                                <option value="Equipment">Equipment</option>
+                                <option value="Stationery">Stationery</option>
+                                <option value="Others">Others</option>
+                            </select>
+                            <input type="text" id="invName" class="form-control form-control-sm"
+                                placeholder="Item Name">
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><input type="number" id="invQty" class="form-control form-control-sm"
+                                    placeholder="Qty"></div>
+                            <div class="col-6"><input type="date" id="invExpiry"
+                                    class="form-control form-control-sm"><small class="text-muted"
+                                    style="font-size:0.7rem">Expiry (Optional)</small></div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button onclick="addInventoryItem()"
+                                class="btn btn-success btn-sm flex-grow-1">Save</button>
+                            <button onclick="toggleInventoryForm()"
+                                class="btn btn-outline-secondary btn-sm">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive border rounded" style="max-height:50vh">
+                        <table class="table table-hover mb-0 align-middle" style="font-size:0.85rem">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width:40%">Item</th>
+                                    <th style="width:20%">Category</th>
+                                    <th style="width:30%">Stock</th>
+                                    <th style="width:10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryList"></tbody>
+                        </table>
+                        <div id="inventoryEmpty" class="text-center p-4 text-muted" style="display:none"><i
+                                class="fas fa-box-open fs-1 mb-2" style="color:#475569"></i><br>No items found.</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Roster Pane -->
+            <div class="dash-pane" id="paneRoster">
+                <div class="dash-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="adminRosterView" id="viewWeekly"
+                                autocomplete="off" checked onchange="switchAdminRosterView('weekly')">
+                            <label class="btn btn-outline-primary btn-sm" for="viewWeekly">Weekly</label>
+                            <input type="radio" class="btn-check" name="adminRosterView" id="viewMonthly"
+                                autocomplete="off" onchange="switchAdminRosterView('monthly')">
+                            <label class="btn btn-outline-primary btn-sm" for="viewMonthly">Monthly</label>
+                        </div>
+                        <button onclick="toggleRosterForm()" class="btn btn-primary btn-sm rounded-pill px-3"><i
+                                class="fas fa-plus me-1"></i>Add Rule</button>
+                    </div>
+                    <div id="adminWeeklyOverview" class="mb-3"></div>
+                    <div id="adminMonthlyOverview" class="mb-3" style="display:none">
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="changeAdminRosterMonth(-1)"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <span id="adminRosterMonthLabel" class="fw-bold" style="font-size:0.9rem"></span>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="changeAdminRosterMonth(1)"><i
+                                    class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div id="adminRosterCalendar" class="roster-calendar-container"></div>
+                    </div>
+                    <div id="rosterForm" class="p-3 rounded mb-3 border"
+                        style="display:none;background:rgba(255,255,255,0.03)">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0">New Schedule Rule</h6>
+                            <button type="button" class="btn-close btn-close-white"
+                                onclick="toggleRosterForm()"></button>
+                        </div>
+                        <div class="btn-group w-100 mb-2" role="group">
+                            <input type="radio" class="btn-check" name="ruleType" id="ruleDate" value="date" checked
+                                onchange="toggleRuleInputs()"><label class="btn btn-outline-primary btn-sm"
+                                for="ruleDate">Specific Date</label>
+                            <input type="radio" class="btn-check" name="ruleType" id="ruleWeekly" value="weekly"
+                                onchange="toggleRuleInputs()"><label class="btn btn-outline-primary btn-sm"
+                                for="ruleWeekly">Weekly</label>
+                        </div>
+                        <div class="mb-2">
+                            <div id="inputDateGroup">
+                                <div class="row g-2">
+                                    <div class="col-6"><label class="small text-muted">From</label><input type="date"
+                                            id="rosterDateStart" class="form-control form-control-sm"></div>
+                                    <div class="col-6"><label class="small text-muted">To (Optional)</label><input
+                                            type="date" id="rosterDateEnd" class="form-control form-control-sm"></div>
+                                </div>
+                                <div class="form-text" style="font-size:0.75rem;color:#64748b">Leave "To" empty for
+                                    single day.</div>
+                            </div>
+                            <div id="inputDayGroup" style="display:none"><label class="small text-muted">Day of
+                                    Week</label><select id="rosterDay" class="form-select form-select-sm">
+                                    <option value="1">Monday</option>
+                                    <option value="2">Tuesday</option>
+                                    <option value="3">Wednesday</option>
+                                    <option value="4">Thursday</option>
+                                    <option value="5">Friday</option>
+                                    <option value="6">Saturday</option>
+                                    <option value="0">Sunday</option>
+                                </select></div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-7"><label class="small text-muted">Doctor</label><select
+                                    id="rosterDocSelect" class="form-select form-select-sm"></select></div>
+                            <div class="col-5"><label class="small text-muted">Shift</label><select id="rosterShift"
+                                    class="form-select form-select-sm">
+                                    <option value="Full Day">Full Day</option>
+                                    <option value="Morning">Morning</option>
+                                    <option value="Evening">Evening</option>
+                                    <option value="Off">OFF / Closed</option>
+                                </select></div>
+                        </div>
+                        <div class="d-flex gap-2"><button onclick="addRosterRule()"
+                                class="btn btn-success btn-sm flex-grow-1">Save Rule</button><button
+                                onclick="toggleRosterForm()" class="btn btn-outline-secondary btn-sm">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <button onclick="deleteSelectedRules()" id="btnDeleteSelected" class="btn btn-danger btn-sm"
+                            disabled><i class="fas fa-trash me-1"></i>Delete Selected</button>
+                        <button onclick="clearAllRules()" class="btn btn-outline-danger btn-sm"><i
+                                class="fas fa-bomb me-1"></i>Clear All</button>
+                    </div>
+                    <div class="table-responsive border rounded" style="max-height:50vh">
+                        <table class="table table-hover mb-0 align-middle" style="font-size:0.85rem">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width:40px" class="text-center"><input type="checkbox"
+                                            id="selectAllRules" class="form-check-input"
+                                            onchange="toggleAllRules(this)"></th>
+                                    <th>When</th>
+                                    <th>Doctor</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rosterList"></tbody>
+                        </table>
+                        <div id="rosterEmpty" class="text-center p-4 text-muted" style="display:none"><i
+                                class="fas fa-calendar-times fs-1 mb-2" style="color:#475569"></i><br>No custom rules
+                            set.</div>
+                    </div>
+                    <div class="p-3 rounded border mt-3" style="background:rgba(255,255,255,0.03)">
+                        <h6 class="fw-bold mb-2 small text-uppercase" style="color:var(--primary-light)"><i
+                                class="fas fa-user-md me-1"></i>Manage Doctors</h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="text" id="newDoctorName" class="form-control form-control-sm"
+                                placeholder="e.g. Dr. Ahmad (Surgeon)">
+                            <button onclick="addDoctor()" class="btn btn-success btn-sm text-nowrap"><i
+                                    class="fas fa-plus me-1"></i>Add</button>
+                        </div>
+                        <div id="doctorManageList" class="border rounded" style="max-height:200px;overflow-y:auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Promo Pane -->
+            <div class="dash-pane" id="panePromo">
+                <div class="dash-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold small text-uppercase mb-0" style="color:var(--primary-light)">Promo Section
+                        </h6>
+                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox"
+                                id="promoToggle" onchange="togglePromoSection()"><label class="form-check-label small"
+                                for="promoToggle" style="color:#94a3b8">Show on Site</label></div>
+                    </div>
+                    <div class="p-3 rounded mb-3 border" style="background:rgba(255,255,255,0.03)">
+                        <h6 class="fw-bold mb-2 small">Add Promo Item</h6>
+                        <div class="mb-2"><input type="text" id="promoImageUrl" class="form-control form-control-sm"
+                                placeholder="Image URL (e.g. https://...)" oninput="previewPromoImage()"></div>
+                        <div class="mb-2"><label class="btn btn-outline-secondary btn-sm w-100"><i
+                                    class="fas fa-upload me-1"></i>Upload from Device<input type="file" accept="image/*"
+                                    style="display:none" onchange="handlePromoFileUpload(this)"></label></div>
+                        <div id="promoImagePreview" class="mb-2 text-center p-2 border rounded" style="min-height:60px">
+                            <span class="text-muted small">Enter a URL or upload an image</span></div>
+                        <div class="mb-2"><input type="text" id="promoText" class="form-control form-control-sm"
+                                placeholder="Caption (optional)"></div>
+                        <button onclick="addPromoItem()" class="btn btn-success btn-sm w-100"><i
+                                class="fas fa-plus me-1"></i>Add Promo</button>
+                    </div>
+                    <div id="promoItemList" class="border rounded p-2" style="max-height:40vh;overflow-y:auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="admin-scripts.js"></script>
+</body>
+
+</html>
