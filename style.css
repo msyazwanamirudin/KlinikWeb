@@ -1534,8 +1534,6 @@ body.modal-open #chatWindow {
     overflow-y: auto !important;
     padding-top: 40px;
     padding-bottom: 40px;
-    display: flex !important;
-    /* Ensure flex is kept if overridden */
 }
 
 /* Allow content to grow beyond 90vh and remove internal scroll */
