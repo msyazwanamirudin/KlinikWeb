@@ -1526,3 +1526,36 @@ body.modal-open #chatWindow {
         display: none !important;
     }
 }
+
+/* --- Roster Modal Specific Overrides (Full Height View) --- */
+/* Allow the modal overlay to scroll, and content to expand fully */
+#rosterModal {
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    display: flex !important;
+    /* Ensure flex is kept if overridden */
+}
+
+/* Allow content to grow beyond 90vh and remove internal scroll */
+#rosterModal .admin-content {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: auto;
+    /* Center horizontally */
+}
+
+/* Remove internal scroll from body */
+#rosterModal .admin-content>div:not(:first-child) {
+    overflow-y: visible !important;
+}
+
+/* Make sticky header stick to the top of the viewport when scrolling */
+#rosterModal .admin-content>div:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    /* Ensure header stays on top */
+}
