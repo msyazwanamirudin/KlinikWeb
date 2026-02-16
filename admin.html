@@ -168,6 +168,7 @@
                 <button class="dash-tab" onclick="switchTab('promo',this)">🎉 Promo</button>
                 <button class="dash-tab" onclick="switchTab('cashflow',this)">💰 Cash Flow</button>
                 <button class="dash-tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
+                <button class="dash-tab" onclick="switchTab('admin',this)">🔐 Admin</button>
             </div>
             <!-- Inventory Pane -->
             <div class="dash-pane active" id="paneInventory">
@@ -452,7 +453,7 @@
                     <!-- Summary Cards -->
                     <div id="cfSummary" class="mb-3"></div>
                     <!-- Filters -->
-                    <div class="d-flex gap-2 flex-wrap mb-3">
+                    <div class="d-flex gap-2 flex-wrap mb-3 align-items-center">
                         <select id="cfFilterMonth" class="form-select form-select-sm" style="width:auto;"
                             onchange="renderCashFlow()">
                             <option value="all">All Months</option>
@@ -467,18 +468,23 @@
                             onchange="renderCashFlow()">
                             <option value="All">All Categories</option>
                         </select>
+                        <button onclick="deleteSelectedCF()" id="btnDeleteSelectedCF"
+                            class="btn btn-danger btn-sm ms-auto" disabled><i class="fas fa-trash me-1"></i>Delete
+                            Selected</button>
                     </div>
                     <!-- Transaction Table -->
                     <div class="table-responsive border rounded" style="max-height:50vh">
                         <table class="table table-hover mb-0 align-middle" style="font-size:0.85rem">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th style="width:15%">Date</th>
+                                    <th style="width:40px" class="text-center"><input type="checkbox" id="selectAllCF"
+                                            class="form-check-input" onchange="toggleAllCF(this)"></th>
+                                    <th style="width:13%">Date</th>
                                     <th style="width:10%">Type</th>
-                                    <th style="width:30%">Description</th>
-                                    <th style="width:18%">Category</th>
-                                    <th style="width:17%" class="text-end">Amount</th>
-                                    <th style="width:10%"></th>
+                                    <th style="width:25%">Description</th>
+                                    <th style="width:15%">Category</th>
+                                    <th style="width:15%" class="text-end">Amount</th>
+                                    <th style="width:7%"></th>
                                 </tr>
                             </thead>
                             <tbody id="cfList"></tbody>
@@ -606,7 +612,72 @@
                                 class="fas fa-sync me-1"></i>Reset</button>
                     </div>
                     <div id="settingsSaveStatus" class="text-center mt-2" style="font-size:0.8rem"></div>
+                    <hr style="border-color:rgba(255,255,255,0.08);margin:20px 0">
+                    <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)"><i
+                            class="fas fa-key me-1"></i>Owner PIN</h6>
+                    <p class="small" style="color:#94a3b8">Set a PIN to protect delete operations. Staff must enter this
+                        PIN before deleting any data.</p>
+                    <button onclick="setOwnerPin()" class="btn btn-outline-warning btn-sm rounded-pill px-3"><i
+                            class="fas fa-lock me-1"></i>Set / Change Owner PIN</button>
                 </div>
+            </div>
+
+            <!-- Admin Pane (Owner-Only) -->
+            <div class="dash-pane" id="paneAdmin">
+                <div class="dash-card">
+                    <!-- PIN Gate -->
+                    <div id="adminPinGate" class="text-center py-5">
+                        <div class="admin-lock-icon mb-3">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2" style="color:#f1f5f9">Owner Access Required</h6>
+                        <p class="small mb-4" style="color:#94a3b8;max-width:320px;margin:0 auto">This section is
+                            restricted to the clinic owner. Enter your Owner PIN to access admin settings.</p>
+                        <button onclick="unlockAdminTab()" class="btn btn-outline-warning btn-sm rounded-pill px-4">
+                            <i class="fas fa-key me-1"></i>Enter Owner PIN</button>
+                    </div>
+                    <!-- Admin Content (hidden until PIN verified) -->
+                    <div id="adminContent" style="display:none">
+                        <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)">
+                            <i class="fas fa-user-cog me-1"></i>Admin Credentials
+                        </h6>
+                        <p class="small mb-3" style="color:#94a3b8">Manage the admin login email and password used to
+                            access this dashboard.</p>
+                        <div id="adminCredInfo"></div>
+                        <div class="d-flex gap-2 flex-wrap mt-3">
+                            <button onclick="changeAdminEmail()"
+                                class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="fas fa-envelope me-1"></i>Change Email</button>
+                            <button onclick="changeAdminPassword()"
+                                class="btn btn-outline-warning btn-sm rounded-pill px-3">
+                                <i class="fas fa-key me-1"></i>Change Password</button>
+                        </div>
+                        <div class="mt-4 p-3 rounded border"
+                            style="background:rgba(251,113,133,0.05);border-color:rgba(251,113,133,0.15)!important">
+                            <p class="small mb-0" style="color:#fb7185"><i
+                                    class="fas fa-exclamation-triangle me-1"></i><strong>Important:</strong> Changing
+                                the password here will require the new password for future logins. Make sure to remember
+                                it.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Owner PIN Modal -->
+    <div id="ownerPinModal" class="pin-modal-overlay" style="display:none">
+        <div class="pin-modal-card">
+            <div class="pin-modal-icon"><i class="fas fa-lock"></i></div>
+            <h6 class="fw-bold mb-1" style="color:#f1f5f9">Owner PIN Required</h6>
+            <p class="small mb-3" style="color:#94a3b8">Enter the owner PIN to confirm this action.</p>
+            <input type="password" id="ownerPinInput" class="audit-input mb-2" placeholder="Enter PIN"
+                autocomplete="off" maxlength="8" inputmode="numeric">
+            <p id="ownerPinError" class="small mb-2" style="color:#fb7185;display:none">Incorrect PIN</p>
+            <div class="d-flex gap-2">
+                <button onclick="verifyOwnerPin()" class="btn btn-success btn-sm flex-grow-1"><i
+                        class="fas fa-check me-1"></i>Verify</button>
+                <button onclick="hidePinModal()" class="btn btn-outline-secondary btn-sm">Cancel</button>
             </div>
         </div>
     </div>

@@ -106,6 +106,7 @@ function switchTab(tab, btn) {
     if (tab === 'analytics') loadAnalytics();
     if (tab === 'cashflow') loadCashFlow();
     if (tab === 'settings') loadSettings();
+    if (tab === 'admin') loadAdminTab();
 }
 
 // --- Metrics (Step 2) ---
@@ -157,8 +158,11 @@ function loadMetrics() {
 }
 
 // --- Auth ---
-const ADMIN_HASH_SHA = "8d90ed647b948fa80c3c9bbf5316c78f151723f52fb9d6101f818af8afff69ec";
-const ADMIN_EMAIL = "admin@klinik.com";
+// Default credentials (fallback if Firebase has no saved credentials)
+const _DEFAULT_HASH = "8d90ed647b948fa80c3c9bbf5316c78f151723f52fb9d6101f818af8afff69ec";
+const _DEFAULT_EMAIL = "admin@klinik.com";
+let _adminEmail = _DEFAULT_EMAIL;
+let _adminHash = _DEFAULT_HASH;
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_TIME = 100 * 365 * 24 * 60 * 60 * 1000;
 
@@ -167,6 +171,79 @@ async function sha256(message) {
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// --- Owner PIN System ---
+let _ownerPinHash = null;
+let _pinCallback = null;
+
+function loadOwnerPin() {
+    return firebaseLoad('settings/ownerPin', null).then(hash => { _ownerPinHash = hash; });
+}
+
+function showPinModal() {
+    const modal = document.getElementById('ownerPinModal');
+    const input = document.getElementById('ownerPinInput');
+    const error = document.getElementById('ownerPinError');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    if (input) { input.value = ''; input.focus(); }
+    if (error) error.style.display = 'none';
+}
+
+function hidePinModal() {
+    const modal = document.getElementById('ownerPinModal');
+    if (modal) modal.style.display = 'none';
+    _pinCallback = null;
+}
+
+function requireOwnerPin(callback) {
+    if (!_ownerPinHash) {
+        alert('⚠️ Owner PIN not set yet. Please set it in Settings tab first.');
+        return;
+    }
+    _pinCallback = callback;
+    showPinModal();
+}
+
+async function verifyOwnerPin() {
+    const input = document.getElementById('ownerPinInput');
+    const error = document.getElementById('ownerPinError');
+    if (!input || !input.value.trim()) return;
+    const hash = await sha256(input.value.trim());
+    if (hash === _ownerPinHash) {
+        hidePinModal();
+        if (_pinCallback) { const cb = _pinCallback; _pinCallback = null; cb(); }
+    } else {
+        if (error) { error.textContent = 'Incorrect PIN'; error.style.display = 'block'; }
+        input.value = '';
+        input.focus();
+    }
+}
+
+async function setOwnerPin() {
+    if (_ownerPinHash) {
+        // Require current PIN first
+        const current = prompt('Enter your CURRENT Owner PIN:');
+        if (!current) return;
+        const currentHash = await sha256(current.trim());
+        if (currentHash !== _ownerPinHash) { alert('❌ Incorrect current PIN.'); return; }
+    }
+    const newPin = prompt('Enter a NEW Owner PIN (4-8 digits recommended):');
+    if (!newPin || !newPin.trim()) return;
+    const confirmPin = prompt('Confirm your new PIN:');
+    if (confirmPin !== newPin) { alert('❌ PINs do not match.'); return; }
+    const hash = await sha256(newPin.trim());
+    _ownerPinHash = hash;
+    firebaseSave('settings/ownerPin', hash).then(() => {
+        alert('✅ Owner PIN saved successfully!');
+    });
+}
+
+// PIN modal Enter key listener
+document.addEventListener('DOMContentLoaded', () => {
+    const pinInput = document.getElementById('ownerPinInput');
+    if (pinInput) pinInput.addEventListener('keyup', e => { if (e.key === 'Enter') verifyOwnerPin(); });
+});
 
 function verifyAdminLogin() {
     const errorMsg = document.getElementById('loginError');
@@ -180,17 +257,27 @@ function verifyAdminLogin() {
         return;
     }
 
-    sha256(password).then(hash => {
-        if (email === ADMIN_EMAIL && hash === ADMIN_HASH_SHA) {
+    // Load credentials from Firebase first, then verify
+    firebaseLoad('settings/adminCredentials', null).then(creds => {
+        if (creds && creds.email && creds.passwordHash) {
+            _adminEmail = creds.email;
+            _adminHash = creds.passwordHash;
+        }
+        return sha256(password);
+    }).then(hash => {
+        if (email === _adminEmail && hash === _adminHash) {
             errorMsg.style.display = 'none';
             localStorage.removeItem('adminLockout');
             localStorage.removeItem('adminAttempts');
             goToStep(3);
+            // Load owner PIN
+            loadOwnerPin();
             // Real-time listeners
             firebaseListen('inventory', d => { _cachedInventory = d || []; });
             firebaseListen('roster/rules', d => { _cachedRosterRules = d || []; latestRosterRules = d || []; });
             firebaseListen('promo', d => { _cachedPromo = d || { enabled: false, items: [] }; promoData = _cachedPromo; });
             firebaseListen('doctors', d => { _cachedDoctors = (d && Array.isArray(d) && d.length > 0) ? d : [...DEFAULT_DOCTORS]; DOCTORS = _cachedDoctors; });
+            firebaseListen('settings/ownerPin', d => { _ownerPinHash = d; });
         } else {
             let attempts = parseInt(localStorage.getItem('adminAttempts') || 0) + 1;
             localStorage.setItem('adminAttempts', attempts);
@@ -246,14 +333,16 @@ function addDoctor() {
 function removeDoctor(index) {
     const docName = DOCTORS[index];
     if (!confirm(`Remove ${docName}?\n\nAll roster rules for this doctor will also be deleted.`)) return;
-    DOCTORS.splice(index, 1);
-    firebaseSave('doctors', DOCTORS).then(() => {
-        populateDoctorSelect(); renderDoctorList();
-        firebaseLoad('roster/rules', []).then(rules => {
-            const cleaned = rules.filter(r => r.doc !== docName);
-            if (cleaned.length !== rules.length) {
-                firebaseSave('roster/rules', cleaned).then(() => { invalidateRosterCache(); loadRosterAdmin(); });
-            }
+    requireOwnerPin(() => {
+        DOCTORS.splice(index, 1);
+        firebaseSave('doctors', DOCTORS).then(() => {
+            populateDoctorSelect(); renderDoctorList();
+            firebaseLoad('roster/rules', []).then(rules => {
+                const cleaned = rules.filter(r => r.doc !== docName);
+                if (cleaned.length !== rules.length) {
+                    firebaseSave('roster/rules', cleaned).then(() => { invalidateRosterCache(); loadRosterAdmin(); });
+                }
+            });
         });
     });
 }
@@ -335,7 +424,9 @@ function addInventoryItem() {
 }
 function deleteInventoryItem(index) {
     if (!confirm("Remove this item permanently?")) return;
-    firebaseLoad('inventory', []).then(items => { items.splice(index, 1); firebaseSave('inventory', items).then(() => loadInventory()); });
+    requireOwnerPin(() => {
+        firebaseLoad('inventory', []).then(items => { items.splice(index, 1); firebaseSave('inventory', items).then(() => loadInventory()); });
+    });
 }
 
 // --- Roster ---
@@ -453,14 +544,18 @@ function toggleAllRules(source) { document.querySelectorAll('.rule-checkbox').fo
 function updateBatchButtons() { document.getElementById('btnDeleteSelected').disabled = document.querySelectorAll('.rule-checkbox:checked').length === 0; }
 function deleteSelectedRules() {
     const checked = document.querySelectorAll('.rule-checkbox:checked'); if (checked.length === 0) return;
-    if (!confirm(`Delete ${checked.length} selected rules ? `)) return;
-    const indices = Array.from(checked).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
-    firebaseLoad('roster/rules', []).then(rules => { indices.forEach(idx => { if (idx >= 0 && idx < rules.length) rules.splice(idx, 1); }); firebaseSave('roster/rules', rules); invalidateRosterCache(); loadRosterAdmin(); });
+    if (!confirm(`Delete ${checked.length} selected rules?`)) return;
+    requireOwnerPin(() => {
+        const indices = Array.from(checked).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
+        firebaseLoad('roster/rules', []).then(rules => { indices.forEach(idx => { if (idx >= 0 && idx < rules.length) rules.splice(idx, 1); }); firebaseSave('roster/rules', rules); invalidateRosterCache(); loadRosterAdmin(); });
+    });
 }
 function clearAllRules() {
     if (!confirm("⚠️ Delete ALL roster rules?")) return;
     if (!confirm("🔴 This cannot be undone. Confirm?")) return;
-    firebaseSave('roster/rules', []); invalidateRosterCache(); loadRosterAdmin();
+    requireOwnerPin(() => {
+        firebaseSave('roster/rules', []); invalidateRosterCache(); loadRosterAdmin();
+    });
 }
 function editRosterRule(index) {
     const rule = latestRosterRules[index]; if (!rule) return;
@@ -506,7 +601,9 @@ function addRosterRule() {
 }
 function deleteRosterRule(index) {
     if (!confirm("Delete this rule?")) return;
-    firebaseLoad('roster/rules', []).then(rules => { if (index >= 0 && index < rules.length) { rules.splice(index, 1); firebaseSave('roster/rules', rules).then(() => { invalidateRosterCache(); loadRosterAdmin(); }); } });
+    requireOwnerPin(() => {
+        firebaseLoad('roster/rules', []).then(rules => { if (index >= 0 && index < rules.length) { rules.splice(index, 1); firebaseSave('roster/rules', rules).then(() => { invalidateRosterCache(); loadRosterAdmin(); }); } });
+    });
 }
 
 // --- Promo ---
@@ -540,7 +637,9 @@ function handlePromoFileUpload(input) {
 }
 function deletePromoItem(index) {
     if (!confirm('Remove this promo?')) return;
-    promoData.items.splice(index, 1); firebaseSave('promo', promoData).then(() => renderPromoAdmin());
+    requireOwnerPin(() => {
+        promoData.items.splice(index, 1); firebaseSave('promo', promoData).then(() => renderPromoAdmin());
+    });
 }
 function renderPromoAdmin() {
     const list = document.getElementById('promoItemList'), toggle = document.getElementById('promoToggle');
@@ -842,6 +941,12 @@ function renderCashFlow() {
     if (filtered.length === 0) { list.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
     if (empty) empty.style.display = 'none';
 
+    // Update batch buttons
+    const btnCFDelete = document.getElementById('btnDeleteSelectedCF');
+    const selectAllCF = document.getElementById('selectAllCF');
+    if (btnCFDelete) btnCFDelete.disabled = true;
+    if (selectAllCF) selectAllCF.checked = false;
+
     let html = '';
     filtered.forEach(e => {
         const isIncome = e.type === 'income';
@@ -850,7 +955,7 @@ function renderCashFlow() {
             : '<span class="badge bg-danger" style="font-size:0.65rem"><i class="fas fa-arrow-down me-1"></i>Expense</span>';
         const amtColor = isIncome ? '#34d399' : '#fb7185';
         const amtPrefix = isIncome ? '+' : '-';
-        html += `<tr><td>${e.date || '—'}</td><td>${typeBadge}</td><td>${escapeHTML(e.desc || '')}</td><td><span class="badge" style="font-size:0.65rem;background:${CF_CAT_COLORS[e.category] || '#94a3b8'}20;color:${CF_CAT_COLORS[e.category] || '#94a3b8'};border:1px solid ${CF_CAT_COLORS[e.category] || '#94a3b8'}40">${e.category || 'Others'}</span></td><td class="text-end fw-bold" style="color:${amtColor}">${amtPrefix} RM ${parseFloat(e.amount || 0).toFixed(2)}</td><td class="text-end"><button onclick="deleteCashFlowEntry(${e._idx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
+        html += `<tr><td class="text-center"><input type="checkbox" class="form-check-input cf-checkbox" value="${e._idx}" onchange="updateCFBatchButtons()"></td><td>${e.date || '—'}</td><td>${typeBadge}</td><td>${escapeHTML(e.desc || '')}</td><td><span class="badge" style="font-size:0.65rem;background:${CF_CAT_COLORS[e.category] || '#94a3b8'}20;color:${CF_CAT_COLORS[e.category] || '#94a3b8'};border:1px solid ${CF_CAT_COLORS[e.category] || '#94a3b8'}40">${e.category || 'Others'}</span></td><td class="text-end fw-bold" style="color:${amtColor}">${amtPrefix} RM ${parseFloat(e.amount || 0).toFixed(2)}</td><td class="text-end"><button onclick="deleteCashFlowEntry(${e._idx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
     });
     list.innerHTML = html;
 }
@@ -874,11 +979,28 @@ function addCashFlowEntry() {
 
 function deleteCashFlowEntry(index) {
     if (!confirm('Delete this transaction?')) return;
-    latestCashFlow.splice(index, 1);
-    firebaseSave('expenses', latestCashFlow);
-    populateCFMonthFilter();
-    populateCFCategoryFilter();
-    renderCashFlow();
+    requireOwnerPin(() => {
+        latestCashFlow.splice(index, 1);
+        firebaseSave('expenses', latestCashFlow);
+        populateCFMonthFilter();
+        populateCFCategoryFilter();
+        renderCashFlow();
+    });
+}
+
+function toggleAllCF(source) { document.querySelectorAll('.cf-checkbox').forEach(cb => cb.checked = source.checked); updateCFBatchButtons(); }
+function updateCFBatchButtons() { const btn = document.getElementById('btnDeleteSelectedCF'); if (btn) btn.disabled = document.querySelectorAll('.cf-checkbox:checked').length === 0; }
+function deleteSelectedCF() {
+    const checked = document.querySelectorAll('.cf-checkbox:checked'); if (checked.length === 0) return;
+    if (!confirm(`Delete ${checked.length} selected transaction(s)?`)) return;
+    requireOwnerPin(() => {
+        const indices = Array.from(checked).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
+        indices.forEach(idx => { if (idx >= 0 && idx < latestCashFlow.length) latestCashFlow.splice(idx, 1); });
+        firebaseSave('expenses', latestCashFlow);
+        populateCFMonthFilter();
+        populateCFCategoryFilter();
+        renderCashFlow();
+    });
 }
 
 // ═══════════════════════════════════════════════
@@ -981,4 +1103,132 @@ function testMapEmbed() {
         status.innerHTML = '<span style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Failed to load map. Check the URL.</span>';
         container.style.display = 'none';
     };
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN TAB (Owner-Only)
+// ═══════════════════════════════════════════════
+let _adminTabUnlocked = false;
+
+function maskEmail(email) {
+    if (!email) return '—';
+    const [user, domain] = email.split('@');
+    if (!domain) return email;
+    return user.slice(0, 3) + '***@' + domain;
+}
+
+function loadAdminTab() {
+    const gate = document.getElementById('adminPinGate');
+    const content = document.getElementById('adminContent');
+    if (!gate || !content) return;
+    if (_adminTabUnlocked) {
+        gate.style.display = 'none';
+        content.style.display = 'block';
+        renderAdminContent();
+    } else {
+        gate.style.display = 'block';
+        content.style.display = 'none';
+    }
+}
+
+function unlockAdminTab() {
+    if (!_ownerPinHash) {
+        alert('⚠️ Owner PIN not set yet. Please set it in Settings tab first.');
+        return;
+    }
+    requireOwnerPin(() => {
+        _adminTabUnlocked = true;
+        loadAdminTab();
+    });
+}
+
+function renderAdminContent() {
+    const info = document.getElementById('adminCredInfo');
+    if (!info) return;
+    firebaseLoad('settings/adminCredentials', null).then(creds => {
+        const email = (creds && creds.email) ? creds.email : _adminEmail;
+        const hasCustomCreds = !!(creds && creds.email);
+        info.innerHTML = `
+            <div class="d-flex align-items-center gap-3 p-3 rounded border mb-3" style="background:rgba(255,255,255,0.03)">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(15,118,110,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="fas fa-user-shield" style="color:var(--primary-light)"></i>
+                </div>
+                <div>
+                    <div class="small" style="color:#94a3b8">Current Admin Email</div>
+                    <div class="fw-bold" style="font-size:0.95rem">${maskEmail(email)}</div>
+                </div>
+                <div class="ms-auto">
+                    <span class="badge ${hasCustomCreds ? 'bg-success' : 'bg-warning text-dark'}" style="font-size:0.65rem">${hasCustomCreds ? 'Custom' : 'Default'}</span>
+                </div>
+            </div>`;
+    });
+}
+
+async function changeAdminEmail() {
+    const currentPwd = prompt('Enter your CURRENT password to verify:');
+    if (!currentPwd) return;
+    const currentHash = await sha256(currentPwd.trim());
+
+    // Load latest credentials
+    const creds = await firebaseLoad('settings/adminCredentials', null);
+    const storedHash = (creds && creds.passwordHash) ? creds.passwordHash : _adminHash;
+
+    if (currentHash !== storedHash) {
+        alert('❌ Incorrect password.');
+        return;
+    }
+
+    const newEmail = prompt('Enter the NEW admin email:');
+    if (!newEmail || !newEmail.trim() || !newEmail.includes('@')) {
+        alert('❌ Invalid email address.');
+        return;
+    }
+
+    const updated = {
+        email: newEmail.trim(),
+        passwordHash: storedHash
+    };
+    _adminEmail = newEmail.trim();
+    firebaseSave('settings/adminCredentials', updated).then(() => {
+        alert('✅ Admin email changed successfully!\n\nNew email: ' + newEmail.trim());
+        renderAdminContent();
+    });
+}
+
+async function changeAdminPassword() {
+    const currentPwd = prompt('Enter your CURRENT password:');
+    if (!currentPwd) return;
+    const currentHash = await sha256(currentPwd.trim());
+
+    // Load latest credentials
+    const creds = await firebaseLoad('settings/adminCredentials', null);
+    const storedHash = (creds && creds.passwordHash) ? creds.passwordHash : _adminHash;
+    const storedEmail = (creds && creds.email) ? creds.email : _adminEmail;
+
+    if (currentHash !== storedHash) {
+        alert('❌ Incorrect current password.');
+        return;
+    }
+
+    const newPwd = prompt('Enter a NEW password (min 6 characters):');
+    if (!newPwd || newPwd.trim().length < 6) {
+        alert('❌ Password must be at least 6 characters.');
+        return;
+    }
+
+    const confirmPwd = prompt('Confirm your new password:');
+    if (confirmPwd !== newPwd) {
+        alert('❌ Passwords do not match.');
+        return;
+    }
+
+    const newHash = await sha256(newPwd.trim());
+    const updated = {
+        email: storedEmail,
+        passwordHash: newHash
+    };
+    _adminHash = newHash;
+    firebaseSave('settings/adminCredentials', updated).then(() => {
+        alert('✅ Password changed successfully!\n\nYou will need to use the new password next time you log in.');
+    });
 }
