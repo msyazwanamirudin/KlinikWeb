@@ -163,6 +163,16 @@ const _DEFAULT_HASH = "8d90ed647b948fa80c3c9bbf5316c78f151723f52fb9d6101f818af8a
 const _DEFAULT_EMAIL = "admin@klinik.com";
 let _adminEmail = _DEFAULT_EMAIL;
 let _adminHash = _DEFAULT_HASH;
+
+// Owner credentials
+const _DEFAULT_OWNER_HASH = "19e88d95413c256d17f08ca4f9d51982ded1266bb5d96b541290b696e0fb8677";
+const _DEFAULT_OWNER_EMAIL = "owner@klinik.com";
+let _ownerEmail = _DEFAULT_OWNER_EMAIL;
+let _ownerHash = _DEFAULT_OWNER_HASH;
+
+// Role tracking
+let _loggedInRole = null; // 'admin' or 'owner'
+
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_TIME = 100 * 365 * 24 * 60 * 60 * 1000;
 
@@ -258,18 +268,41 @@ function verifyAdminLogin() {
     }
 
     // Load credentials from Firebase first, then verify
-    firebaseLoad('settings/adminCredentials', null).then(creds => {
-        if (creds && creds.email && creds.passwordHash) {
-            _adminEmail = creds.email;
-            _adminHash = creds.passwordHash;
+    Promise.all([
+        firebaseLoad('settings/adminCredentials', null),
+        firebaseLoad('settings/ownerCredentials', null),
+        sha256(password)
+    ]).then(([adminCreds, ownerCreds, hash]) => {
+        // Update admin credentials from Firebase if available
+        if (adminCreds && adminCreds.email && adminCreds.passwordHash) {
+            _adminEmail = adminCreds.email;
+            _adminHash = adminCreds.passwordHash;
         }
-        return sha256(password);
-    }).then(hash => {
+        // Update owner credentials from Firebase if available
+        if (ownerCreds && ownerCreds.email && ownerCreds.passwordHash) {
+            _ownerEmail = ownerCreds.email;
+            _ownerHash = ownerCreds.passwordHash;
+        }
+
+        // Check admin account
         if (email === _adminEmail && hash === _adminHash) {
+            _loggedInRole = 'admin';
+        }
+        // Check owner account
+        else if (email === _ownerEmail && hash === _ownerHash) {
+            _loggedInRole = 'owner';
+        }
+        else {
+            _loggedInRole = null;
+        }
+
+        if (_loggedInRole) {
             errorMsg.style.display = 'none';
             localStorage.removeItem('adminLockout');
             localStorage.removeItem('adminAttempts');
             goToStep(3);
+            // Update Admin tab visibility based on role
+            updateAdminTabVisibility();
             // Load owner PIN
             loadOwnerPin();
             // Real-time listeners
@@ -290,6 +323,17 @@ function verifyAdminLogin() {
             errorMsg.style.display = 'block';
         }
     });
+}
+
+// --- Admin Tab Visibility ---
+function updateAdminTabVisibility() {
+    const adminTabBtn = document.getElementById('tabAdmin');
+    if (!adminTabBtn) return;
+    if (_loggedInRole === 'owner') {
+        adminTabBtn.style.display = '';
+    } else {
+        adminTabBtn.style.display = 'none';
+    }
 }
 
 // Enter key on password
