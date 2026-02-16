@@ -1888,16 +1888,16 @@ function bookViaWhatsApp(serviceName, details = "") {
     if (!confirmAction) return;
 
     const phone = _clinicWhatsApp || "60172032048";
-    let message = `Hi Klinik, I would like to book an appointment.`;
+    let message = `👋 Assalamualaikum & Hi Klinik!\n\n📋 I would like to book an appointment.`;
 
     if (serviceName) {
-        message += `\nService: ${serviceName} `;
+        message += `\n🏥 Service: ${serviceName}`;
     }
     if (details) {
-        message += `\nDetails: ${details} `;
+        message += `\n📝 Details: ${details}`;
     }
 
-    message += `\n\nCould you please let me know the available slots?`;
+    message += `\n\n🗓️ Could you please let me know the available slots?\n\nThank you! 🙏`;
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');

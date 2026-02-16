@@ -670,9 +670,35 @@ function addRosterRule() {
         else newRules.push({ type: 'date', date: startVal, doc, shift });
     }
     firebaseLoad('roster/rules', []).then(rules => {
-        let dups = [];
-        newRules.forEach(nr => { const ei = rules.findIndex((r, idx) => idx !== _editingRuleIndex && r.type === nr.type && (nr.type === 'weekly' ? r.day === nr.day : r.date === nr.date) && r.doc === nr.doc && r.shift === nr.shift); if (ei !== -1) dups.push(`${nr.date || 'Day ' + nr.day} `); });
-        if (dups.length > 0) { alert('Duplicate: ' + dups.join(', ')); return; }
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        let conflicts = [];
+        let updateIndices = [];
+        newRules.forEach(nr => {
+            const conflictIdx = rules.findIndex((r, idx) => idx !== _editingRuleIndex && r.type === nr.type && (nr.type === 'weekly' ? r.day === nr.day : r.date === nr.date) && r.doc === nr.doc);
+            if (conflictIdx !== -1) {
+                const existing = rules[conflictIdx];
+                if (existing.shift === nr.shift) {
+                    conflicts.push(`⚠️ ${nr.doc} already has "${nr.shift}" on ${nr.type === 'weekly' ? dayNames[nr.day] : nr.date}`);
+                } else {
+                    updateIndices.push({ idx: conflictIdx, newShift: nr.shift, label: `${nr.doc} on ${nr.type === 'weekly' ? dayNames[nr.day] : nr.date}: "${existing.shift}" → "${nr.shift}"` });
+                }
+            }
+        });
+        // Block exact duplicates
+        if (conflicts.length > 0) { alert('Duplicate exists:\n' + conflicts.join('\n')); return; }
+        // Offer to update shift conflicts
+        if (updateIndices.length > 0) {
+            const updateMsg = updateIndices.map(u => u.label).join('\n');
+            if (!confirm(`This doctor already has a different shift:\n\n${updateMsg}\n\nUpdate to the new shift?`)) return;
+            updateIndices.forEach(u => { rules[u.idx].shift = u.newShift; });
+            // Remove the rules that were updated from newRules (they don't need to be pushed)
+            newRules = newRules.filter(nr => {
+                return !updateIndices.some(u => {
+                    const existing = rules[u.idx];
+                    return existing.type === nr.type && (nr.type === 'weekly' ? existing.day === nr.day : existing.date === nr.date) && existing.doc === nr.doc;
+                });
+            });
+        }
         if (_editingRuleIndex >= 0 && newRules.length === 1) rules[_editingRuleIndex] = newRules[0]; else rules.push(...newRules);
         firebaseSave('roster/rules', rules).then(() => { _editingRuleIndex = -1; invalidateRosterCache(); document.getElementById('rosterForm').style.display = 'none'; loadRosterAdmin(); });
     });
