@@ -556,14 +556,14 @@ const FB_LIMITS = { storageMB: 1024, bandwidthMB: 10240, base64WarnMB: 5 };
 function flushBandwidthEstimate() {
     if (_sessionBandwidthBytes === 0) return Promise.resolve();
     const mk = new Date().toISOString().slice(0, 7);
-    return firebaseLoad(`_usage / ${mk} `, { bytes: 0 }).then(u => { const updated = { bytes: (u.bytes || 0) + _sessionBandwidthBytes }; _sessionBandwidthBytes = 0; return firebaseSave(`_usage / ${mk} `, updated); });
+    return firebaseLoad(`_usage/${mk}`, { bytes: 0 }).then(u => { const updated = { bytes: (u.bytes || 0) + _sessionBandwidthBytes }; _sessionBandwidthBytes = 0; return firebaseSave(`_usage/${mk}`, updated); });
 }
 function checkFirebaseUsage() {
     const container = document.getElementById('firebaseUsageAlerts'); if (!container) return;
     container.innerHTML = '<div class="text-center small py-2" style="color:#64748b"><i class="fas fa-spinner fa-spin me-1"></i>Checking usage...</div>';
     const paths = ['roster/rules', 'inventory', 'promo', 'doctors'];
     const mk = new Date().toISOString().slice(0, 7);
-    Promise.all([...paths.map(p => firebaseLoad(p, null)), firebaseLoad(`_usage / ${mk} `, { bytes: 0 })]).then(results => {
+    Promise.all([...paths.map(p => firebaseLoad(p, null)), firebaseLoad(`_usage/${mk}`, { bytes: 0 })]).then(results => {
         const dataResults = results.slice(0, paths.length), usageData = results[paths.length];
         let totalStorageBytes = 0, totalBase64Bytes = 0;
         dataResults.forEach((data, i) => { if (data !== null) { totalStorageBytes += new Blob([JSON.stringify(data)]).size; if (paths[i] === 'promo' && data.items) data.items.forEach(item => { if (item.image && item.image.startsWith('data:')) totalBase64Bytes += new Blob([item.image]).size; }); } });
@@ -576,8 +576,8 @@ function checkFirebaseUsage() {
         const hasWarn = storagePercent >= 85 || bandwidthPercent >= 85 || base64Percent >= 85;
         const accent = hasWarn ? (storagePercent >= 100 || bandwidthPercent >= 100 ? '#dc3545' : '#f0ad4e') : '#059669';
         const fmtSize = mb => mb < 1 ? (mb * 1024).toFixed(0) + ' KB' : mb.toFixed(1) + ' MB';
-        const row = (ico, lbl, used, limit, pct) => `< div style = "display:flex;align-items:center;gap:8px;margin-bottom:6px" ><span style="font-size:0.65rem">${dot(pct)}</span><span style="font-size:0.72rem;color:#94a3b8;min-width:72px;white-space:nowrap"><i class="fas ${ico}" style="width:13px;text-align:center;color:${barColor(pct)};margin-right:3px;font-size:0.65rem"></i>${lbl}</span><div style="flex:1;background:rgba(255,255,255,0.08);border-radius:3px;height:5px;overflow:hidden"><div style="width:${Math.max(pct, 1)}%;height:100%;background:${barColor(pct)};border-radius:3px;transition:width 0.6s"></div></div><span style="font-size:0.65rem;color:#64748b;min-width:88px;text-align:right">${used} / ${limit}</span></div > `;
-        container.innerHTML = `< div style = "border:1px solid ${accent}30;border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;background:rgba(255,255,255,0.02)" > <div style="font-size:0.72rem;font-weight:700;color:${accent};margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fas ${hasWarn ? 'fa-exclamation-triangle' : 'fa-shield-alt'}" style="font-size:0.65rem"></i>${hasWarn ? 'Firebase Usage Warning' : 'Firebase — All Clear'}</div>${row('fa-database', 'Storage', fmtSize(storageMB), '1 GB', storagePercent)}${row('fa-download', 'Bandwidth', fmtSize(bandwidthMB), '10 GB/mo', bandwidthPercent)}${base64MB > 0 ? row('fa-image', 'Base64', fmtSize(base64MB), '5 MB', base64Percent) : ''}</div > `;
+        const row = (ico, lbl, used, limit, pct) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:0.65rem">${dot(pct)}</span><span style="font-size:0.72rem;color:#94a3b8;min-width:72px;white-space:nowrap"><i class="fas ${ico}" style="width:13px;text-align:center;color:${barColor(pct)};margin-right:3px;font-size:0.65rem"></i>${lbl}</span><div style="flex:1;background:rgba(255,255,255,0.08);border-radius:3px;height:5px;overflow:hidden"><div style="width:${Math.max(pct, 1)}%;height:100%;background:${barColor(pct)};border-radius:3px;transition:width 0.6s"></div></div><span style="font-size:0.65rem;color:#64748b;min-width:88px;text-align:right">${used} / ${limit}</span></div>`;
+        container.innerHTML = `<div style="border:1px solid ${accent}30;border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;background:rgba(255,255,255,0.02)"><div style="font-size:0.72rem;font-weight:700;color:${accent};margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fas ${hasWarn ? 'fa-exclamation-triangle' : 'fa-shield-alt'}" style="font-size:0.65rem"></i>${hasWarn ? 'Firebase Usage Warning' : 'Firebase — All Clear'}</div>${row('fa-database', 'Storage', fmtSize(storageMB), '1 GB', storagePercent)}${row('fa-download', 'Bandwidth', fmtSize(bandwidthMB), '10 GB/mo', bandwidthPercent)}${base64MB > 0 ? row('fa-image', 'Base64', fmtSize(base64MB), '5 MB', base64Percent) : ''}</div>`;
     }).catch(() => { container.innerHTML = ''; });
 }
 
