@@ -153,10 +153,21 @@ function applyClinicSettings() {
             const el = document.getElementById('footerEmail');
             if (el) el.innerHTML = '<i class="fas fa-envelope me-2"></i>' + data.setEmail;
         }
-        // Operating Hours (Weekday)
-        if (data.setHoursWeekday) {
+        // Operating Hours
+        if (data.set247 === true || data.set247 === 'true') {
             const el = document.getElementById('footerHoursWeekday');
-            if (el) el.textContent = data.setHoursWeekday;
+            if (el) el.textContent = 'Open 24/7';
+            const el2 = document.getElementById('footerHoursWeekend');
+            if (el2) el2.textContent = '';
+        } else {
+            if (data.setHoursWeekday) {
+                const el = document.getElementById('footerHoursWeekday');
+                if (el) el.textContent = data.setHoursWeekday;
+            }
+            if (data.setHoursWeekend) {
+                const el = document.getElementById('footerHoursWeekend');
+                if (el) el.textContent = data.setHoursWeekend;
+            }
         }
         // WhatsApp
         if (data.setWhatsApp) {
@@ -173,6 +184,16 @@ function applyClinicSettings() {
         if (data.setInstagram) {
             const el = document.getElementById('footerInstagram');
             if (el) el.href = data.setInstagram;
+        }
+        // TikTok
+        if (data.setTikTok) {
+            const el = document.getElementById('footerTikTok');
+            if (el) el.href = data.setTikTok;
+        }
+        // Threads
+        if (data.setThreads) {
+            const el = document.getElementById('footerThreads');
+            if (el) el.href = data.setThreads;
         }
         // Map Embed
         if (data.setMapEmbed) {
@@ -2304,7 +2325,7 @@ function finishBooking() {
         btn.className = 'btn btn-success btn-sm w-100 mt-2 rounded-pill';
         btn.innerHTML = '<i class="fab fa-whatsapp me-2"></i> Send to WhatsApp';
         btn.onclick = () => {
-            const phone = "60172032048";
+            const phone = _clinicWhatsApp || "60172032048";
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waMsg)}`, '_blank');
         };
         div.appendChild(btn);

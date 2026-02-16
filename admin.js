@@ -884,7 +884,13 @@ function deleteCashFlowEntry(index) {
 // ═══════════════════════════════════════════════
 // SETTINGS TAB
 // ═══════════════════════════════════════════════
-const SETTINGS_FIELDS = ['setClinicName', 'setAddress', 'setPhone', 'setEmail', 'setHoursWeekday', 'setHoursWeekend', 'setWhatsApp', 'setFacebook', 'setInstagram', 'setMapEmbed'];
+const SETTINGS_FIELDS = ['setClinicName', 'setAddress', 'setPhone', 'setEmail', 'setHoursWeekday', 'setHoursWeekend', 'setWhatsApp', 'setFacebook', 'setInstagram', 'setTikTok', 'setThreads', 'setMapEmbed'];
+
+function toggle247() {
+    const checked = document.getElementById('set247').checked;
+    const hoursDiv = document.getElementById('hoursInputs');
+    if (hoursDiv) hoursDiv.style.display = checked ? 'none' : 'block';
+}
 
 function loadSettings() {
     firebaseLoad('settings', {}).then(data => {
@@ -893,6 +899,10 @@ function loadSettings() {
             const el = document.getElementById(id);
             if (el) el.value = data[id] || '';
         });
+        // Handle 24/7 toggle
+        const is247 = data.set247 === true || data.set247 === 'true';
+        const toggle = document.getElementById('set247');
+        if (toggle) { toggle.checked = is247; toggle247(); }
     });
 }
 
@@ -902,6 +912,15 @@ function saveSettings() {
         const el = document.getElementById(id);
         if (el) data[id] = el.value.trim();
     });
+    // 24/7 toggle
+    const toggle = document.getElementById('set247');
+    if (toggle) {
+        data.set247 = toggle.checked;
+        if (toggle.checked) {
+            data.setHoursWeekday = 'Open 24 Hours';
+            data.setHoursWeekend = 'Open 24 Hours';
+        }
+    }
     // Auto-extract src from full iframe tag if pasted
     if (data.setMapEmbed && data.setMapEmbed.includes('<iframe')) {
         const match = data.setMapEmbed.match(/src="([^"]+)"/);

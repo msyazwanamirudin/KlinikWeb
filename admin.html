@@ -515,15 +515,26 @@
                             <input type="email" id="setEmail" class="form-control form-control-sm"
                                 placeholder="e.g. info@klinik.com">
                         </div>
-                        <div class="col-6">
-                            <label class="small text-muted mb-1">Weekday Hours</label>
-                            <input type="text" id="setHoursWeekday" class="form-control form-control-sm"
-                                placeholder="e.g. 8:00 AM – 10:00 PM">
+                        <div class="col-12">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="set247" onchange="toggle247()">
+                                <label class="form-check-label small text-muted" for="set247">Open 24/7 (No specific
+                                    hours)</label>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <label class="small text-muted mb-1">Weekend Hours</label>
-                            <input type="text" id="setHoursWeekend" class="form-control form-control-sm"
-                                placeholder="e.g. 9:00 AM – 5:00 PM">
+                        <div id="hoursInputs">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="small text-muted mb-1">Weekday Hours</label>
+                                    <input type="text" id="setHoursWeekday" class="form-control form-control-sm"
+                                        placeholder="e.g. 8:00 AM – 10:00 PM">
+                                </div>
+                                <div class="col-6">
+                                    <label class="small text-muted mb-1">Weekend Hours</label>
+                                    <input type="text" id="setHoursWeekend" class="form-control form-control-sm"
+                                        placeholder="e.g. 9:00 AM – 5:00 PM">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <hr style="border-color:rgba(255,255,255,0.08);margin:20px 0">
@@ -547,6 +558,18 @@
                                     style="color:#e4405f"></i>Instagram URL</label>
                             <input type="url" id="setInstagram" class="form-control form-control-sm"
                                 placeholder="https://instagram.com/...">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1"><i class="fab fa-tiktok me-1"
+                                    style="color:#ff0050"></i>TikTok URL</label>
+                            <input type="url" id="setTikTok" class="form-control form-control-sm"
+                                placeholder="https://tiktok.com/@...">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1"><i class="fas fa-at me-1"
+                                    style="color:#ffffff"></i>Threads URL</label>
+                            <input type="url" id="setThreads" class="form-control form-control-sm"
+                                placeholder="https://threads.net/@...">
                         </div>
                     </div>
                     <hr style="border-color:rgba(255,255,255,0.08);margin:20px 0">
