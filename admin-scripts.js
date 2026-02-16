@@ -10,14 +10,78 @@ function escapeHTML(str) {
     return div.innerHTML;
 }
 
+// --- Particle Background ---
+(function initParticles() {
+    const canvas = document.getElementById('particleCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const COUNT = 45;
+    const colors = ['15,118,110', '99,102,241', '244,63,94'];
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class P {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.s = Math.random() * 2 + 0.5;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = (Math.random() - 0.5) * 0.3;
+            this.o = Math.random() * 0.35 + 0.1;
+            this.c = colors[Math.floor(Math.random() * colors.length)];
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.s, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(' + this.c + ',' + this.o + ')';
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < COUNT; i++) particles.push(new P());
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update(); particles[i].draw();
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = 'rgba(15,118,110,' + (0.06 * (1 - dist / 120)) + ')';
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        }
+        requestAnimationFrame(loop);
+    }
+    loop();
+})();
+
 // --- Step Navigation ---
 let currentStep = 1;
 function goToStep(n) {
-    document.getElementById('step' + currentStep).classList.remove('active');
+    const isForward = n > currentStep;
+    const prev = document.getElementById('step' + currentStep);
+    if (prev) prev.classList.remove('active', 'slide-reverse');
     currentStep = n;
     const el = document.getElementById('step' + n);
-    el.classList.remove('active');
-    void el.offsetWidth; // force reflow for animation
+    el.classList.remove('active', 'slide-reverse');
+    void el.offsetWidth;
+    if (!isForward) el.classList.add('slide-reverse');
     el.classList.add('active');
     document.getElementById('progressFill').style.width = (n * 25) + '%';
     if (n === 2) loadMetrics();
@@ -71,6 +135,7 @@ function loadMetrics() {
             animateCounter(document.getElementById('metricRoster'), rosterCount);
             animateCounter(document.getElementById('metricDoctors'), docCount);
             document.getElementById('metricPromo').textContent = promoStatus;
+            document.querySelectorAll('.metric-card').forEach(c => c.classList.add('loaded'));
 
             setTimeout(() => {
                 icon.className = 'fas fa-check-circle';
@@ -515,3 +580,29 @@ function checkFirebaseUsage() {
         container.innerHTML=`< div style = "border:1px solid ${accent}30;border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;background:rgba(255,255,255,0.02)" > <div style="font-size:0.72rem;font-weight:700;color:${accent};margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fas ${hasWarn?'fa-exclamation-triangle':'fa-shield-alt'}" style="font-size:0.65rem"></i>${hasWarn ? 'Firebase Usage Warning' : 'Firebase — All Clear'}</div>${ row('fa-database', 'Storage', fmtSize(storageMB), '1 GB', storagePercent) }${ row('fa-download', 'Bandwidth', fmtSize(bandwidthMB), '10 GB/mo', bandwidthPercent) }${ base64MB > 0 ? row('fa-image', 'Base64', fmtSize(base64MB), '5 MB', base64Percent) : '' }</div > `;
     }).catch(()=>{container.innerHTML='';});
 }
+
+// --- Touch Swipe for Audit Steps ---
+(function() {
+    let startX = 0, startY = 0;
+    const container = document.getElementById('auditContainer');
+    if (!container) return;
+    container.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+    container.addEventListener('touchend', function(e) {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+            if (dx < 0 && currentStep < 3) {
+                // Swipe left = next (only on pre-auth steps)
+                if (currentStep === 1) goToStep(2);
+                else if (currentStep === 2 && !document.getElementById('btnContinue').disabled) goToStep(3);
+            } else if (dx > 0 && currentStep > 1 && currentStep <= 3) {
+                // Swipe right = back
+                goToStep(currentStep - 1);
+            }
+        }
+    }, { passive: true });
+})();
+

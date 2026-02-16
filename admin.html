@@ -104,22 +104,38 @@
             display: none;
             width: 100%;
             max-width: 600px;
-            animation: stepIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
         .audit-step.active {
             display: block;
+            animation: stepSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes stepIn {
+        .audit-step.active.slide-reverse {
+            animation: stepSlideInReverse 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes stepSlideIn {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateX(80px) scale(0.96);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @keyframes stepSlideInReverse {
+            from {
+                opacity: 0;
+                transform: translateX(-80px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
             }
         }
 
@@ -336,6 +352,12 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 20px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dash-card:hover {
+            border-color: rgba(15, 118, 110, 0.2);
+            box-shadow: 0 4px 24px rgba(15, 118, 110, 0.06);
         }
 
         .dash-header {
@@ -398,8 +420,21 @@
         }
 
         .dash-tab.active {
-            background: var(--primary);
-            color: white;
+            background: rgba(15, 118, 110, 0.15);
+            color: var(--primary-light);
+            position: relative;
+        }
+
+        .dash-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(15, 118, 110, 0.5);
         }
 
         .dash-tab:hover:not(.active) {
@@ -670,11 +705,99 @@
             .metric-value {
                 font-size: 1.5rem;
             }
+
+            .audit-btn {
+                min-height: 52px;
+                font-size: 1.05rem;
+            }
+
+            .audit-input {
+                min-height: 50px;
+                font-size: 1rem;
+            }
+
+            .step-dots {
+                margin-bottom: 20px;
+            }
+
+            .step-dot {
+                width: 10px;
+                height: 10px;
+            }
+
+            .step-dot.active {
+                width: 28px;
+            }
+        }
+
+        /* Particle Canvas */
+        #particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Table row hover accent */
+        .table tbody tr {
+            transition: all 0.2s ease;
+            border-left: 2px solid transparent;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(15, 118, 110, 0.04) !important;
+            border-left-color: var(--primary-light);
+        }
+
+        /* Metric card loaded glow */
+        .metric-card.loaded {
+            border-color: rgba(15, 118, 110, 0.15);
+            box-shadow: 0 0 20px rgba(15, 118, 110, 0.05);
+            transition: border-color 0.6s ease, box-shadow 0.6s ease;
+        }
+
+        /* Swipe hint for mobile */
+        @keyframes swipeHint {
+
+            0%,
+            100% {
+                transform: translateX(0);
+                opacity: 0;
+            }
+
+            30% {
+                transform: translateX(-8px);
+                opacity: 1;
+            }
+
+            70% {
+                transform: translateX(8px);
+                opacity: 1;
+            }
+        }
+
+        .swipe-hint {
+            display: none;
+            text-align: center;
+            color: #475569;
+            font-size: 0.75rem;
+            margin-top: 16px;
+        }
+
+        .swipe-hint i {
+            animation: swipeHint 2.5s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .swipe-hint {
+                display: block;
+            }
         }
     </style>
 </head>
 
 <body>
+    <canvas id="particleCanvas"></canvas>
     <div class="audit-bg"></div>
     <!-- Progress Bar -->
     <div class="audit-progress">
@@ -698,7 +821,8 @@
                     <div class="d-flex align-items-start gap-3 mb-3">
                         <div
                             style="width:36px;height:36px;border-radius:10px;background:rgba(15,118,110,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                            <i class="fas fa-chart-line" style="color:var(--primary-light)"></i></div>
+                            <i class="fas fa-chart-line" style="color:var(--primary-light)"></i>
+                        </div>
                         <div>
                             <div style="font-weight:600;font-size:0.9rem;color:#f1f5f9">Live Metrics</div>
                             <div style="font-size:0.78rem;color:#64748b">Inventory, roster & promo data in real-time
@@ -708,7 +832,8 @@
                     <div class="d-flex align-items-start gap-3 mb-3">
                         <div
                             style="width:36px;height:36px;border-radius:10px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                            <i class="fas fa-shield-alt" style="color:#818cf8"></i></div>
+                            <i class="fas fa-shield-alt" style="color:#818cf8"></i>
+                        </div>
                         <div>
                             <div style="font-weight:600;font-size:0.9rem;color:#f1f5f9">Secure Access</div>
                             <div style="font-size:0.78rem;color:#64748b">SHA-256 encrypted authentication</div>
@@ -717,7 +842,8 @@
                     <div class="d-flex align-items-start gap-3">
                         <div
                             style="width:36px;height:36px;border-radius:10px;background:rgba(244,63,94,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                            <i class="fas fa-cogs" style="color:#fb7185"></i></div>
+                            <i class="fas fa-cogs" style="color:#fb7185"></i>
+                        </div>
                         <div>
                             <div style="font-weight:600;font-size:0.9rem;color:#f1f5f9">Full Dashboard</div>
                             <div style="font-size:0.78rem;color:#64748b">Manage inventory, roster & promotions</div>
@@ -1030,7 +1156,8 @@
                                     class="fas fa-upload me-1"></i>Upload from Device<input type="file" accept="image/*"
                                     style="display:none" onchange="handlePromoFileUpload(this)"></label></div>
                         <div id="promoImagePreview" class="mb-2 text-center p-2 border rounded" style="min-height:60px">
-                            <span class="text-muted small">Enter a URL or upload an image</span></div>
+                            <span class="text-muted small">Enter a URL or upload an image</span>
+                        </div>
                         <div class="mb-2"><input type="text" id="promoText" class="form-control form-control-sm"
                                 placeholder="Caption (optional)"></div>
                         <button onclick="addPromoItem()" class="btn btn-success btn-sm w-100"><i
