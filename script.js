@@ -154,19 +154,50 @@ function applyClinicSettings() {
             if (el) el.innerHTML = '<i class="fas fa-envelope me-2"></i>' + data.setEmail;
         }
         // Operating Hours
+        const footerHoursList = document.getElementById('footerHoursList');
         if (data.set247 === true || data.set247 === 'true') {
-            const el = document.getElementById('footerHoursWeekday');
-            if (el) el.textContent = 'Open 24/7';
-            const el2 = document.getElementById('footerHoursWeekend');
-            if (el2) el2.textContent = '';
-        } else {
-            if (data.setHoursWeekday) {
-                const el = document.getElementById('footerHoursWeekday');
-                if (el) el.textContent = data.setHoursWeekday;
+            if (footerHoursList) footerHoursList.innerHTML = '<li class="mb-1" style="font-size:0.85rem"><i class="fas fa-clock me-1" style="color:#14b8a6"></i> Open 24/7</li>';
+            window._clinicDayHours = null; // 24/7 mode
+        } else if (data.setDayHours) {
+            window._clinicDayHours = data.setDayHours;
+            if (footerHoursList) {
+                const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                const dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                // Group consecutive days with same hours
+                const groups = [];
+                let current = null;
+                dayKeys.forEach((key, i) => {
+                    const d = data.setDayHours[key] || { open: '09:00', close: '22:00', off: false };
+                    const sig = d.off ? 'OFF' : d.open + '-' + d.close;
+                    if (current && current.sig === sig) {
+                        current.end = i;
+                    } else {
+                        current = { start: i, end: i, sig, data: d };
+                        groups.push(current);
+                    }
+                });
+                const fmt = (t) => {
+                    const [h, m] = t.split(':').map(Number);
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    const h12 = h % 12 || 12;
+                    return m === 0 ? `${h12} ${ampm}` : `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+                };
+                footerHoursList.innerHTML = groups.map(g => {
+                    const label = g.start === g.end ? dayShort[g.start] : dayShort[g.start] + ' – ' + dayShort[g.end];
+                    if (g.data.off) {
+                        return `<li class="mb-1" style="font-size:0.82rem"><span style="color:#fb7185">${label}: Closed</span></li>`;
+                    }
+                    return `<li class="mb-1" style="font-size:0.82rem">${label}: ${fmt(g.data.open)} – ${fmt(g.data.close)}</li>`;
+                }).join('');
             }
-            if (data.setHoursWeekend) {
-                const el = document.getElementById('footerHoursWeekend');
-                if (el) el.textContent = data.setHoursWeekend;
+        } else {
+            // Legacy fallback
+            window._clinicDayHours = null;
+            if (footerHoursList) {
+                let html = '';
+                if (data.setHoursWeekday) html += `<li class="mb-1" style="font-size:0.85rem">${data.setHoursWeekday}</li>`;
+                if (data.setHoursWeekend) html += `<li class="mb-1" style="font-size:0.85rem">${data.setHoursWeekend}</li>`;
+                if (html) footerHoursList.innerHTML = html;
             }
         }
         // WhatsApp
@@ -251,6 +282,7 @@ function getCachedDoctors() {
 function updateLiveStatus() {
     const now = new Date();
     const hour = now.getHours();
+    const minute = now.getMinutes();
     const statusText = document.getElementById('liveStatusText');
     const statusDot = document.getElementById('liveStatusDot');
 
@@ -258,16 +290,50 @@ function updateLiveStatus() {
     const footerText = document.getElementById('footerStatusText');
     const footerDot = document.getElementById('footerStatusDot');
 
+    // Determine open/closed based on per-day schedule
+    const dayMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const todayKey = dayMap[now.getDay()];
+    const dh = window._clinicDayHours;
 
-    const isBreak = hour >= 12 && hour < 14;
-    const isOpen = hour >= 9 && hour < 22;
+    let isOff = false;
+    let openHour = 9, openMin = 0, closeHour = 22, closeMin = 0;
+
+    if (dh && dh[todayKey]) {
+        const today = dh[todayKey];
+        if (today.off) {
+            isOff = true;
+        } else {
+            const [oh, om] = (today.open || '09:00').split(':').map(Number);
+            const [ch, cm] = (today.close || '22:00').split(':').map(Number);
+            openHour = oh; openMin = om;
+            closeHour = ch; closeMin = cm;
+        }
+    }
+
+    const nowMins = hour * 60 + minute;
+    const openMins = openHour * 60 + openMin;
+    const closeMins = closeHour * 60 + closeMin;
+    const isOpen = !isOff && nowMins >= openMins && nowMins < closeMins;
+    const isBreak = isOpen && hour >= 12 && hour < 14;
 
     let text = "";
     let color = "";
     let shadow = "";
     let anim = "";
 
-    if (isOpen) {
+    // Format time helper
+    const fmtTime = (h, m) => {
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return m === 0 ? `${h12}:00 ${ampm}` : `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+    };
+
+    if (isOff) {
+        text = "Clinic Closed (Off Day)";
+        color = "#ef4444";
+        shadow = "none";
+        anim = "none";
+    } else if (isOpen) {
         if (isBreak) {
             text = "Doctor on Break (Resume 2:00 PM)";
             color = "#eab308";
@@ -280,7 +346,7 @@ function updateLiveStatus() {
             anim = "pulse 2s infinite";
         }
     } else {
-        text = "Clinic Closed (Opens 9:00 AM)";
+        text = `Clinic Closed (Opens ${fmtTime(openHour, openMin)})`;
         color = "#ef4444";
         shadow = "none";
         anim = "none";

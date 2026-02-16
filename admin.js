@@ -1151,12 +1151,50 @@ function deleteSelectedCF() {
 // ═══════════════════════════════════════════════
 // SETTINGS TAB
 // ═══════════════════════════════════════════════
-const SETTINGS_FIELDS = ['setClinicName', 'setAddress', 'setPhone', 'setEmail', 'setHoursWeekday', 'setHoursWeekend', 'setWhatsApp', 'setFacebook', 'setInstagram', 'setTikTok', 'setThreads', 'setMapEmbed'];
+const SETTINGS_FIELDS = ['setClinicName', 'setAddress', 'setPhone', 'setEmail', 'setWhatsApp', 'setFacebook', 'setInstagram', 'setTikTok', 'setThreads', 'setMapEmbed'];
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 function toggle247() {
     const checked = document.getElementById('set247').checked;
     const hoursDiv = document.getElementById('hoursInputs');
     if (hoursDiv) hoursDiv.style.display = checked ? 'none' : 'block';
+}
+
+function renderDayScheduleGrid(dayHours) {
+    const grid = document.getElementById('dayScheduleGrid');
+    if (!grid) return;
+    grid.innerHTML = DAY_KEYS.map((key, i) => {
+        const d = dayHours && dayHours[key] ? dayHours[key] : { open: '09:00', close: '22:00', off: false };
+        return `<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;flex-wrap:wrap">
+            <span style="width:42px;font-size:0.78rem;font-weight:600;color:#94a3b8">${DAY_LABELS[i].substring(0, 3)}</span>
+            <input type="time" id="hour_${key}_open" value="${d.open}" class="form-control form-control-sm" style="width:100px;font-size:0.78rem;padding:4px 6px" ${d.off ? 'disabled' : ''}>
+            <span style="color:#475569;font-size:0.75rem">to</span>
+            <input type="time" id="hour_${key}_close" value="${d.close}" class="form-control form-control-sm" style="width:100px;font-size:0.78rem;padding:4px 6px" ${d.off ? 'disabled' : ''}>
+            <div class="form-check form-switch" style="margin-left:auto;margin-bottom:0">
+                <input class="form-check-input" type="checkbox" id="hour_${key}_off" ${d.off ? 'checked' : ''} onchange="toggleDayOff('${key}')">
+                <label class="form-check-label" for="hour_${key}_off" style="font-size:0.72rem;color:${d.off ? '#fb7185' : '#64748b'}">${d.off ? 'Off' : 'Open'}</label>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleDayOff(key) {
+    const offCheck = document.getElementById('hour_' + key + '_off');
+    const openInput = document.getElementById('hour_' + key + '_open');
+    const closeInput = document.getElementById('hour_' + key + '_close');
+    const label = offCheck.nextElementSibling;
+    if (offCheck.checked) {
+        openInput.disabled = true;
+        closeInput.disabled = true;
+        label.textContent = 'Off';
+        label.style.color = '#fb7185';
+    } else {
+        openInput.disabled = false;
+        closeInput.disabled = false;
+        label.textContent = 'Open';
+        label.style.color = '#64748b';
+    }
 }
 
 function loadSettings() {
@@ -1170,6 +1208,8 @@ function loadSettings() {
         const is247 = data.set247 === true || data.set247 === 'true';
         const toggle = document.getElementById('set247');
         if (toggle) { toggle.checked = is247; toggle247(); }
+        // Render per-day schedule grid
+        renderDayScheduleGrid(data.setDayHours || null);
     });
 }
 
@@ -1183,10 +1223,21 @@ function saveSettings() {
     const toggle = document.getElementById('set247');
     if (toggle) {
         data.set247 = toggle.checked;
-        if (toggle.checked) {
-            data.setHoursWeekday = 'Open 24 Hours';
-            data.setHoursWeekend = 'Open 24 Hours';
-        }
+    }
+    // Per-day hours
+    if (!toggle || !toggle.checked) {
+        const dayHours = {};
+        DAY_KEYS.forEach(key => {
+            const off = document.getElementById('hour_' + key + '_off');
+            const open = document.getElementById('hour_' + key + '_open');
+            const close = document.getElementById('hour_' + key + '_close');
+            dayHours[key] = {
+                open: open ? open.value : '09:00',
+                close: close ? close.value : '22:00',
+                off: off ? off.checked : false
+            };
+        });
+        data.setDayHours = dayHours;
     }
     // Auto-extract src from full iframe tag if pasted
     if (data.setMapEmbed && data.setMapEmbed.includes('<iframe')) {

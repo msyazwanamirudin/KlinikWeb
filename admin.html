@@ -538,17 +538,13 @@
                             </div>
                         </div>
                         <div id="hoursInputs">
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <label class="small text-muted mb-1">Weekday Hours</label>
-                                    <input type="text" id="setHoursWeekday" class="form-control form-control-sm"
-                                        placeholder="e.g. 8:00 AM – 10:00 PM">
-                                </div>
-                                <div class="col-6">
-                                    <label class="small text-muted mb-1">Weekend Hours</label>
-                                    <input type="text" id="setHoursWeekend" class="form-control form-control-sm"
-                                        placeholder="e.g. 9:00 AM – 5:00 PM">
-                                </div>
+                            <label class="small text-muted mb-2 d-block"><i class="fas fa-clock me-1"></i>Per-Day
+                                Operating Hours</label>
+                            <div style="font-size:0.75rem;color:#64748b;margin-bottom:8px"><i
+                                    class="fas fa-info-circle me-1" style="color:#818cf8"></i>Set hours for each day.
+                                Toggle "Off" for closed days.</div>
+                            <div id="dayScheduleGrid" style="display:flex;flex-direction:column;gap:6px;">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
                     </div>
