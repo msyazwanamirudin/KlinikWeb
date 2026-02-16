@@ -56,6 +56,15 @@ window.addEventListener('scroll', function () {
         }
     });
 
+    // --- Mobile Bottom Nav Active State ---
+    const bottomNavItems = document.querySelectorAll('.bottom-nav-item[data-section]');
+    bottomNavItems.forEach(item => {
+        item.classList.remove('active');
+        const section = item.getAttribute('data-section');
+        if (section && section === current) {
+            item.classList.add('active');
+        }
+    });
 
     const backToTop = document.getElementById('backToTop');
     if (window.scrollY > 300) {

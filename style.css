@@ -1349,3 +1349,177 @@ body.modal-open #chatWindow {
         font-size: 0.95rem;
     }
 }
+
+/* ═══════════════════════════════════════════════
+   MOBILE BOTTOM NAVIGATION (Instagram/Telegram Style)
+   ═══════════════════════════════════════════════ */
+
+/* Bottom Nav Bar */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease;
+}
+
+/* Nav Items */
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    padding: 4px 0;
+    flex: 1;
+    position: relative;
+    transition: color 0.25s ease, transform 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item i {
+    font-size: 1.25rem;
+    margin-bottom: 3px;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bottom-nav-item span {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Active State */
+.bottom-nav-item.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.bottom-nav-item.active i {
+    transform: scale(1.15);
+}
+
+/* Active indicator dot */
+.bottom-nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2.5px;
+    background: var(--primary);
+    border-radius: 0 0 3px 3px;
+}
+
+/* Tap feedback */
+.bottom-nav-item:active {
+    transform: scale(0.92);
+}
+
+/* Center "Book" Button — elevated */
+.bottom-nav-book {
+    position: relative;
+    color: var(--primary) !important;
+    margin-top: -18px;
+}
+
+.bottom-nav-book-btn {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 20px rgba(15, 118, 110, 0.4);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+}
+
+.bottom-nav-book:active .bottom-nav-book-btn {
+    transform: scale(0.9);
+    box-shadow: 0 2px 10px rgba(15, 118, 110, 0.3);
+}
+
+.bottom-nav-book span {
+    margin-top: 2px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.bottom-nav-book.active::after {
+    display: none;
+}
+
+/* ═══ Mobile Overrides ═══ */
+@media (max-width: 991.98px) {
+    /* Hide top navbar and status bar on mobile */
+    #navbar-main {
+        display: none !important;
+    }
+
+    .status-bar {
+        display: none !important;
+    }
+
+    /* Adjust scroll offset since no top navbar */
+    html {
+        scroll-padding-top: 20px;
+    }
+
+    section, footer {
+        scroll-margin-top: 20px;
+    }
+
+    /* Add bottom padding to body for the nav bar */
+    body {
+        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Move chat widget above bottom nav */
+    .chat-widget-btn {
+        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .chat-window {
+        bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+        max-height: calc(100vh - 180px);
+    }
+
+    /* Move back-to-top above bottom nav */
+    .back-to-top {
+        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Footer bottom padding to avoid overlap */
+    footer {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    /* Hide in admin/modal mode */
+    body.modal-open .mobile-bottom-nav {
+        display: none !important;
+    }
+}
+
+/* Hide bottom nav on desktop */
+@media (min-width: 992px) {
+    .mobile-bottom-nav {
+        display: none !important;
+    }
+}
