@@ -75,11 +75,34 @@
             </div>
         </div>
 
-        <!-- Step 2: Live Metrics -->
+        <!-- Step 2: Authenticate -->
         <div class="audit-step" id="step2">
             <div class="audit-card">
                 <div class="step-dots"><span class="step-dot done"></span><span class="step-dot active"></span><span
                         class="step-dot"></span></div>
+                <div class="audit-logo"><i class="fas fa-lock"></i></div>
+                <h2 class="audit-title" style="font-size:1.4rem">Authenticate</h2>
+                <p class="audit-subtitle">Verify your identity to access the audit</p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <input type="email" class="audit-input" id="adminEmailInput" placeholder="Admin Email"
+                        autocomplete="email">
+                    <input type="password" class="audit-input" id="adminPasswordInput" placeholder="Password"
+                        autocomplete="current-password">
+                </div>
+                <button class="audit-btn" id="loginBtn" onclick="verifyAdminLogin()"><i
+                        class="fas fa-fingerprint"></i><span>Access Dashboard</span></button>
+                <p class="login-error" id="loginError">Invalid credentials</p>
+                <div style="text-align:center;margin-top:16px"><button
+                        style="background:none;border:none;color:#475569;font-size:0.8rem;cursor:pointer"
+                        onclick="goToStep(1)"><i class="fas fa-arrow-left me-1"></i>Back</button></div>
+            </div>
+        </div>
+
+        <!-- Step 3: Live Metrics -->
+        <div class="audit-step" id="step3">
+            <div class="audit-card">
+                <div class="step-dots"><span class="step-dot done"></span><span class="step-dot done"></span><span
+                        class="step-dot active"></span></div>
                 <h2 class="audit-title" style="font-size:1.4rem">Live Clinic Metrics</h2>
                 <p class="audit-subtitle">Pulling real-time data from your systems...</p>
                 <div class="row g-3 mb-4">
@@ -116,32 +139,9 @@
                         </div>
                     </div>
                 </div>
-                <button class="audit-btn" id="btnContinue" onclick="goToStep(3)" disabled><i
+                <button class="audit-btn" id="btnContinue" onclick="goToStep(4)" disabled><i
                         class="fas fa-spinner fa-spin" id="scanIcon"></i><span id="scanText">Scanning
                         systems...</span></button>
-            </div>
-        </div>
-
-        <!-- Step 3: Authenticate -->
-        <div class="audit-step" id="step3">
-            <div class="audit-card">
-                <div class="step-dots"><span class="step-dot done"></span><span class="step-dot done"></span><span
-                        class="step-dot active"></span></div>
-                <div class="audit-logo"><i class="fas fa-lock"></i></div>
-                <h2 class="audit-title" style="font-size:1.4rem">Authenticate</h2>
-                <p class="audit-subtitle">Verify your identity to access the full dashboard</p>
-                <div class="d-flex flex-column gap-3 mb-4">
-                    <input type="email" class="audit-input" id="adminEmailInput" placeholder="Admin Email"
-                        autocomplete="email">
-                    <input type="password" class="audit-input" id="adminPasswordInput" placeholder="Password"
-                        autocomplete="current-password">
-                </div>
-                <button class="audit-btn" id="loginBtn" onclick="verifyAdminLogin()"><i
-                        class="fas fa-fingerprint"></i><span>Access Dashboard</span></button>
-                <p class="login-error" id="loginError">Invalid credentials</p>
-                <div style="text-align:center;margin-top:16px"><button
-                        style="background:none;border:none;color:#475569;font-size:0.8rem;cursor:pointer"
-                        onclick="goToStep(2)"><i class="fas fa-arrow-left me-1"></i>Back to metrics</button></div>
             </div>
         </div>
 

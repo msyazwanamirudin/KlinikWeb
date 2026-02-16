@@ -84,10 +84,13 @@ function goToStep(n) {
     if (!isForward) el.classList.add('slide-reverse');
     el.classList.add('active');
     document.getElementById('progressFill').style.width = (n * 25) + '%';
-    if (n === 2) loadMetrics();
+    if (n === 3) loadMetrics();
     if (n === 4) {
         document.getElementById('progressFill').style.width = '100%';
         document.getElementById('auditContainer').style.maxWidth = '100%';
+        loadInventory();
+        loadDoctors();
+        checkFirebaseUsage();
     }
 }
 
@@ -179,10 +182,7 @@ function verifyAdminLogin() {
             errorMsg.style.display = 'none';
             localStorage.removeItem('adminLockout');
             localStorage.removeItem('adminAttempts');
-            goToStep(4);
-            loadInventory();
-            loadDoctors();
-            checkFirebaseUsage();
+            goToStep(3);
             // Real-time listeners
             firebaseListen('inventory', d => { _cachedInventory = d || []; });
             firebaseListen('roster/rules', d => { _cachedRosterRules = d || []; latestRosterRules = d || []; });
@@ -594,13 +594,12 @@ function checkFirebaseUsage() {
         const dx = e.changedTouches[0].clientX - startX;
         const dy = e.changedTouches[0].clientY - startY;
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
-            if (dx < 0 && currentStep < 3) {
-                // Swipe left = next (only on pre-auth steps)
-                if (currentStep === 1) goToStep(2);
-                else if (currentStep === 2 && !document.getElementById('btnContinue').disabled) goToStep(3);
-            } else if (dx > 0 && currentStep > 1 && currentStep <= 3) {
-                // Swipe right = back
-                goToStep(currentStep - 1);
+            if (dx < 0 && currentStep === 1) {
+                // Swipe left = go to auth (only from welcome)
+                goToStep(2);
+            } else if (dx > 0 && currentStep === 2) {
+                // Swipe right = back to welcome
+                goToStep(1);
             }
         }
     }, { passive: true });
