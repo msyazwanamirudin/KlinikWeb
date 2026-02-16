@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Klinik Dashboard — Staff Admin Guide</title>
+    <title>Klinik Dashboard — Admin & Owner Guide</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -571,14 +571,14 @@
         <div class="hero-content">
             <div class="hero-badge">
                 <i class="fas fa-shield-alt"></i>
-                STAFF ADMIN GUIDE
+                ADMIN & OWNER GUIDE
             </div>
             <h1>Klinik Dashboard<br>Operations Manual</h1>
             <p>Everything your admin staff needs to manage the clinic dashboard — from inventory to scheduling.</p>
             <div class="hero-meta">
                 <span><i class="fas fa-calendar"></i> February 2026</span>
                 <span><i class="fas fa-file-alt"></i> Version 2.0</span>
-                <span><i class="fas fa-user-shield"></i> For Admin Staff</span>
+                <span><i class="fas fa-user-shield"></i> For Admin & Owner</span>
             </div>
         </div>
     </div>
@@ -650,6 +650,38 @@
                     <i class="fas fa-exclamation-triangle"></i>
                     <div><strong>3 failed login attempts</strong> will lock the account. If locked, contact the clinic
                         owner to reset access using the "Forgot access?" link.</div>
+                </div>
+            </div>
+
+            <!-- OWNER CREDENTIALS ADDED -->
+            <div class="card" style="border:1px solid rgba(244,63,94,0.3);background:rgba(244,63,94,0.05)">
+                <h4><i class="fas fa-crown" style="color:#fb7185;margin-right:8px"></i>Owner Credentials</h4>
+                <table class="guide-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td><code>owner@klinik.com</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Password</strong></td>
+                            <td><code>Owner2026*</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Delete PIN</strong></td>
+                            <td><code>1234</code> <span class="tag tag-pin">Ref: Owner Password</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert-box alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>The <strong>Delete PIN (1234)</strong> is required for all delete actions and accessing the
+                        keys.</div>
                 </div>
             </div>
         </div>
@@ -1208,7 +1240,7 @@
                 </div>
                 <div>
                     <h2>9. 🔐 Security & Roles</h2>
-                    <p>Understanding who can do what</p>
+                    <p>Understanding roles and the Owner PIN (1234)</p>
                 </div>
             </div>
 
@@ -1231,7 +1263,8 @@
             </div>
 
             <div class="card">
-                <h4><i class="fas fa-key" style="color:#fbbf24;margin-right:8px"></i>Owner Password Required For</h4>
+                <h4><i class="fas fa-key" style="color:#fbbf24;margin-right:8px"></i>Owner Password (PIN: 1234)</h4>
+                <p>The system requires a special PIN for dangerous actions. Default is <strong>1234</strong>.</p>
                 <table class="guide-table">
                     <thead>
                         <tr>
@@ -1438,7 +1471,7 @@
     <!-- FOOTER -->
     <div class="guide-footer">
         <p><i class="fas fa-plus" style="color:var(--primary-light);margin-right:6px"></i>
-            <strong>Klinik Dashboard</strong> — Staff Admin Guide v2.0
+            <strong>Klinik Dashboard</strong> — Admin & Owner Guide v2.1
         </p>
         <p style="margin-top:6px">Generated February 2026 &nbsp;•&nbsp; For internal use only</p>
     </div>
