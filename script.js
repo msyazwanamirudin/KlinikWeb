@@ -128,6 +128,14 @@ function applyClinicSettings() {
     firebaseLoad('settings', {}).then(data => {
         if (!data || typeof data !== 'object') return;
 
+        // Clinic Name
+        if (data.setClinicName) {
+            const navName = document.getElementById('navClinicName');
+            if (navName) navName.textContent = data.setClinicName;
+            const footerName = document.getElementById('footerClinicName');
+            if (footerName) footerName.textContent = data.setClinicName;
+            document.title = data.setClinicName + ' | Premium Care';
+        }
         // Address
         if (data.setAddress) {
             const el = document.getElementById('footerAddress');
@@ -168,8 +176,19 @@ function applyClinicSettings() {
         }
         // Map Embed
         if (data.setMapEmbed) {
-            const el = document.getElementById('footerMapEmbed');
-            if (el) el.src = data.setMapEmbed;
+            let mapUrl = data.setMapEmbed;
+            // Auto-extract src from full iframe tag if accidentally saved
+            if (mapUrl.includes('<iframe')) {
+                const match = mapUrl.match(/src="([^"]+)"/);
+                if (match) mapUrl = match[1];
+            }
+            if (mapUrl.startsWith('https://www.google.com/maps')) {
+                const el = document.getElementById('footerMapEmbed');
+                if (el) el.src = mapUrl;
+                console.log('✅ Map embed loaded successfully');
+            } else {
+                console.warn('⚠️ Map embed URL ignored — not a valid Google Maps embed URL');
+            }
         }
 
         console.log('✅ Clinic settings applied');

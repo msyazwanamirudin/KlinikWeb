@@ -851,6 +851,14 @@ function saveSettings() {
         const el = document.getElementById(id);
         if (el) data[id] = el.value.trim();
     });
+    // Auto-extract src from full iframe tag if pasted
+    if (data.setMapEmbed && data.setMapEmbed.includes('<iframe')) {
+        const match = data.setMapEmbed.match(/src="([^"]+)"/);
+        if (match) {
+            data.setMapEmbed = match[1];
+            document.getElementById('setMapEmbed').value = match[1];
+        }
+    }
     firebaseSave('settings', data).then(() => {
         const status = document.getElementById('settingsSaveStatus');
         if (status) {
@@ -858,4 +866,49 @@ function saveSettings() {
             setTimeout(() => { status.innerHTML = ''; }, 3000);
         }
     });
+}
+
+function testMapEmbed() {
+    const input = document.getElementById('setMapEmbed');
+    const status = document.getElementById('mapPreviewStatus');
+    const container = document.getElementById('mapPreviewContainer');
+    const iframe = document.getElementById('mapPreviewIframe');
+    let url = (input ? input.value.trim() : '');
+
+    if (!url) {
+        status.innerHTML = '<span style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Please enter a URL first</span>';
+        container.style.display = 'none';
+        return;
+    }
+
+    // Auto-extract src from full iframe tag
+    if (url.includes('<iframe')) {
+        const match = url.match(/src="([^"]+)"/);
+        if (match) {
+            url = match[1];
+            input.value = url;
+        } else {
+            status.innerHTML = '<span style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Could not extract URL from iframe tag</span>';
+            container.style.display = 'none';
+            return;
+        }
+    }
+
+    // Validate URL format
+    if (!url.startsWith('https://www.google.com/maps/embed')) {
+        status.innerHTML = '<span style="color:#fbbf24"><i class="fas fa-exclamation-triangle me-1"></i>URL should start with <code>https://www.google.com/maps/embed</code></span>';
+    } else {
+        status.innerHTML = '<span style="color:#14b8a6"><i class="fas fa-spinner fa-spin me-1"></i>Loading map preview...</span>';
+    }
+
+    // Show preview
+    container.style.display = 'block';
+    iframe.src = url;
+    iframe.onload = function () {
+        status.innerHTML = '<span style="color:#34d399"><i class="fas fa-check-circle me-1"></i>Map loaded successfully!</span>';
+    };
+    iframe.onerror = function () {
+        status.innerHTML = '<span style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Failed to load map. Check the URL.</span>';
+        container.style.display = 'none';
+    };
 }
