@@ -186,13 +186,13 @@ function loadMetrics() {
 const _HMAC_SALT = 'klinik_2026';
 
 // Default credentials (fallback if Firebase has no saved credentials)
-const _DEFAULT_HASH = "681c974cab4a3a51ec4f5601f5cd2f223a1153ee5e39e222c2bad7750c929dff";
+const _DEFAULT_HASH = "ecec4479504104ecce2c4e65aee3b617ed78bd99aaa8fabdd7c3f0cbfb516b31";
 const _DEFAULT_EMAIL = "admin@klinik.com";
 let _adminEmail = _DEFAULT_EMAIL;
 let _adminHash = _DEFAULT_HASH;
 
 // Owner credentials
-const _DEFAULT_OWNER_HASH = "257f1f8aaf5820dd6b9bc20394a09bbe64589d111a08d878a4cc994892288c3a";
+const _DEFAULT_OWNER_HASH = "81651147b09fea986b80c768568103c3406e366e5354f041f739ea7d7f75a6df";
 const _DEFAULT_OWNER_EMAIL = "owner@klinik.com";
 let _ownerEmail = _DEFAULT_OWNER_EMAIL;
 let _ownerHash = _DEFAULT_OWNER_HASH;
@@ -214,7 +214,7 @@ async function sha256(message) {
 }
 
 // --- Owner Password System (Developer-hardcoded only) ---
-const _OWNER_PASSWORD_HASH = 'f0960a619fb8731c2158d5645327c50f699c3bda7cb47577a387c9fb574fa9cd'; // default: 1234
+const _OWNER_PASSWORD_HASH = 'e594dcc3d59360a8872862922c1fac05c326fee1474015d09a0a83d737dbffb8'; // default: 1234
 let _pinCallback = null;
 
 function showPinModal() {
@@ -289,13 +289,25 @@ function verifyAdminLogin() {
             _ownerHash = ownerCreds.passwordHash;
         }
 
-        // Check admin account
+        // Check admin account (try Firebase creds first, then defaults)
         if (email === _adminEmail && hash === _adminHash) {
             _loggedInRole = 'admin';
+        } else if (email === _DEFAULT_EMAIL && hash === _DEFAULT_HASH) {
+            _loggedInRole = 'admin';
+            _adminEmail = _DEFAULT_EMAIL;
+            _adminHash = _DEFAULT_HASH;
+            // Fix stale Firebase credentials
+            firebaseSave('settings/adminCredentials', { email: _DEFAULT_EMAIL, passwordHash: _DEFAULT_HASH });
         }
-        // Check owner account
+        // Check owner account (try Firebase creds first, then defaults)
         else if (email === _ownerEmail && hash === _ownerHash) {
             _loggedInRole = 'owner';
+        } else if (email === _DEFAULT_OWNER_EMAIL && hash === _DEFAULT_OWNER_HASH) {
+            _loggedInRole = 'owner';
+            _ownerEmail = _DEFAULT_OWNER_EMAIL;
+            _ownerHash = _DEFAULT_OWNER_HASH;
+            // Fix stale Firebase credentials
+            firebaseSave('settings/ownerCredentials', { email: _DEFAULT_OWNER_EMAIL, passwordHash: _DEFAULT_OWNER_HASH });
         }
         else {
             _loggedInRole = null;
