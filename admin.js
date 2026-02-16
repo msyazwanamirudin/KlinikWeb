@@ -183,7 +183,7 @@ function loadMetrics() {
 
 // --- Auth ---
 // HMAC-SHA256 salt for password hashing (prevents rainbow table attacks)
-const _HMAC_SALT = 'klinik_haya_2026';
+const _HMAC_SALT = 'klinik_2026';
 
 // Default credentials (fallback if Firebase has no saved credentials)
 const _DEFAULT_HASH = "681c974cab4a3a51ec4f5601f5cd2f223a1153ee5e39e222c2bad7750c929dff";
@@ -214,8 +214,6 @@ async function sha256(message) {
 }
 
 // --- Owner Password System (Developer-hardcoded only) ---
-// To change: compute HMAC-SHA256 of your new password with salt 'klinik_haya_2026'
-// Command: node -e "const c=require('crypto');console.log(c.createHmac('sha256','klinik_haya_2026').update('YOUR_NEW_PASSWORD').digest('hex'))"
 const _OWNER_PASSWORD_HASH = 'f0960a619fb8731c2158d5645327c50f699c3bda7cb47577a387c9fb574fa9cd'; // default: 1234
 let _pinCallback = null;
 
@@ -433,7 +431,12 @@ let _invSortBy = 'name';
 function setInventorySort(sortBy) { _invSortBy = sortBy; filterInventory(); }
 function toggleInventoryForm() { const f = document.getElementById('inventoryForm'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; }
 function loadInventory() {
-    firebaseLoad('inventory', []).then(items => { latestInventory = items; renderInventory(items, document.getElementById('inventoryList'), document.getElementById('inventoryEmpty')); });
+    if (_cachedInventory && _cachedInventory.length > 0) {
+        latestInventory = _cachedInventory;
+        renderInventory(_cachedInventory, document.getElementById('inventoryList'), document.getElementById('inventoryEmpty'));
+        return;
+    }
+    firebaseLoad('inventory', []).then(items => { latestInventory = items; _cachedInventory = items; renderInventory(items, document.getElementById('inventoryList'), document.getElementById('inventoryEmpty')); });
 }
 function renderInventory(items, list, empty) {
     if (!list) return;
@@ -671,6 +674,11 @@ function deleteRosterRule(index) {
 // --- Promo ---
 let promoData = { enabled: false, items: [] };
 function loadPromoAdmin() {
+    if (_cachedPromo && _cachedPromo.items) {
+        promoData = _cachedPromo;
+        renderPromoAdmin();
+        return;
+    }
     firebaseLoad('promo', { enabled: false, items: [] }).then(data => { promoData = data || { enabled: false, items: [] }; if (!promoData.items) promoData.items = []; _cachedPromo = promoData; renderPromoAdmin(); });
 }
 function togglePromoSection() { promoData.enabled = document.getElementById('promoToggle').checked; firebaseSave('promo', promoData); }
@@ -689,19 +697,39 @@ function addPromoItem() {
     promoData.items.push({ image: imageUrl, text: text }); _cachedPromo = promoData;
     firebaseSave('promo', promoData).then(() => { document.getElementById('promoImageUrl').value = ''; document.getElementById('promoImageUrl').type = 'text'; document.getElementById('promoText').value = ''; document.getElementById('promoImagePreview').innerHTML = '<span class="text-muted small">Enter a URL or upload</span>'; renderPromoAdmin(); });
 }
+// --- Image Compression (Firebase optimization) ---
+function compressImage(file, maxWidth = 800, quality = 0.6) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const compressed = canvas.toDataURL('image/jpeg', quality);
+                const sizeKB = Math.round(compressed.length * 0.75 / 1024);
+                resolve({ data: compressed, sizeKB });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 function handlePromoFileUpload(input) {
     const file = input.files[0]; if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) { alert('Invalid image type'); input.value = ''; return; }
     if (file.size > 500 * 1024) { alert('Image too large (max 500KB)'); input.value = ''; return; }
-    const reader = new FileReader();
-    reader.onload = e => {
-        const b64 = e.target.result;
-        document.getElementById('promoImageUrl').value = b64;
+    const preview = document.getElementById('promoImagePreview');
+    preview.innerHTML = '<span style="color:var(--primary-light)" class="small"><i class="fas fa-compress me-1"></i>Compressing...</span>';
+    compressImage(file).then(({ data, sizeKB }) => {
+        document.getElementById('promoImageUrl').value = data;
         document.getElementById('promoImageUrl').type = 'hidden';
-        const sizeKB = (file.size / 1024).toFixed(0);
-        document.getElementById('promoImagePreview').innerHTML = `<img src="${b64}" class="img-fluid rounded" style="max-height:150px" alt="Preview"><div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${sizeKB} KB</div>`;
-    };
-    reader.readAsDataURL(file);
+        preview.innerHTML = `<img src="${data}" class="img-fluid rounded" style="max-height:150px" alt="Preview"><div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${sizeKB} KB</div>`;
+    });
 }
 function deletePromoItem(index) {
     if (!confirm('Remove this promo?')) return;
@@ -731,8 +759,11 @@ function flushBandwidthEstimate() {
 function checkFirebaseUsage() {
     const container = document.getElementById('firebaseUsageAlerts'); if (!container) return;
     container.innerHTML = '<div class="text-center small py-2" style="color:#64748b"><i class="fas fa-spinner fa-spin me-1"></i>Checking usage...</div>';
+    // Clean up _usage entries older than 3 months
+    const now = new Date();
+    for (let i = 4; i <= 12; i++) { const old = new Date(now); old.setMonth(old.getMonth() - i); if (db) db.ref(`_usage/${old.toISOString().slice(0, 7)}`).remove(); }
     const paths = ['roster/rules', 'inventory', 'promo', 'doctors', 'expenses', 'settings'];
-    const mk = new Date().toISOString().slice(0, 7);
+    const mk = now.toISOString().slice(0, 7);
     Promise.all([...paths.map(p => firebaseLoad(p, null)), firebaseLoad(`_usage/${mk}`, { bytes: 0 })]).then(results => {
         const dataResults = results.slice(0, paths.length), usageData = results[paths.length];
         let totalStorageBytes = 0, totalBase64Bytes = 0;
@@ -928,6 +959,13 @@ function loadCashFlow() {
         // Auto-migrate old entries without type
         let migrated = false;
         latestCashFlow.forEach(e => { if (!e.type) { e.type = 'expense'; migrated = true; } });
+        // Auto-trim entries older than 12 months (Firebase optimization)
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - 12);
+        const cutoffStr = cutoff.toISOString().slice(0, 10);
+        const before = latestCashFlow.length;
+        latestCashFlow = latestCashFlow.filter(e => !e.date || e.date >= cutoffStr);
+        if (latestCashFlow.length < before) { migrated = true; console.log(`🗑️ Trimmed ${before - latestCashFlow.length} expense entries older than 12 months`); }
         if (migrated) firebaseSave('expenses', latestCashFlow);
         populateCFMonthFilter();
         populateCFCategoryFilter();

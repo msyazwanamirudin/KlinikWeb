@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klinik — Admin & Owner Guide</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm 18mm;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 11pt;
+            line-height: 1.65;
+            color: #1e293b;
+            background: #fff;
+            padding: 40px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
+
+            table,
+            .info-box {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Print button */
+        .print-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 999;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .print-bar button {
+            background: white;
+            color: #0f766e;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 11pt;
+        }
+
+        .print-bar button:hover {
+            background: #f0fdfa;
+        }
+
+        /* Cover */
+        .cover {
+            text-align: center;
+            padding: 80px 20px 60px;
+            border-bottom: 3px solid #0f766e;
+            margin-bottom: 40px;
+        }
+
+        .cover-icon {
+            font-size: 48pt;
+            margin-bottom: 16px;
+        }
+
+        .cover h1 {
+            font-size: 28pt;
+            font-weight: 700;
+            color: #0f766e;
+            margin-bottom: 8px;
+        }
+
+        .cover .subtitle {
+            font-size: 14pt;
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+
+        .cover .meta {
+            font-size: 9pt;
+            color: #94a3b8;
+        }
+
+        /* Headings */
+        h2 {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #0f766e;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 6px;
+            margin: 32px 0 16px;
+        }
+
+        h3 {
+            font-size: 13pt;
+            font-weight: 600;
+            color: #334155;
+            margin: 20px 0 10px;
+        }
+
+        h4 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #475569;
+            margin: 14px 0 6px;
+        }
+
+        /* Paragraphs */
+        p {
+            margin-bottom: 10px;
+        }
+
+        ul,
+        ol {
+            margin: 8px 0 14px 22px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        /* Info boxes */
+        .info-box {
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin: 14px 0;
+            font-size: 10pt;
+        }
+
+        .info-box.tip {
+            background: #f0fdfa;
+            border-left: 4px solid #0f766e;
+        }
+
+        .info-box.warn {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .info-box.danger {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 20px;
+            font-size: 10pt;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #0f766e;
+            color: white;
+            font-weight: 600;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        /* Credential box */
+        .cred-box {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 12px 0;
+            font-family: 'Consolas', monospace;
+            font-size: 10pt;
+        }
+
+        .cred-box .label {
+            font-family: 'Inter', sans-serif;
+            font-size: 9pt;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        /* Role badge */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+
+        .badge-admin {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-owner {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        /* Step */
+        .step {
+            display: flex;
+            gap: 12px;
+            margin: 10px 0;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            background: #0f766e;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 10pt;
+        }
+
+        .step-text {
+            flex: 1;
+            padding-top: 3px;
+        }
+
+        /* TOC */
+        .toc {
+            margin: 20px 0 30px;
+        }
+
+        .toc a {
+            display: block;
+            padding: 6px 0;
+            text-decoration: none;
+            color: #334155;
+            border-bottom: 1px dotted #e2e8f0;
+            font-size: 10.5pt;
+        }
+
+        .toc a:hover {
+            color: #0f766e;
+        }
+
+        .toc a span {
+            color: #94a3b8;
+            float: right;
+            font-size: 9pt;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 8.5pt;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Print Bar -->
+    <div class="print-bar no-print">
+        <span style="font-weight:600">📄 Klinik — Admin & Owner Guide</span>
+        <button onclick="window.print()">🖨️ Save as PDF</button>
+    </div>
+    <div class="no-print" style="height:55px"></div>
+
+    <!-- COVER -->
+    <div class="cover">
+        <div class="cover-icon">🏥</div>
+        <h1>Klinik</h1>
+        <div class="subtitle">Admin & Owner Dashboard Guide</div>
+        <div class="meta">
+            Version 1.0 &nbsp;•&nbsp; February 2026 &nbsp;•&nbsp; Confidential
+        </div>
+    </div>
+
+    <!-- TABLE OF CONTENTS -->
+    <h2>Table of Contents</h2>
+    <div class="toc">
+        <a href="#accounts">1. Account & Login <span>→</span></a>
+        <a href="#roles">2. Role Comparison <span>→</span></a>
+        <a href="#dashboard">3. Dashboard Overview <span>→</span></a>
+        <a href="#analytics">4. Analytics Tab <span>→</span></a>
+        <a href="#inventory">5. Inventory Tab <span>→</span></a>
+        <a href="#roster">6. Roster Tab <span>→</span></a>
+        <a href="#promo">7. Promo Tab <span>→</span></a>
+        <a href="#cashflow">8. Cash Flow Tab <span>→</span></a>
+        <a href="#settings">9. Settings Tab <span>→</span></a>
+        <a href="#admin-tab">10. Admin Tab (Owner Only) <span>→</span></a>
+        <a href="#security">11. Security Features <span>→</span></a>
+        <a href="#firebase">12. Firebase Usage & Tips <span>→</span></a>
+        <a href="#troubleshooting">13. Troubleshooting <span>→</span></a>
+    </div>
+
+    <!-- ====================== CHAPTER 1 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="accounts">1. Account & Login</h2>
+
+    <p>The system has two pre-configured accounts with different access levels:</p>
+
+    <h3>Admin Account</h3>
+    <div class="cred-box">
+        <div class="label">Email</div>
+        admin@klinik.com
+        <div class="label" style="margin-top:8px">Password</div>
+        Admin2026*
+    </div>
+
+    <h3>Owner Account</h3>
+    <div class="cred-box">
+        <div class="label">Email</div>
+        owner@klinik.com
+        <div class="label" style="margin-top:8px">Password</div>
+        Owner2026*
+    </div>
+
+    <h3>How to Log In</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Open <strong>admin.html</strong> in your browser.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Click <strong>"Begin Audit"</strong> on the welcome page.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Enter your email and password, then click <strong>"Access Dashboard"</strong>.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Complete the short audit questionnaire, then click <strong>"Continue to
+                Dashboard"</strong>.</div>
+    </div>
+
+    <div class="info-box tip">
+        <strong>💡 Tip: Show Password</strong>
+        Click the 👁 eye icon next to the password field to reveal what you typed and avoid typos.
+    </div>
+
+    <!-- ====================== CHAPTER 2 ====================== -->
+    <h2 id="roles">2. Role Comparison</h2>
+
+    <table>
+        <tr>
+            <th>Feature</th>
+            <th><span class="badge badge-admin">Admin</span></th>
+            <th><span class="badge badge-owner">Owner</span></th>
+        </tr>
+        <tr>
+            <td>View Analytics</td>
+            <td>✅</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Manage Inventory</td>
+            <td>✅</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Manage Roster</td>
+            <td>✅</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Manage Promo</td>
+            <td>✅</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Manage Cash Flow</td>
+            <td>✅</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Change Settings</td>
+            <td>✅</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>View Admin Tab</td>
+            <td>❌</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Change Login Credentials</td>
+            <td>❌</td>
+            <td>✅</td>
+        </tr>
+        <tr>
+            <td>Delete Actions (requires Owner Password)</td>
+            <td>⚠️ Prompted</td>
+            <td>⚠️ Prompted</td>
+        </tr>
+    </table>
+
+    <div class="info-box warn">
+        <strong>⚠️ Important</strong>
+        Delete actions (removing inventory items, roster rules, promo items) require the <strong>Owner Password</strong>
+        regardless of which account is logged in.
+    </div>
+
+    <!-- ====================== CHAPTER 3 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="dashboard">3. Dashboard Overview</h2>
+
+    <p>After logging in, you'll see a horizontal tab bar at the top of the dashboard. Click any tab to switch views:</p>
+
+    <table>
+        <tr>
+            <th>Tab</th>
+            <th>Icon</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td>Analytics</td>
+            <td>📊</td>
+            <td>View clinic performance metrics and Firebase usage</td>
+        </tr>
+        <tr>
+            <td>Inventory</td>
+            <td>📦</td>
+            <td>Track medicine/supply stock, quantities, and expiry dates</td>
+        </tr>
+        <tr>
+            <td>Roster</td>
+            <td>📅</td>
+            <td>Set doctor schedules and shift patterns</td>
+        </tr>
+        <tr>
+            <td>Promo</td>
+            <td>🎉</td>
+            <td>Manage promotional banners/images on the website</td>
+        </tr>
+        <tr>
+            <td>Cash Flow</td>
+            <td>💰</td>
+            <td>Record income and expenses with monthly reporting</td>
+        </tr>
+        <tr>
+            <td>Settings</td>
+            <td>⚙️</td>
+            <td>Configure clinic info, hours, and social links</td>
+        </tr>
+        <tr>
+            <td>Admin</td>
+            <td>🔐</td>
+            <td>Change login credentials (owner only)</td>
+        </tr>
+    </table>
+
+    <!-- ====================== CHAPTER 4 ====================== -->
+    <h2 id="analytics">4. Analytics Tab</h2>
+
+    <p>Provides a quick overview of your clinic's data and Firebase database health.</p>
+
+    <h3>What You'll See</h3>
+    <ul>
+        <li><strong>Summary cards</strong> — Total inventory items, roster rules, promo items, and expenses</li>
+        <li><strong>Firebase Usage</strong> — Storage, bandwidth, and base64 image usage with progress bars</li>
+    </ul>
+
+    <div class="info-box tip">
+        <strong>💡 Firebase Free Tier</strong>
+        The system monitors your usage against Firebase's free tier limits (1 GB storage, 10 GB/month bandwidth). Keep
+        an eye on the progress bars — green is safe, yellow is caution, red means near limit.
+    </div>
+
+    <!-- ====================== CHAPTER 5 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="inventory">5. Inventory Tab</h2>
+
+    <p>Manage your clinic's medicine and supply stock.</p>
+
+    <h3>Adding Items</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Click <strong>"+ Add Item"</strong> to open the form.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Enter the item name, quantity, and expiry date.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Click <strong>"Add"</strong> to save.</div>
+    </div>
+
+    <h3>Managing Stock</h3>
+    <ul>
+        <li>Use the <strong>+</strong> and <strong>−</strong> buttons to adjust quantities</li>
+        <li>Use the <strong>search bar</strong> to find items quickly</li>
+        <li>Sort by name, quantity, or expiry date</li>
+        <li>Items near expiry are highlighted automatically</li>
+    </ul>
+
+    <h3>Deleting Items</h3>
+    <p>Click the <strong>🗑️ trash</strong> icon on an item. You will be asked to confirm and then enter the
+        <strong>Owner Password</strong>.
+    </p>
+
+    <!-- ====================== CHAPTER 6 ====================== -->
+    <h2 id="roster">6. Roster Tab</h2>
+
+    <p>Define doctor schedules and shift patterns.</p>
+
+    <h3>Adding a Rule</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Click <strong>"+ Add Rule"</strong>.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Select the <strong>doctor</strong>, <strong>shift</strong>, and which
+            <strong>days</strong> apply.
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Click <strong>"Save"</strong>.</div>
+    </div>
+
+    <h3>View Modes</h3>
+    <ul>
+        <li><strong>Weekly View</strong> — See the roster laid out by day of the week</li>
+        <li><strong>Monthly View</strong> — See an overview for the entire month</li>
+    </ul>
+
+    <h3>Managing Doctors</h3>
+    <ul>
+        <li>Add new doctors from the <strong>Manage Doctors</strong> section</li>
+        <li>Remove a doctor by clicking the ✕ button next to their name</li>
+    </ul>
+
+    <!-- ====================== CHAPTER 7 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="promo">7. Promo Tab</h2>
+
+    <p>Manage promotional banners displayed on the main clinic website.</p>
+
+    <h3>Adding a Promo</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Either paste an <strong>image URL</strong> or click <strong>"Upload from
+                Device"</strong>.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">A preview and file size will appear below. Images are automatically
+            <strong>compressed</strong> to save database space.
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Optionally add a <strong>caption</strong>, then click <strong>"+ Add Promo"</strong>.
+        </div>
+    </div>
+
+    <h3>Show/Hide Promo on Website</h3>
+    <p>Use the <strong>"Show on Site"</strong> toggle at the top right to enable or disable the promo section on the
+        public website.</p>
+
+    <div class="info-box tip">
+        <strong>💡 Image Optimization</strong>
+        Uploaded images are automatically compressed to JPEG (max 800px width, 60% quality) to minimize Firebase storage
+        usage. A 500KB image will typically be reduced to ~60KB.
+    </div>
+
+    <!-- ====================== CHAPTER 8 ====================== -->
+    <h2 id="cashflow">8. Cash Flow Tab</h2>
+
+    <p>Track clinic income and expenses with category filtering and monthly summaries.</p>
+
+    <h3>Adding an Entry</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Select <strong>Income</strong> or <strong>Expense</strong>.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Choose a <strong>category</strong> (e.g., Consultation, Supplies, Salary).</div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Enter the <strong>amount</strong>, <strong>description</strong> (optional), and
+            <strong>date</strong>.
+        </div>
+    </div>
+    <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Click <strong>"Add"</strong> to save.</div>
+    </div>
+
+    <h3>Filtering & Reports</h3>
+    <ul>
+        <li>Filter by <strong>month</strong> or <strong>category</strong></li>
+        <li>Summary cards show <strong>total income</strong>, <strong>total expenses</strong>, and <strong>net
+                balance</strong></li>
+    </ul>
+
+    <div class="info-box warn">
+        <strong>⚠️ Data Retention</strong>
+        Expense entries older than <strong>12 months</strong> are automatically trimmed to save Firebase storage. Export
+        important records before they expire.
+    </div>
+
+    <!-- ====================== CHAPTER 9 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="settings">9. Settings Tab</h2>
+
+    <p>Configure your clinic's public information that appears on the website.</p>
+
+    <h3>Available Settings</h3>
+    <table>
+        <tr>
+            <th>Setting</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>Clinic Name</td>
+            <td>Displayed in the website header</td>
+        </tr>
+        <tr>
+            <td>WhatsApp Number</td>
+            <td>Used for the "Book via WhatsApp" button</td>
+        </tr>
+        <tr>
+            <td>Location / Waze Link</td>
+            <td>Used for the location/navigation button</td>
+        </tr>
+        <tr>
+            <td>Operation Hours</td>
+            <td>Weekday/Weekend hours, or toggle 24/7 mode</td>
+        </tr>
+        <tr>
+            <td>Social Media Links</td>
+            <td>Facebook, Instagram, TikTok, Threads</td>
+        </tr>
+    </table>
+
+    <p>Click <strong>"Save Settings"</strong> after making changes. All settings are saved to Firebase and reflected on
+        the public website immediately.</p>
+
+    <!-- ====================== CHAPTER 10 ====================== -->
+    <h2 id="admin-tab">10. Admin Tab <span class="badge badge-owner">Owner Only</span></h2>
+
+    <p>This tab is <strong>only visible</strong> when logged in as the owner. It allows you to change the login
+        credentials for the admin account.</p>
+
+    <h3>Accessing the Admin Tab</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Log in with the <strong>owner</strong> account.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Click the <strong>🔐 Admin</strong> tab.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Click <strong>"Enter Owner Password"</strong> and enter the owner password
+            (<strong>1234</strong> by default).</div>
+    </div>
+    <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Once verified, you can change the admin <strong>email</strong> or
+            <strong>password</strong>.
+        </div>
+    </div>
+
+    <div class="info-box danger">
+        <strong>🔴 Critical: Owner Password</strong>
+        The owner password (default: <strong>1234</strong>) is separate from the login password. It is required for
+        sensitive actions like deleting items and accessing the Admin tab. This password is hardcoded and can only be
+        changed by a developer.
+    </div>
+
+    <!-- ====================== CHAPTER 11 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="security">11. Security Features</h2>
+
+    <h3>Login Lockout</h3>
+    <p>After <strong>3 failed login attempts</strong>, the system locks out to prevent brute-force attacks. To recover:
+    </p>
+    <ul>
+        <li>Click the <strong>"Forgot access?"</strong> link below the login form</li>
+        <li>This clears the lockout and lets you try again</li>
+    </ul>
+
+    <h3>Owner Password Protection</h3>
+    <p>Dangerous actions require the owner password before proceeding:</p>
+    <ul>
+        <li>Deleting inventory items</li>
+        <li>Deleting roster rules</li>
+        <li>Deleting promo items</li>
+        <li>Accessing the Admin tab</li>
+    </ul>
+
+    <h3>Developer Tools Disabled</h3>
+    <p>To prevent casual source code inspection, the following are blocked on the admin page:</p>
+    <ul>
+        <li>Right-click context menu</li>
+        <li>F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U</li>
+    </ul>
+
+    <h3>Password Hashing</h3>
+    <p>All passwords are hashed using <strong>HMAC-SHA256</strong> with a salt before comparison. Passwords are never
+        stored or transmitted in plain text.</p>
+
+    <!-- ====================== CHAPTER 12 ====================== -->
+    <h2 id="firebase">12. Firebase Usage & Tips</h2>
+
+    <p>The system uses Firebase Realtime Database on the <strong>free Spark plan</strong>:</p>
+
+    <table>
+        <tr>
+            <th>Resource</th>
+            <th>Free Limit</th>
+            <th>How to Minimize</th>
+        </tr>
+        <tr>
+            <td>Storage</td>
+            <td>1 GB</td>
+            <td>Upload compressed images, trim old expenses</td>
+        </tr>
+        <tr>
+            <td>Monthly Bandwidth</td>
+            <td>10 GB</td>
+            <td>Minimize tab switching, close inactive sessions</td>
+        </tr>
+        <tr>
+            <td>Connections</td>
+            <td>100 simultaneous</td>
+            <td>Limit admin sessions to 1-2 at a time</td>
+        </tr>
+    </table>
+
+    <h3>Automatic Optimizations</h3>
+    <ul>
+        <li>✅ Promo images are <strong>auto-compressed</strong> (JPEG, 800px, 60% quality)</li>
+        <li>✅ Cash flow entries older than <strong>12 months are auto-trimmed</strong></li>
+        <li>✅ Bandwidth usage data older than <strong>3 months is auto-cleaned</strong></li>
+        <li>✅ Tab data is <strong>cached locally</strong> to reduce redundant database reads</li>
+    </ul>
+
+    <h3>Best Practices</h3>
+    <ol>
+        <li>Use <strong>external image URLs</strong> for promo instead of uploading when possible</li>
+        <li>Don't leave the admin page open all day — each listener uses bandwidth</li>
+        <li>Check the <strong>Analytics tab → Firebase Usage</strong> section regularly</li>
+        <li>Keep promo count to <strong>3-5 items</strong> maximum</li>
+        <li>Export cash flow data monthly for your own records</li>
+    </ol>
+
+    <!-- ====================== CHAPTER 13 ====================== -->
+    <div class="page-break"></div>
+    <h2 id="troubleshooting">13. Troubleshooting</h2>
+
+    <table>
+        <tr>
+            <th>Problem</th>
+            <th>Solution</th>
+        </tr>
+        <tr>
+            <td>Can't log in — "System locked"</td>
+            <td>Click <strong>"Forgot access?"</strong> to clear the lockout, then try again with correct credentials.
+            </td>
+        </tr>
+        <tr>
+            <td>Admin tab not visible</td>
+            <td>You must be logged in as the <strong>owner</strong> (owner@klinik.com). The Admin tab is hidden for
+                admin accounts.</td>
+        </tr>
+        <tr>
+            <td>Owner Password prompt won't accept my password</td>
+            <td>The owner password is separate from your login password. Default is <strong>1234</strong>.</td>
+        </tr>
+        <tr>
+            <td>Image upload shows "Compressing..." forever</td>
+            <td>The image may be corrupted. Try a different file. Only JPEG, PNG, WebP, and GIF are supported (max
+                500KB).</td>
+        </tr>
+        <tr>
+            <td>Data not updating on the website</td>
+            <td>Hard refresh the public website (Ctrl+Shift+R). Firebase updates may take a few seconds to propagate.
+            </td>
+        </tr>
+        <tr>
+            <td>Firebase usage showing high</td>
+            <td>Check the Analytics tab for details. Consider removing unused promo images (they're stored as base64 in
+                the database).</td>
+        </tr>
+        <tr>
+            <td>Expenses from last year disappeared</td>
+            <td>Entries older than 12 months are automatically trimmed. Export data monthly to keep records.</td>
+        </tr>
+    </table>
+
+    <div class="info-box tip">
+        <strong>💡 Need Developer Help?</strong>
+        For issues not listed here (e.g., changing the owner password, Firebase quota exceeded, or custom features),
+        contact your developer.
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p>Klinik— Admin & Owner Dashboard Guide v1.0</p>
+        <p>Confidential — For internal use only</p>
+        <p>© 2026 Klinik. All rights reserved.</p>
+    </div>
+
+</body>
+
+</html>
