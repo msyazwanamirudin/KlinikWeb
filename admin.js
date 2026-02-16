@@ -213,7 +213,7 @@ let _cachedRosterRules = null;
 let _cachedInventory = null;
 let _cachedPromo = null;
 let _cachedDoctors = null;
-let _sessionBandwidthBytes = 0;
+// _sessionBandwidthBytes is declared in firebase-config.js
 
 // --- Doctors ---
 const DEFAULT_DOCTORS = [

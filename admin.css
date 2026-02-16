@@ -154,8 +154,10 @@ body {
     font-weight: 700;
     text-align: center;
     background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     margin-bottom: 8px;
 }
 
