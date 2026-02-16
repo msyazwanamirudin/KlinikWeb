@@ -420,130 +420,130 @@ function renderWeeklyOverview(rules) {
             cell += `<div style="${style}">${r.doc.replace(/ \(.*\)/, '')}</div>`;
             cell += isOff ? '<div style="font-size:0.7rem;color:#fb7185">OFF</div>' : `<div style="font-size:0.7rem;color:#64748b">${r.shift}</div>`;
         });
-        html += `<td class="text-center p-2${isToday ? ' style="background:rgba(15,118,110,0.1)"' : '}">${cell}</td>`;
-            }
+        html += `<td class="text-center p-2"${isToday ? ' style="background:rgba(15,118,110,0.1)"' : ''}>${cell}</td>`;
+    }
     html += '</tr></tbody></table></div></div>';
     container.innerHTML = html;
 }
 
 function renderRosterList(rules) {
-    const list=document.getElementById('rosterList'), empty=document.getElementById('rosterEmpty'), btnDelete=document.getElementById('btnDeleteSelected');
+    const list = document.getElementById('rosterList'), empty = document.getElementById('rosterEmpty'), btnDelete = document.getElementById('btnDeleteSelected');
     if (!list) return;
-    if (btnDelete) btnDelete.disabled=true;
-    const selectAll=document.getElementById('selectAllRules'); if(selectAll)selectAll.checked=false;
-    if (rules.length===0) { list.innerHTML=''; if(empty)empty.style.display='block'; return; }
-    if (empty) empty.style.display='none';
-    let displayRules=rules.map((r,i)=>({...r,_origIdx:i}));
-    displayRules.sort((a,b)=>{ if(a.type==='date'&&b.type==='weekly')return -1; if(a.type==='weekly'&&b.type==='date')return 1; if(a.type==='date'&&b.type==='date')return new Date(a.date)-new Date(b.date); return a.day-b.day; });
-    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    let html='';
+    if (btnDelete) btnDelete.disabled = true;
+    const selectAll = document.getElementById('selectAllRules'); if (selectAll) selectAll.checked = false;
+    if (rules.length === 0) { list.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+    if (empty) empty.style.display = 'none';
+    let displayRules = rules.map((r, i) => ({ ...r, _origIdx: i }));
+    displayRules.sort((a, b) => { if (a.type === 'date' && b.type === 'weekly') return -1; if (a.type === 'weekly' && b.type === 'date') return 1; if (a.type === 'date' && b.type === 'date') return new Date(a.date) - new Date(b.date); return a.day - b.day; });
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let html = '';
     displayRules.forEach(rule => {
-        let whenLabel='', badgeHtml='';
-        if (rule.type==='weekly') { whenLabel='Every '+days[rule.day]; badgeHtml='<span class="badge bg-info text-dark">Weekly</span>'; }
-        else { const d=new Date(rule.date+'T00:00:00'); whenLabel=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' ('+days[d.getDay()]+')'; badgeHtml='<span class="badge bg-primary">Date</span>'; }
+        let whenLabel = '', badgeHtml = '';
+        if (rule.type === 'weekly') { whenLabel = 'Every ' + days[rule.day]; badgeHtml = '<span class="badge bg-info text-dark">Weekly</span>'; }
+        else { const d = new Date(rule.date + 'T00:00:00'); whenLabel = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' (' + days[d.getDay()] + ')'; badgeHtml = '<span class="badge bg-primary">Date</span>'; }
         html += `< tr ><td class="text-center"><input type="checkbox" class="form-check-input rule-checkbox" value="${rule._origIdx}" onchange="updateBatchButtons()"></td><td><div class="fw-semibold">${whenLabel}</div><div class="small text-muted">${badgeHtml} &bull; ${escapeHTML(rule.shift)}</div></td><td>${escapeHTML(rule.doc)}</td><td class="text-end"><button onclick="editRosterRule(${rule._origIdx})" class="btn btn-outline-primary btn-sm border-0 me-1"><i class="fas fa-pen"></i></button><button onclick="deleteRosterRule(${rule._origIdx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr > `;
     });
     list.innerHTML = html;
 }
 
-function toggleAllRules(source) { document.querySelectorAll('.rule-checkbox').forEach(cb => cb.checked=source.checked); updateBatchButtons(); }
-function updateBatchButtons() { document.getElementById('btnDeleteSelected').disabled = document.querySelectorAll('.rule-checkbox:checked').length===0; }
+function toggleAllRules(source) { document.querySelectorAll('.rule-checkbox').forEach(cb => cb.checked = source.checked); updateBatchButtons(); }
+function updateBatchButtons() { document.getElementById('btnDeleteSelected').disabled = document.querySelectorAll('.rule-checkbox:checked').length === 0; }
 function deleteSelectedRules() {
-    const checked=document.querySelectorAll('.rule-checkbox:checked'); if(checked.length===0)return;
-    if(!confirm(`Delete ${ checked.length } selected rules ? `))return;
-    const indices=Array.from(checked).map(cb=>parseInt(cb.value)).sort((a,b)=>b-a);
-    firebaseLoad('roster/rules',[]).then(rules=>{ indices.forEach(idx=>{if(idx>=0&&idx<rules.length)rules.splice(idx,1);}); firebaseSave('roster/rules',rules); invalidateRosterCache(); loadRosterAdmin(); });
+    const checked = document.querySelectorAll('.rule-checkbox:checked'); if (checked.length === 0) return;
+    if (!confirm(`Delete ${checked.length} selected rules ? `)) return;
+    const indices = Array.from(checked).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
+    firebaseLoad('roster/rules', []).then(rules => { indices.forEach(idx => { if (idx >= 0 && idx < rules.length) rules.splice(idx, 1); }); firebaseSave('roster/rules', rules); invalidateRosterCache(); loadRosterAdmin(); });
 }
 function clearAllRules() {
-    if(!confirm("⚠️ Delete ALL roster rules?"))return;
-    if(!confirm("🔴 This cannot be undone. Confirm?"))return;
-    firebaseSave('roster/rules',[]); invalidateRosterCache(); loadRosterAdmin();
+    if (!confirm("⚠️ Delete ALL roster rules?")) return;
+    if (!confirm("🔴 This cannot be undone. Confirm?")) return;
+    firebaseSave('roster/rules', []); invalidateRosterCache(); loadRosterAdmin();
 }
 function editRosterRule(index) {
-    const rule=latestRosterRules[index]; if(!rule)return;
-    _editingRuleIndex=index;
-    const form=document.getElementById('rosterForm'); form.style.display='block';
-    if(rule.type==='weekly'){document.getElementById('ruleWeekly').checked=true;document.getElementById('rosterDay').value=rule.day;}
-    else{document.getElementById('ruleDate').checked=true;document.getElementById('rosterDateStart').value=rule.date;document.getElementById('rosterDateEnd').value='';}
+    const rule = latestRosterRules[index]; if (!rule) return;
+    _editingRuleIndex = index;
+    const form = document.getElementById('rosterForm'); form.style.display = 'block';
+    if (rule.type === 'weekly') { document.getElementById('ruleWeekly').checked = true; document.getElementById('rosterDay').value = rule.day; }
+    else { document.getElementById('ruleDate').checked = true; document.getElementById('rosterDateStart').value = rule.date; document.getElementById('rosterDateEnd').value = ''; }
     toggleRuleInputs();
-    document.getElementById('rosterDocSelect').value=rule.doc;
-    document.getElementById('rosterShift').value=rule.shift;
-    const saveBtn=form.querySelector('button[onclick="addRosterRule()"]'); if(saveBtn)saveBtn.innerHTML='<i class="fas fa-save me-1"></i>Update Rule';
-    form.scrollIntoView({behavior:'smooth'});
+    document.getElementById('rosterDocSelect').value = rule.doc;
+    document.getElementById('rosterShift').value = rule.shift;
+    const saveBtn = form.querySelector('button[onclick="addRosterRule()"]'); if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Update Rule';
+    form.scrollIntoView({ behavior: 'smooth' });
 }
 function toggleRosterForm() {
-    const form=document.getElementById('rosterForm');
-    form.style.display=form.style.display==='none'?'block':'none';
-    if(form.style.display==='block'){_editingRuleIndex=-1;document.getElementById('ruleDate').checked=true;document.getElementById('rosterDateStart').value='';document.getElementById('rosterDateEnd').value='';document.getElementById('rosterShift').value='Full Day';toggleRuleInputs();const btn=form.querySelector('button[onclick="addRosterRule()"]');if(btn)btn.innerHTML='<i class="fas fa-save me-1"></i>Save Rule';}
+    const form = document.getElementById('rosterForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    if (form.style.display === 'block') { _editingRuleIndex = -1; document.getElementById('ruleDate').checked = true; document.getElementById('rosterDateStart').value = ''; document.getElementById('rosterDateEnd').value = ''; document.getElementById('rosterShift').value = 'Full Day'; toggleRuleInputs(); const btn = form.querySelector('button[onclick="addRosterRule()"]'); if (btn) btn.innerHTML = '<i class="fas fa-save me-1"></i>Save Rule'; }
 }
 function toggleRuleInputs() {
-    const isWeekly=document.getElementById('ruleWeekly').checked;
-    document.getElementById('inputDateGroup').style.display=isWeekly?'none':'block';
-    document.getElementById('inputDayGroup').style.display=isWeekly?'block':'none';
+    const isWeekly = document.getElementById('ruleWeekly').checked;
+    document.getElementById('inputDateGroup').style.display = isWeekly ? 'none' : 'block';
+    document.getElementById('inputDayGroup').style.display = isWeekly ? 'block' : 'none';
 }
 function addRosterRule() {
-    const isWeekly=document.getElementById('ruleWeekly').checked;
-    const doc=document.getElementById('rosterDocSelect').value, shift=document.getElementById('rosterShift').value;
-    let newRules=[];
-    if(isWeekly){newRules.push({type:'weekly',day:parseInt(document.getElementById('rosterDay').value),doc,shift});}
-    else{
-        const startVal=document.getElementById('rosterDateStart').value,endVal=document.getElementById('rosterDateEnd').value;
-        if(!startVal)return alert("Please select a date");
-        if(endVal&&endVal<startVal)return alert("End date before start date");
-        if(endVal){let curr=new Date(startVal);const end=new Date(endVal);if(Math.ceil(Math.abs(end-curr)/(1000*60*60*24))>31)return alert("Max 31 days");while(curr<=end){newRules.push({type:'date',date:curr.toISOString().split('T')[0],doc,shift});curr.setDate(curr.getDate()+1);}}
-        else newRules.push({type:'date',date:startVal,doc,shift});
+    const isWeekly = document.getElementById('ruleWeekly').checked;
+    const doc = document.getElementById('rosterDocSelect').value, shift = document.getElementById('rosterShift').value;
+    let newRules = [];
+    if (isWeekly) { newRules.push({ type: 'weekly', day: parseInt(document.getElementById('rosterDay').value), doc, shift }); }
+    else {
+        const startVal = document.getElementById('rosterDateStart').value, endVal = document.getElementById('rosterDateEnd').value;
+        if (!startVal) return alert("Please select a date");
+        if (endVal && endVal < startVal) return alert("End date before start date");
+        if (endVal) { let curr = new Date(startVal); const end = new Date(endVal); if (Math.ceil(Math.abs(end - curr) / (1000 * 60 * 60 * 24)) > 31) return alert("Max 31 days"); while (curr <= end) { newRules.push({ type: 'date', date: curr.toISOString().split('T')[0], doc, shift }); curr.setDate(curr.getDate() + 1); } }
+        else newRules.push({ type: 'date', date: startVal, doc, shift });
     }
-    firebaseLoad('roster/rules',[]).then(rules=>{
-        let dups=[];
-        newRules.forEach(nr=>{const ei=rules.findIndex((r,idx)=>idx!==_editingRuleIndex&&r.type===nr.type&&(nr.type==='weekly'?r.day===nr.day:r.date===nr.date)&&r.doc===nr.doc&&r.shift===nr.shift);if(ei!==-1)dups.push(`${ nr.date || 'Day ' + nr.day } `);});
-        if(dups.length>0){alert('Duplicate: '+dups.join(', '));return;}
-        if(_editingRuleIndex>=0&&newRules.length===1)rules[_editingRuleIndex]=newRules[0];else rules.push(...newRules);
-        firebaseSave('roster/rules',rules).then(()=>{_editingRuleIndex=-1;invalidateRosterCache();document.getElementById('rosterForm').style.display='none';loadRosterAdmin();});
+    firebaseLoad('roster/rules', []).then(rules => {
+        let dups = [];
+        newRules.forEach(nr => { const ei = rules.findIndex((r, idx) => idx !== _editingRuleIndex && r.type === nr.type && (nr.type === 'weekly' ? r.day === nr.day : r.date === nr.date) && r.doc === nr.doc && r.shift === nr.shift); if (ei !== -1) dups.push(`${nr.date || 'Day ' + nr.day} `); });
+        if (dups.length > 0) { alert('Duplicate: ' + dups.join(', ')); return; }
+        if (_editingRuleIndex >= 0 && newRules.length === 1) rules[_editingRuleIndex] = newRules[0]; else rules.push(...newRules);
+        firebaseSave('roster/rules', rules).then(() => { _editingRuleIndex = -1; invalidateRosterCache(); document.getElementById('rosterForm').style.display = 'none'; loadRosterAdmin(); });
     });
 }
 function deleteRosterRule(index) {
-    if(!confirm("Delete this rule?"))return;
-    firebaseLoad('roster/rules',[]).then(rules=>{if(index>=0&&index<rules.length){rules.splice(index,1);firebaseSave('roster/rules',rules).then(()=>{invalidateRosterCache();loadRosterAdmin();});}});
+    if (!confirm("Delete this rule?")) return;
+    firebaseLoad('roster/rules', []).then(rules => { if (index >= 0 && index < rules.length) { rules.splice(index, 1); firebaseSave('roster/rules', rules).then(() => { invalidateRosterCache(); loadRosterAdmin(); }); } });
 }
 
 // --- Promo ---
-let promoData = { enabled:false, items:[] };
+let promoData = { enabled: false, items: [] };
 function loadPromoAdmin() {
-    firebaseLoad('promo',{enabled:false,items:[]}).then(data=>{promoData=data||{enabled:false,items:[]};if(!promoData.items)promoData.items=[];_cachedPromo=promoData;renderPromoAdmin();});
+    firebaseLoad('promo', { enabled: false, items: [] }).then(data => { promoData = data || { enabled: false, items: [] }; if (!promoData.items) promoData.items = []; _cachedPromo = promoData; renderPromoAdmin(); });
 }
-function togglePromoSection() { promoData.enabled=document.getElementById('promoToggle').checked; firebaseSave('promo',promoData); }
+function togglePromoSection() { promoData.enabled = document.getElementById('promoToggle').checked; firebaseSave('promo', promoData); }
 function previewPromoImage() {
-    const url=document.getElementById('promoImageUrl').value.trim(), preview=document.getElementById('promoImagePreview');
-    if(!url){preview.innerHTML='<span class="text-muted small">Enter a URL above</span>';return;}
-    preview.innerHTML='<span style="color:var(--primary-light)" class="small"><i class="fas fa-spinner fa-spin me-1"></i>Loading...</span>';
-    const img=new Image();
-    img.onload=()=>{preview.innerHTML=`< img src = "${escapeHTML(url)}" class="img-fluid rounded" style = "max-height:150px" alt = "Preview" > <div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>Loaded</div>`;};
-    img.onerror=()=>{preview.innerHTML='<div class="small" style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Failed to load</div>';};
-    img.src=url;
+    const url = document.getElementById('promoImageUrl').value.trim(), preview = document.getElementById('promoImagePreview');
+    if (!url) { preview.innerHTML = '<span class="text-muted small">Enter a URL above</span>'; return; }
+    preview.innerHTML = '<span style="color:var(--primary-light)" class="small"><i class="fas fa-spinner fa-spin me-1"></i>Loading...</span>';
+    const img = new Image();
+    img.onload = () => { preview.innerHTML = `< img src = "${escapeHTML(url)}" class="img-fluid rounded" style = "max-height:150px" alt = "Preview" > <div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>Loaded</div>`; };
+    img.onerror = () => { preview.innerHTML = '<div class="small" style="color:#fb7185"><i class="fas fa-times-circle me-1"></i>Failed to load</div>'; };
+    img.src = url;
 }
 function addPromoItem() {
-    const imageUrl=document.getElementById('promoImageUrl').value.trim(), text=document.getElementById('promoText').value.trim();
-    if(!imageUrl)return alert('Please provide an image');
-    promoData.items.push({image:imageUrl,text:text}); _cachedPromo=promoData;
-    firebaseSave('promo',promoData).then(()=>{document.getElementById('promoImageUrl').value='';document.getElementById('promoText').value='';document.getElementById('promoImagePreview').innerHTML='<span class="text-muted small">Enter a URL or upload</span>';renderPromoAdmin();});
+    const imageUrl = document.getElementById('promoImageUrl').value.trim(), text = document.getElementById('promoText').value.trim();
+    if (!imageUrl) return alert('Please provide an image');
+    promoData.items.push({ image: imageUrl, text: text }); _cachedPromo = promoData;
+    firebaseSave('promo', promoData).then(() => { document.getElementById('promoImageUrl').value = ''; document.getElementById('promoText').value = ''; document.getElementById('promoImagePreview').innerHTML = '<span class="text-muted small">Enter a URL or upload</span>'; renderPromoAdmin(); });
 }
 function handlePromoFileUpload(input) {
-    const file=input.files[0]; if(!file)return;
-    if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type)){alert('Invalid image type');input.value='';return;}
-    if(file.size>500*1024){alert('Image too large (max 500KB)');input.value='';return;}
-    const reader=new FileReader();
-    reader.onload=e=>{const b64=e.target.result;document.getElementById('promoImageUrl').value=b64;document.getElementById('promoImagePreview').innerHTML=`< img src = "${b64}" class="img-fluid rounded" style = "max-height:150px" alt = "Preview" > <div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${(file.size / 1024).toFixed(0)} KB</div>`;};
+    const file = input.files[0]; if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) { alert('Invalid image type'); input.value = ''; return; }
+    if (file.size > 500 * 1024) { alert('Image too large (max 500KB)'); input.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = e => { const b64 = e.target.result; document.getElementById('promoImageUrl').value = b64; document.getElementById('promoImagePreview').innerHTML = `< img src = "${b64}" class="img-fluid rounded" style = "max-height:150px" alt = "Preview" > <div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${(file.size / 1024).toFixed(0)} KB</div>`; };
     reader.readAsDataURL(file);
 }
 function deletePromoItem(index) {
-    if(!confirm('Remove this promo?'))return;
-    promoData.items.splice(index,1);firebaseSave('promo',promoData).then(()=>renderPromoAdmin());
+    if (!confirm('Remove this promo?')) return;
+    promoData.items.splice(index, 1); firebaseSave('promo', promoData).then(() => renderPromoAdmin());
 }
 function renderPromoAdmin() {
-    const list=document.getElementById('promoItemList'), toggle=document.getElementById('promoToggle');
-    if(!list)return; if(toggle)toggle.checked=promoData.enabled;
-    if(promoData.items.length===0){list.innerHTML='<div class="text-center text-muted p-3"><i class="fas fa-images fs-3 mb-2 d-block" style="color:#475569"></i>No promo items yet</div>';return;}
-    list.innerHTML=promoData.items.map((item,i)=>`
+    const list = document.getElementById('promoItemList'), toggle = document.getElementById('promoToggle');
+    if (!list) return; if (toggle) toggle.checked = promoData.enabled;
+    if (promoData.items.length === 0) { list.innerHTML = '<div class="text-center text-muted p-3"><i class="fas fa-images fs-3 mb-2 d-block" style="color:#475569"></i>No promo items yet</div>'; return; }
+    list.innerHTML = promoData.items.map((item, i) => `
             < div class="d-flex gap-2 align-items-start border-bottom py-2" >
                 <img src="${escapeHTML(item.image)}" class="rounded" style="width:60px;height:60px;object-fit:cover" onerror="this.style.background='#1e293b';this.src=''" alt="Promo">
                     <div class="flex-grow-1"><div class="small fw-bold text-truncate" style="max-width:200px">${escapeHTML(item.text) || '<em class="text-muted">No caption</em>'}</div><div style="font-size:0.7rem;color:#475569;word-break:break-all">${escapeHTML(item.image).substring(0, 50)}...</div></div>
@@ -552,45 +552,45 @@ function renderPromoAdmin() {
 }
 
 // --- Firebase Usage ---
-const FB_LIMITS = { storageMB:1024, bandwidthMB:10240, base64WarnMB:5 };
+const FB_LIMITS = { storageMB: 1024, bandwidthMB: 10240, base64WarnMB: 5 };
 function flushBandwidthEstimate() {
-    if(_sessionBandwidthBytes===0)return Promise.resolve();
-    const mk=new Date().toISOString().slice(0,7);
-    return firebaseLoad(`_usage / ${ mk } `,{bytes:0}).then(u=>{const updated={bytes:(u.bytes||0)+_sessionBandwidthBytes};_sessionBandwidthBytes=0;return firebaseSave(`_usage / ${ mk } `,updated);});
+    if (_sessionBandwidthBytes === 0) return Promise.resolve();
+    const mk = new Date().toISOString().slice(0, 7);
+    return firebaseLoad(`_usage / ${mk} `, { bytes: 0 }).then(u => { const updated = { bytes: (u.bytes || 0) + _sessionBandwidthBytes }; _sessionBandwidthBytes = 0; return firebaseSave(`_usage / ${mk} `, updated); });
 }
 function checkFirebaseUsage() {
-    const container=document.getElementById('firebaseUsageAlerts'); if(!container)return;
-    container.innerHTML='<div class="text-center small py-2" style="color:#64748b"><i class="fas fa-spinner fa-spin me-1"></i>Checking usage...</div>';
-    const paths=['roster/rules','inventory','promo','doctors'];
-    const mk=new Date().toISOString().slice(0,7);
-    Promise.all([...paths.map(p=>firebaseLoad(p,null)),firebaseLoad(`_usage / ${ mk } `,{bytes:0})]).then(results=>{
-        const dataResults=results.slice(0,paths.length), usageData=results[paths.length];
-        let totalStorageBytes=0, totalBase64Bytes=0;
-        dataResults.forEach((data,i)=>{if(data!==null){totalStorageBytes+=new Blob([JSON.stringify(data)]).size;if(paths[i]==='promo'&&data.items)data.items.forEach(item=>{if(item.image&&item.image.startsWith('data:'))totalBase64Bytes+=new Blob([item.image]).size;});}});
-        const storageMB=totalStorageBytes/(1024*1024), storagePercent=Math.min((storageMB/FB_LIMITS.storageMB)*100,100);
-        const bandwidthBytes=(usageData.bytes||0)+_sessionBandwidthBytes, bandwidthMB=bandwidthBytes/(1024*1024), bandwidthPercent=Math.min((bandwidthMB/FB_LIMITS.bandwidthMB)*100,100);
-        const base64MB=totalBase64Bytes/(1024*1024), base64Percent=Math.min((base64MB/FB_LIMITS.base64WarnMB)*100,100);
+    const container = document.getElementById('firebaseUsageAlerts'); if (!container) return;
+    container.innerHTML = '<div class="text-center small py-2" style="color:#64748b"><i class="fas fa-spinner fa-spin me-1"></i>Checking usage...</div>';
+    const paths = ['roster/rules', 'inventory', 'promo', 'doctors'];
+    const mk = new Date().toISOString().slice(0, 7);
+    Promise.all([...paths.map(p => firebaseLoad(p, null)), firebaseLoad(`_usage / ${mk} `, { bytes: 0 })]).then(results => {
+        const dataResults = results.slice(0, paths.length), usageData = results[paths.length];
+        let totalStorageBytes = 0, totalBase64Bytes = 0;
+        dataResults.forEach((data, i) => { if (data !== null) { totalStorageBytes += new Blob([JSON.stringify(data)]).size; if (paths[i] === 'promo' && data.items) data.items.forEach(item => { if (item.image && item.image.startsWith('data:')) totalBase64Bytes += new Blob([item.image]).size; }); } });
+        const storageMB = totalStorageBytes / (1024 * 1024), storagePercent = Math.min((storageMB / FB_LIMITS.storageMB) * 100, 100);
+        const bandwidthBytes = (usageData.bytes || 0) + _sessionBandwidthBytes, bandwidthMB = bandwidthBytes / (1024 * 1024), bandwidthPercent = Math.min((bandwidthMB / FB_LIMITS.bandwidthMB) * 100, 100);
+        const base64MB = totalBase64Bytes / (1024 * 1024), base64Percent = Math.min((base64MB / FB_LIMITS.base64WarnMB) * 100, 100);
         flushBandwidthEstimate();
-        const barColor=pct=>pct>=100?'#dc3545':pct>=85?'#f0ad4e':'#059669';
-        const dot=pct=>pct>=100?'🔴':pct>=85?'🟡':'🟢';
-        const hasWarn=storagePercent>=85||bandwidthPercent>=85||base64Percent>=85;
-        const accent=hasWarn?(storagePercent>=100||bandwidthPercent>=100?'#dc3545':'#f0ad4e'):'#059669';
-        const fmtSize=mb=>mb<1?(mb*1024).toFixed(0)+' KB':mb.toFixed(1)+' MB';
-        const row=(ico,lbl,used,limit,pct)=>`< div style = "display:flex;align-items:center;gap:8px;margin-bottom:6px" ><span style="font-size:0.65rem">${dot(pct)}</span><span style="font-size:0.72rem;color:#94a3b8;min-width:72px;white-space:nowrap"><i class="fas ${ico}" style="width:13px;text-align:center;color:${barColor(pct)};margin-right:3px;font-size:0.65rem"></i>${lbl}</span><div style="flex:1;background:rgba(255,255,255,0.08);border-radius:3px;height:5px;overflow:hidden"><div style="width:${Math.max(pct,1)}%;height:100%;background:${barColor(pct)};border-radius:3px;transition:width 0.6s"></div></div><span style="font-size:0.65rem;color:#64748b;min-width:88px;text-align:right">${used} / ${limit}</span></div > `;
-        container.innerHTML=`< div style = "border:1px solid ${accent}30;border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;background:rgba(255,255,255,0.02)" > <div style="font-size:0.72rem;font-weight:700;color:${accent};margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fas ${hasWarn?'fa-exclamation-triangle':'fa-shield-alt'}" style="font-size:0.65rem"></i>${hasWarn ? 'Firebase Usage Warning' : 'Firebase — All Clear'}</div>${ row('fa-database', 'Storage', fmtSize(storageMB), '1 GB', storagePercent) }${ row('fa-download', 'Bandwidth', fmtSize(bandwidthMB), '10 GB/mo', bandwidthPercent) }${ base64MB > 0 ? row('fa-image', 'Base64', fmtSize(base64MB), '5 MB', base64Percent) : '' }</div > `;
-    }).catch(()=>{container.innerHTML='';});
+        const barColor = pct => pct >= 100 ? '#dc3545' : pct >= 85 ? '#f0ad4e' : '#059669';
+        const dot = pct => pct >= 100 ? '🔴' : pct >= 85 ? '🟡' : '🟢';
+        const hasWarn = storagePercent >= 85 || bandwidthPercent >= 85 || base64Percent >= 85;
+        const accent = hasWarn ? (storagePercent >= 100 || bandwidthPercent >= 100 ? '#dc3545' : '#f0ad4e') : '#059669';
+        const fmtSize = mb => mb < 1 ? (mb * 1024).toFixed(0) + ' KB' : mb.toFixed(1) + ' MB';
+        const row = (ico, lbl, used, limit, pct) => `< div style = "display:flex;align-items:center;gap:8px;margin-bottom:6px" ><span style="font-size:0.65rem">${dot(pct)}</span><span style="font-size:0.72rem;color:#94a3b8;min-width:72px;white-space:nowrap"><i class="fas ${ico}" style="width:13px;text-align:center;color:${barColor(pct)};margin-right:3px;font-size:0.65rem"></i>${lbl}</span><div style="flex:1;background:rgba(255,255,255,0.08);border-radius:3px;height:5px;overflow:hidden"><div style="width:${Math.max(pct, 1)}%;height:100%;background:${barColor(pct)};border-radius:3px;transition:width 0.6s"></div></div><span style="font-size:0.65rem;color:#64748b;min-width:88px;text-align:right">${used} / ${limit}</span></div > `;
+        container.innerHTML = `< div style = "border:1px solid ${accent}30;border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;background:rgba(255,255,255,0.02)" > <div style="font-size:0.72rem;font-weight:700;color:${accent};margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fas ${hasWarn ? 'fa-exclamation-triangle' : 'fa-shield-alt'}" style="font-size:0.65rem"></i>${hasWarn ? 'Firebase Usage Warning' : 'Firebase — All Clear'}</div>${row('fa-database', 'Storage', fmtSize(storageMB), '1 GB', storagePercent)}${row('fa-download', 'Bandwidth', fmtSize(bandwidthMB), '10 GB/mo', bandwidthPercent)}${base64MB > 0 ? row('fa-image', 'Base64', fmtSize(base64MB), '5 MB', base64Percent) : ''}</div > `;
+    }).catch(() => { container.innerHTML = ''; });
 }
 
 // --- Touch Swipe for Audit Steps ---
-(function() {
+(function () {
     let startX = 0, startY = 0;
     const container = document.getElementById('auditContainer');
     if (!container) return;
-    container.addEventListener('touchstart', function(e) {
+    container.addEventListener('touchstart', function (e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
     }, { passive: true });
-    container.addEventListener('touchend', function(e) {
+    container.addEventListener('touchend', function (e) {
         const dx = e.changedTouches[0].clientX - startX;
         const dy = e.changedTouches[0].clientY - startY;
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
