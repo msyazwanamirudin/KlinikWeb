@@ -86,8 +86,13 @@
                 <div class="d-flex flex-column gap-3 mb-4">
                     <input type="email" class="audit-input" id="adminEmailInput" placeholder="Admin Email"
                         autocomplete="email">
-                    <input type="password" class="audit-input" id="adminPasswordInput" placeholder="Password"
-                        autocomplete="current-password">
+                    <div style="position:relative">
+                        <input type="password" class="audit-input" id="adminPasswordInput" placeholder="Password"
+                            autocomplete="current-password" style="padding-right:42px">
+                        <button type="button" onclick="togglePassword('adminPasswordInput',this)"
+                            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;font-size:0.9rem"
+                            title="Show password"><i class="fas fa-eye"></i></button>
+                    </div>
                 </div>
                 <button class="audit-btn" id="loginBtn" onclick="verifyAdminLogin()"><i
                         class="fas fa-fingerprint"></i><span>Access Dashboard</span></button>
@@ -616,13 +621,6 @@
                                 class="fas fa-sync me-1"></i>Reset</button>
                     </div>
                     <div id="settingsSaveStatus" class="text-center mt-2" style="font-size:0.8rem"></div>
-                    <hr style="border-color:rgba(255,255,255,0.08);margin:20px 0">
-                    <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)"><i
-                            class="fas fa-key me-1"></i>Owner PIN</h6>
-                    <p class="small" style="color:#94a3b8">Set a PIN to protect delete operations. Staff must enter this
-                        PIN before deleting any data.</p>
-                    <button onclick="setOwnerPin()" class="btn btn-outline-warning btn-sm rounded-pill px-3"><i
-                            class="fas fa-lock me-1"></i>Set / Change Owner PIN</button>
                 </div>
             </div>
 
@@ -636,9 +634,9 @@
                         </div>
                         <h6 class="fw-bold mb-2" style="color:#f1f5f9">Owner Access Required</h6>
                         <p class="small mb-4" style="color:#94a3b8;max-width:320px;margin:0 auto">This section is
-                            restricted to the clinic owner. Enter your Owner PIN to access admin settings.</p>
+                            restricted to the clinic owner. Enter the owner password to access admin settings.</p>
                         <button onclick="unlockAdminTab()" class="btn btn-outline-warning btn-sm rounded-pill px-4">
-                            <i class="fas fa-key me-1"></i>Enter Owner PIN</button>
+                            <i class="fas fa-key me-1"></i>Enter Owner Password</button>
                     </div>
                     <!-- Admin Content (hidden until PIN verified) -->
                     <div id="adminContent" style="display:none">
@@ -673,11 +671,16 @@
     <div id="ownerPinModal" class="pin-modal-overlay" style="display:none">
         <div class="pin-modal-card">
             <div class="pin-modal-icon"><i class="fas fa-lock"></i></div>
-            <h6 class="fw-bold mb-1" style="color:#f1f5f9">Owner PIN Required</h6>
-            <p class="small mb-3" style="color:#94a3b8">Enter the owner PIN to confirm this action.</p>
-            <input type="password" id="ownerPinInput" class="audit-input mb-2" placeholder="Enter PIN"
-                autocomplete="off" maxlength="8" inputmode="numeric">
-            <p id="ownerPinError" class="small mb-2" style="color:#fb7185;display:none">Incorrect PIN</p>
+            <h6 class="fw-bold mb-1" style="color:#f1f5f9">Owner Password Required</h6>
+            <p class="small mb-3" style="color:#94a3b8">Enter the owner password to confirm this action.</p>
+            <div style="position:relative">
+                <input type="password" id="ownerPinInput" class="audit-input mb-2" placeholder="Enter password"
+                    autocomplete="off" style="padding-right:42px">
+                <button type="button" onclick="togglePassword('ownerPinInput',this)"
+                    style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;cursor:pointer;padding:4px;font-size:0.9rem;margin-top:-4px"
+                    title="Show password"><i class="fas fa-eye"></i></button>
+            </div>
+            <p id="ownerPinError" class="small mb-2" style="color:#fb7185;display:none">Incorrect password</p>
             <div class="d-flex gap-2">
                 <button onclick="verifyOwnerPin()" class="btn btn-success btn-sm flex-grow-1"><i
                         class="fas fa-check me-1"></i>Verify</button>

@@ -10,6 +10,22 @@ document.addEventListener('keydown', e => {
     if (e.ctrlKey && ['U', 'u'].includes(e.key)) e.preventDefault();
 });
 
+// --- Password visibility toggle ---
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        btn.title = 'Hide password';
+    } else {
+        input.type = 'password';
+        if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        btn.title = 'Show password';
+    }
+}
+
 // --- Helpers ---
 function escapeHTML(str) {
     if (!str) return '';
@@ -197,13 +213,11 @@ async function sha256(message) {
     return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// --- Owner PIN System ---
-let _ownerPinHash = null;
+// --- Owner Password System (Developer-hardcoded only) ---
+// To change: compute HMAC-SHA256 of your new password with salt 'klinik_haya_2026'
+// Command: node -e "const c=require('crypto');console.log(c.createHmac('sha256','klinik_haya_2026').update('YOUR_NEW_PASSWORD').digest('hex'))"
+const _OWNER_PASSWORD_HASH = 'f0960a619fb8731c2158d5645327c50f699c3bda7cb47577a387c9fb574fa9cd'; // default: 1234
 let _pinCallback = null;
-
-function loadOwnerPin() {
-    return firebaseLoad('settings/ownerPin', null).then(hash => { _ownerPinHash = hash; });
-}
 
 function showPinModal() {
     const modal = document.getElementById('ownerPinModal');
@@ -222,10 +236,6 @@ function hidePinModal() {
 }
 
 function requireOwnerPin(callback) {
-    if (!_ownerPinHash) {
-        alert('⚠️ Owner PIN not set yet. Please set it in Settings tab first.');
-        return;
-    }
     _pinCallback = callback;
     showPinModal();
 }
@@ -235,40 +245,22 @@ async function verifyOwnerPin() {
     const error = document.getElementById('ownerPinError');
     if (!input || !input.value.trim()) return;
     const hash = await sha256(input.value.trim());
-    if (hash === _ownerPinHash) {
+    if (hash === _OWNER_PASSWORD_HASH) {
         hidePinModal();
         if (_pinCallback) { const cb = _pinCallback; _pinCallback = null; cb(); }
     } else {
-        if (error) { error.textContent = 'Incorrect PIN'; error.style.display = 'block'; }
+        if (error) { error.textContent = 'Incorrect password'; error.style.display = 'block'; }
         input.value = '';
         input.focus();
     }
 }
 
-async function setOwnerPin() {
-    if (_ownerPinHash) {
-        // Require current PIN first
-        const current = prompt('Enter your CURRENT Owner PIN:');
-        if (!current) return;
-        const currentHash = await sha256(current.trim());
-        if (currentHash !== _ownerPinHash) { alert('❌ Incorrect current PIN.'); return; }
-    }
-    const newPin = prompt('Enter a NEW Owner PIN (4-8 digits recommended):');
-    if (!newPin || !newPin.trim()) return;
-    const confirmPin = prompt('Confirm your new PIN:');
-    if (confirmPin !== newPin) { alert('❌ PINs do not match.'); return; }
-    const hash = await sha256(newPin.trim());
-    _ownerPinHash = hash;
-    firebaseSave('settings/ownerPin', hash).then(() => {
-        alert('✅ Owner PIN saved successfully!');
-    });
-}
-
-// PIN modal Enter key listener
+// Owner password modal Enter key listener
 document.addEventListener('DOMContentLoaded', () => {
     const pinInput = document.getElementById('ownerPinInput');
     if (pinInput) pinInput.addEventListener('keyup', e => { if (e.key === 'Enter') verifyOwnerPin(); });
 });
+
 
 function verifyAdminLogin() {
     const errorMsg = document.getElementById('loginError');
@@ -318,14 +310,11 @@ function verifyAdminLogin() {
             goToStep(3);
             // Update Admin tab visibility based on role
             updateAdminTabVisibility();
-            // Load owner PIN
-            loadOwnerPin();
             // Real-time listeners
             firebaseListen('inventory', d => { _cachedInventory = d || []; });
             firebaseListen('roster/rules', d => { _cachedRosterRules = d || []; latestRosterRules = d || []; });
             firebaseListen('promo', d => { _cachedPromo = d || { enabled: false, items: [] }; promoData = _cachedPromo; });
             firebaseListen('doctors', d => { _cachedDoctors = (d && Array.isArray(d) && d.length > 0) ? d : [...DEFAULT_DOCTORS]; DOCTORS = _cachedDoctors; });
-            firebaseListen('settings/ownerPin', d => { _ownerPinHash = d; });
         } else {
             let attempts = parseInt(localStorage.getItem('adminAttempts') || 0) + 1;
             localStorage.setItem('adminAttempts', attempts);
@@ -1205,10 +1194,6 @@ function loadAdminTab() {
 }
 
 function unlockAdminTab() {
-    if (!_ownerPinHash) {
-        alert('⚠️ Owner PIN not set yet. Please set it in Settings tab first.');
-        return;
-    }
     requireOwnerPin(() => {
         _adminTabUnlocked = true;
         loadAdminTab();
