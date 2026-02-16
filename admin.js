@@ -103,6 +103,9 @@ function switchTab(tab, btn) {
     if (tab === 'inventory') loadInventory();
     if (tab === 'roster') { loadRosterAdmin(); loadDoctors(); }
     if (tab === 'promo') loadPromoAdmin();
+    if (tab === 'analytics') loadAnalytics();
+    if (tab === 'expenses') loadExpenses();
+    if (tab === 'settings') loadSettings();
 }
 
 // --- Metrics (Step 2) ---
@@ -298,13 +301,13 @@ function renderInventory(items, list, empty) {
         case 'expiry': default: items.sort((a, b) => { if (!a.expiry) return 1; if (!b.expiry) return -1; return new Date(a.expiry) - new Date(b.expiry); }); break;
     }
     let html = '';
-    const catColors = { 'Medicine': 'bg-primary', 'Supplements': 'bg-success', 'Equipment': 'bg-info text-dark', 'Stationery': 'bg-warning text-dark', 'Others': 'bg-secondary' };
+    const catColors = { 'Medicine': 'bg-primary', 'Supplements': 'bg-success', 'Equipment': 'bg-info', 'Stationery': 'bg-warning', 'Others': 'bg-secondary' };
     items.forEach(item => {
         let statusBadge = '';
         if (item.expiry) {
             const daysLeft = Math.ceil((new Date(item.expiry) - new Date()) / (1000 * 60 * 60 * 24));
             if (daysLeft < 0) statusBadge = '<span class="badge bg-danger ms-1">EXPIRED</span>';
-            else if (daysLeft < 60) statusBadge = `<span class="badge bg-warning text-dark ms-1">Exp: ${item.expiry}</span>`;
+            else if (daysLeft < 60) statusBadge = `<span class="badge bg-warning ms-1">Exp: ${item.expiry}</span>`;
             else statusBadge = `<span class="badge bg-secondary ms-1" style="font-size:0.65rem">Exp: ${item.expiry}</span>`;
         }
         html += `<tr><td><div class="fw-bold">${escapeHTML(item.name)}</div><span class="badge ${catColors[item.category] || 'bg-secondary'}" style="font-size:0.7rem">${item.category || 'Medicine'}</span>${statusBadge}</td><td><span class="small text-muted">${item.category || 'Medicine'}</span></td><td><div class="d-flex align-items-center gap-2"><button onclick="updateStock(${item.originalIndex},-1)" class="btn btn-outline-danger btn-sm py-0 px-2 fw-bold">-</button><span class="fw-bold" style="min-width:30px;text-align:center">${item.qty}</span><button onclick="updateStock(${item.originalIndex},1)" class="btn btn-outline-success btn-sm py-0 px-2 fw-bold">+</button></div></td><td class="text-end"><button onclick="deleteInventoryItem(${item.originalIndex})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
@@ -605,3 +608,254 @@ function checkFirebaseUsage() {
     }, { passive: true });
 })();
 
+// ═══════════════════════════════════════════════
+// ANALYTICS TAB
+// ═══════════════════════════════════════════════
+function loadAnalytics() {
+    const container = document.getElementById('analyticsContent');
+    if (!container) return;
+    container.innerHTML = '<div class="text-center p-4" style="color:#64748b"><i class="fas fa-spinner fa-spin me-1"></i>Loading analytics...</div>';
+    Promise.all([
+        firebaseLoad('inventory', []),
+        firebaseLoad('roster/rules', []),
+        firebaseLoad('doctors', []),
+        firebaseLoad('promo', { enabled: false, items: [] }),
+        firebaseLoad('expenses', [])
+    ]).then(([inv, rules, docs, promo, expenses]) => {
+        inv = inv || []; rules = rules || []; docs = docs || [];
+        const items = Array.isArray(inv) ? inv : [];
+        const rosterRules = Array.isArray(rules) ? rules : [];
+        const doctors = Array.isArray(docs) ? docs : [];
+        const expList = Array.isArray(expenses) ? expenses : [];
+
+        // Inventory stats
+        const lowStock = items.filter(i => parseInt(i.qty || 0) <= 5 && parseInt(i.qty || 0) > 0);
+        const outOfStock = items.filter(i => parseInt(i.qty || 0) === 0);
+        const now = new Date();
+        const expired = items.filter(i => i.expiry && new Date(i.expiry) < now);
+        const expiringSoon = items.filter(i => {
+            if (!i.expiry) return false;
+            const d = Math.ceil((new Date(i.expiry) - now) / 86400000);
+            return d >= 0 && d <= 30;
+        });
+
+        // Roster stats
+        const todayDay = now.getDay();
+        const todayStr = now.toISOString().slice(0, 10);
+        const todayRules = rosterRules.filter(r => {
+            if (r.type === 'weekly' && parseInt(r.day) === todayDay) return true;
+            if (r.type === 'date') {
+                if (r.dateStart && !r.dateEnd && r.dateStart === todayStr) return true;
+                if (r.dateStart && r.dateEnd && todayStr >= r.dateStart && todayStr <= r.dateEnd) return true;
+            }
+            return false;
+        });
+
+        // Expense stats
+        const thisMonth = now.toISOString().slice(0, 7);
+        const monthExpenses = expList.filter(e => (e.date || '').startsWith(thisMonth));
+        const monthTotal = monthExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+
+        // Build analytics HTML
+        let html = '';
+
+        // Quick stats row
+        html += '<div class="row g-3 mb-4">';
+        const statCard = (icon, color, value, label) => `<div class="col-6 col-md-3"><div class="metric-card"><div class="metric-icon" style="background:${color}15"><i class="fas ${icon}" style="color:${color}"></i></div><div class="metric-value" style="font-size:1.5rem">${value}</div><div class="metric-label">${label}</div></div></div>`;
+        html += statCard('fa-boxes', '#14b8a6', items.length, 'Total Items');
+        html += statCard('fa-user-md', '#818cf8', doctors.length, 'Doctors');
+        html += statCard('fa-calendar-check', '#fbbf24', rosterRules.length, 'Roster Rules');
+        html += statCard('fa-receipt', '#fb7185', 'RM ' + monthTotal.toFixed(0), 'This Month');
+        html += '</div>';
+
+        // Alerts section
+        html += '<h6 class="fw-bold small text-uppercase mb-2" style="color:#94a3b8"><i class="fas fa-bell me-1"></i>Alerts & Insights</h6>';
+
+        if (outOfStock.length === 0 && lowStock.length === 0 && expired.length === 0 && expiringSoon.length === 0 && todayRules.length > 0) {
+            html += '<div class="analytics-alert analytics-alert-ok"><i class="fas fa-check-circle me-2"></i>All systems healthy — no alerts</div>';
+        }
+
+        if (outOfStock.length > 0) {
+            html += `<div class="analytics-alert analytics-alert-danger"><i class="fas fa-exclamation-circle me-2"></i><strong>${outOfStock.length} item(s) OUT OF STOCK</strong><div class="mt-1" style="font-size:0.78rem;color:#fca5a5">${outOfStock.map(i => escapeHTML(i.name)).join(', ')}</div></div>`;
+        }
+        if (expired.length > 0) {
+            html += `<div class="analytics-alert analytics-alert-danger"><i class="fas fa-skull-crossbones me-2"></i><strong>${expired.length} EXPIRED item(s)</strong><div class="mt-1" style="font-size:0.78rem;color:#fca5a5">${expired.map(i => escapeHTML(i.name) + ' (' + i.expiry + ')').join(', ')}</div></div>`;
+        }
+        if (lowStock.length > 0) {
+            html += `<div class="analytics-alert analytics-alert-warn"><i class="fas fa-exclamation-triangle me-2"></i><strong>${lowStock.length} item(s) low stock (≤5)</strong><div class="mt-1" style="font-size:0.78rem;color:#fcd34d">${lowStock.map(i => escapeHTML(i.name) + ' (' + i.qty + ')').join(', ')}</div></div>`;
+        }
+        if (expiringSoon.length > 0) {
+            html += `<div class="analytics-alert analytics-alert-warn"><i class="fas fa-clock me-2"></i><strong>${expiringSoon.length} item(s) expiring within 30 days</strong><div class="mt-1" style="font-size:0.78rem;color:#fcd34d">${expiringSoon.map(i => escapeHTML(i.name) + ' (' + i.expiry + ')').join(', ')}</div></div>`;
+        }
+        if (todayRules.length === 0) {
+            html += '<div class="analytics-alert analytics-alert-info"><i class="fas fa-info-circle me-2"></i>No roster rules set for today</div>';
+        } else {
+            const todayDocs = todayRules.map(r => r.doctor + ' — ' + r.shift).join(', ');
+            html += `<div class="analytics-alert analytics-alert-ok"><i class="fas fa-stethoscope me-2"></i><strong>Today\'s Schedule:</strong> ${todayDocs}</div>`;
+        }
+
+        // Promo status
+        const promoEnabled = promo && promo.enabled;
+        const promoCount = promo && promo.items ? promo.items.length : 0;
+        html += `<div class="analytics-alert analytics-alert-info"><i class="fas fa-bullhorn me-2"></i>Promo: ${promoEnabled ? '<span style="color:#34d399">Active</span>' : '<span style="color:#94a3b8">Disabled</span>'} — ${promoCount} item(s)</div>`;
+
+        // Inventory by category breakdown
+        html += '<h6 class="fw-bold small text-uppercase mt-4 mb-2" style="color:#94a3b8"><i class="fas fa-chart-pie me-1"></i>Inventory by Category</h6>';
+        const catCounts = {};
+        items.forEach(i => { const c = i.category || 'Others'; catCounts[c] = (catCounts[c] || 0) + 1; });
+        const catColors = { 'Medicine': '#14b8a6', 'Supplements': '#34d399', 'Equipment': '#818cf8', 'Stationery': '#fbbf24', 'Others': '#94a3b8' };
+        html += '<div class="d-flex flex-wrap gap-2">';
+        Object.entries(catCounts).forEach(([cat, count]) => {
+            const color = catColors[cat] || '#94a3b8';
+            html += `<div style="background:${color}15;border:1px solid ${color}30;border-radius:10px;padding:8px 14px;font-size:0.8rem"><span style="color:${color};font-weight:700">${count}</span> <span style="color:#94a3b8">${cat}</span></div>`;
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+    }).catch(() => {
+        container.innerHTML = '<div class="text-center p-4" style="color:#fb7185"><i class="fas fa-exclamation-triangle me-1"></i>Failed to load analytics</div>';
+    });
+}
+
+// ═══════════════════════════════════════════════
+// EXPENSES TAB
+// ═══════════════════════════════════════════════
+let latestExpenses = [];
+
+function toggleExpenseForm() {
+    const f = document.getElementById('expenseForm');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    if (f.style.display === 'block') {
+        document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
+    }
+}
+
+function loadExpenses() {
+    firebaseLoad('expenses', []).then(data => {
+        latestExpenses = Array.isArray(data) ? data : [];
+        populateExpenseMonthFilter();
+        renderExpenses();
+    });
+}
+
+function populateExpenseMonthFilter() {
+    const sel = document.getElementById('expFilterMonth');
+    if (!sel) return;
+    const months = new Set();
+    latestExpenses.forEach(e => { if (e.date) months.add(e.date.slice(0, 7)); });
+    const sorted = Array.from(months).sort().reverse();
+    sel.innerHTML = '<option value="all">All Months</option>';
+    sorted.forEach(m => {
+        const d = new Date(m + '-01');
+        const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        sel.innerHTML += `<option value="${m}">${label}</option>`;
+    });
+}
+
+function renderExpenses() {
+    const list = document.getElementById('expenseList');
+    const empty = document.getElementById('expenseEmpty');
+    const summary = document.getElementById('expenseSummary');
+    if (!list) return;
+
+    const filterMonth = document.getElementById('expFilterMonth') ? document.getElementById('expFilterMonth').value : 'all';
+    const filterCat = document.getElementById('expFilterCategory') ? document.getElementById('expFilterCategory').value : 'All';
+
+    let filtered = [...latestExpenses].filter((e, i) => {
+        e._idx = i;
+        if (filterMonth !== 'all' && !(e.date || '').startsWith(filterMonth)) return false;
+        if (filterCat !== 'All' && e.category !== filterCat) return false;
+        return true;
+    });
+
+    // Sort by date descending
+    filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    if (filtered.length === 0) {
+        list.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        if (summary) summary.innerHTML = '';
+        return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    // Summary
+    const total = filtered.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+    const catTotals = {};
+    filtered.forEach(e => { const c = e.category || 'Others'; catTotals[c] = (catTotals[c] || 0) + parseFloat(e.amount || 0); });
+    const expCatColors = { 'Supplies': '#14b8a6', 'Utilities': '#818cf8', 'Payroll': '#fbbf24', 'Maintenance': '#fb7185', 'Equipment': '#34d399', 'Others': '#94a3b8' };
+
+    let sumHtml = `<div class="p-3 rounded border" style="background:rgba(255,255,255,0.03)"><div class="d-flex justify-content-between align-items-center mb-2"><span style="font-size:0.8rem;color:#94a3b8">Total</span><span class="fw-bold" style="font-size:1.2rem;color:#14b8a6">RM ${total.toFixed(2)}</span></div>`;
+    sumHtml += '<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px">';
+    Object.entries(catTotals).forEach(([cat, amt]) => {
+        const pct = (amt / total) * 100;
+        sumHtml += `<div style="width:${pct}%;background:${expCatColors[cat] || '#94a3b8'}" title="${cat}: RM ${amt.toFixed(2)}"></div>`;
+    });
+    sumHtml += '</div><div class="d-flex flex-wrap gap-2 mt-2">';
+    Object.entries(catTotals).forEach(([cat, amt]) => {
+        sumHtml += `<span style="font-size:0.7rem;color:${expCatColors[cat] || '#94a3b8'}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${expCatColors[cat] || '#94a3b8'};margin-right:3px"></span>${cat}: RM ${amt.toFixed(2)}</span>`;
+    });
+    sumHtml += '</div></div>';
+    if (summary) summary.innerHTML = sumHtml;
+
+    // Table rows
+    const catBadge = { 'Supplies': 'bg-primary', 'Utilities': 'bg-info', 'Payroll': 'bg-warning', 'Maintenance': 'bg-danger', 'Equipment': 'bg-success', 'Others': 'bg-secondary' };
+    let html = '';
+    filtered.forEach(e => {
+        html += `<tr><td>${e.date || '—'}</td><td>${escapeHTML(e.desc || '')}</td><td><span class="badge ${catBadge[e.category] || 'bg-secondary'}" style="font-size:0.7rem">${e.category || 'Others'}</span></td><td class="text-end fw-bold">RM ${parseFloat(e.amount || 0).toFixed(2)}</td><td class="text-end"><button onclick="deleteExpense(${e._idx})" class="btn btn-outline-danger btn-sm border-0"><i class="fas fa-trash"></i></button></td></tr>`;
+    });
+    list.innerHTML = html;
+}
+
+function addExpense() {
+    const date = document.getElementById('expDate').value;
+    const desc = document.getElementById('expDesc').value.trim();
+    const amount = parseFloat(document.getElementById('expAmount').value);
+    const category = document.getElementById('expCategory').value;
+    if (!desc || isNaN(amount) || amount <= 0) { alert('Please fill in all fields'); return; }
+    latestExpenses.push({ date, desc, amount: amount.toFixed(2), category });
+    firebaseSave('expenses', latestExpenses);
+    document.getElementById('expDesc').value = '';
+    document.getElementById('expAmount').value = '';
+    document.getElementById('expenseForm').style.display = 'none';
+    populateExpenseMonthFilter();
+    renderExpenses();
+}
+
+function deleteExpense(index) {
+    if (!confirm('Delete this expense?')) return;
+    latestExpenses.splice(index, 1);
+    firebaseSave('expenses', latestExpenses);
+    populateExpenseMonthFilter();
+    renderExpenses();
+}
+
+// ═══════════════════════════════════════════════
+// SETTINGS TAB
+// ═══════════════════════════════════════════════
+const SETTINGS_FIELDS = ['setClinicName', 'setAddress', 'setPhone', 'setEmail', 'setHoursWeekday', 'setHoursWeekend', 'setWhatsApp', 'setFacebook', 'setInstagram', 'setMapEmbed'];
+
+function loadSettings() {
+    firebaseLoad('settings', {}).then(data => {
+        if (!data) data = {};
+        SETTINGS_FIELDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = data[id] || '';
+        });
+    });
+}
+
+function saveSettings() {
+    const data = {};
+    SETTINGS_FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) data[id] = el.value.trim();
+    });
+    firebaseSave('settings', data).then(() => {
+        const status = document.getElementById('settingsSaveStatus');
+        if (status) {
+            status.innerHTML = '<span style="color:#34d399"><i class="fas fa-check me-1"></i>Settings saved successfully!</span>';
+            setTimeout(() => { status.innerHTML = ''; }, 3000);
+        }
+    });
+}

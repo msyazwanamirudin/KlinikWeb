@@ -20,6 +20,14 @@
             ".read": true,
             ".write": true
         },
+        "expenses": {
+            ".read": true,
+            ".write": true
+        },
+        "settings": {
+            ".read": true,
+            ".write": true
+        },
         "$other": {
             ".read": false,
             ".write": false

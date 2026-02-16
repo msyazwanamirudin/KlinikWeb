@@ -162,9 +162,12 @@
             <div id="firebaseUsageAlerts" class="mb-3"></div>
             <!-- Tabs -->
             <div class="dash-tabs" id="dashTabs">
+                <button class="dash-tab" onclick="switchTab('analytics',this)">📊 Analytics</button>
                 <button class="dash-tab active" onclick="switchTab('inventory',this)">📦 Inventory</button>
                 <button class="dash-tab" onclick="switchTab('roster',this)">📅 Roster</button>
                 <button class="dash-tab" onclick="switchTab('promo',this)">🎉 Promo</button>
+                <button class="dash-tab" onclick="switchTab('expenses',this)">💰 Expenses</button>
+                <button class="dash-tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
             </div>
             <!-- Inventory Pane -->
             <div class="dash-pane active" id="paneInventory">
@@ -384,6 +387,172 @@
                                 class="fas fa-plus me-1"></i>Add Promo</button>
                     </div>
                     <div id="promoItemList" class="border rounded p-2" style="max-height:40vh;overflow-y:auto"></div>
+                </div>
+            </div>
+            <!-- Analytics Pane -->
+            <div class="dash-pane" id="paneAnalytics">
+                <div class="dash-card">
+                    <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)"><i
+                            class="fas fa-chart-line me-1"></i>Clinic Overview</h6>
+                    <div id="analyticsContent">
+                        <div class="text-center p-4" style="color:#64748b"><i
+                                class="fas fa-spinner fa-spin me-1"></i>Loading analytics...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Expenses Pane -->
+            <div class="dash-pane" id="paneExpenses">
+                <div class="dash-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold small text-uppercase mb-0" style="color:var(--primary-light)"><i
+                                class="fas fa-receipt me-1"></i>Expense Tracker</h6>
+                        <button onclick="toggleExpenseForm()" class="btn btn-primary btn-sm rounded-pill px-3"><i
+                                class="fas fa-plus me-1"></i>Add Expense</button>
+                    </div>
+                    <!-- Add Expense Form -->
+                    <div id="expenseForm" class="p-3 rounded mb-3 border"
+                        style="display:none;background:rgba(255,255,255,0.03)">
+                        <h6 class="fw-bold mb-2">New Expense</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6"><input type="date" id="expDate" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-6">
+                                <select id="expCategory" class="form-select form-select-sm">
+                                    <option value="Supplies">Supplies</option>
+                                    <option value="Utilities">Utilities</option>
+                                    <option value="Payroll">Payroll</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Equipment">Equipment</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-2"><input type="text" id="expDesc" class="form-control form-control-sm"
+                                placeholder="Description"></div>
+                        <div class="mb-2"><input type="number" id="expAmount" class="form-control form-control-sm"
+                                placeholder="Amount (RM)" step="0.01" min="0"></div>
+                        <div class="d-flex gap-2">
+                            <button onclick="addExpense()" class="btn btn-success btn-sm flex-grow-1">Save</button>
+                            <button onclick="toggleExpenseForm()"
+                                class="btn btn-outline-secondary btn-sm">Cancel</button>
+                        </div>
+                    </div>
+                    <!-- Monthly Summary -->
+                    <div id="expenseSummary" class="mb-3"></div>
+                    <!-- Filter -->
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <select id="expFilterMonth" class="form-select form-select-sm" style="width:auto;"
+                            onchange="renderExpenses()">
+                            <option value="all">All Months</option>
+                        </select>
+                        <select id="expFilterCategory" class="form-select form-select-sm" style="width:auto;"
+                            onchange="renderExpenses()">
+                            <option value="All">All Categories</option>
+                            <option value="Supplies">Supplies</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Payroll">Payroll</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <!-- Expense Table -->
+                    <div class="table-responsive border rounded" style="max-height:50vh">
+                        <table class="table table-hover mb-0 align-middle" style="font-size:0.85rem">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width:20%">Date</th>
+                                    <th style="width:35%">Description</th>
+                                    <th style="width:20%">Category</th>
+                                    <th style="width:15%" class="text-end">Amount</th>
+                                    <th style="width:10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseList"></tbody>
+                        </table>
+                        <div id="expenseEmpty" class="text-center p-4 text-muted" style="display:none"><i
+                                class="fas fa-receipt fs-1 mb-2" style="color:#475569"></i><br>No expenses recorded.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Settings Pane -->
+            <div class="dash-pane" id="paneSettings">
+                <div class="dash-card">
+                    <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)"><i
+                            class="fas fa-cog me-1"></i>Clinic Settings</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="small text-muted mb-1">Clinic Name</label>
+                            <input type="text" id="setClinicName" class="form-control form-control-sm"
+                                placeholder="e.g. Klinik Haya">
+                        </div>
+                        <div class="col-12">
+                            <label class="small text-muted mb-1">Address</label>
+                            <textarea id="setAddress" class="form-control form-control-sm" rows="2"
+                                placeholder="Full address"></textarea>
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Phone</label>
+                            <input type="tel" id="setPhone" class="form-control form-control-sm"
+                                placeholder="e.g. 03-1234 5678">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Email</label>
+                            <input type="email" id="setEmail" class="form-control form-control-sm"
+                                placeholder="e.g. info@klinik.com">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Weekday Hours</label>
+                            <input type="text" id="setHoursWeekday" class="form-control form-control-sm"
+                                placeholder="e.g. 8:00 AM – 10:00 PM">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1">Weekend Hours</label>
+                            <input type="text" id="setHoursWeekend" class="form-control form-control-sm"
+                                placeholder="e.g. 9:00 AM – 5:00 PM">
+                        </div>
+                    </div>
+                    <hr style="border-color:rgba(255,255,255,0.08);margin:20px 0">
+                    <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)"><i
+                            class="fas fa-share-alt me-1"></i>Social Links</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="small text-muted mb-1"><i class="fab fa-whatsapp me-1"
+                                    style="color:#25d366"></i>WhatsApp Number</label>
+                            <input type="text" id="setWhatsApp" class="form-control form-control-sm"
+                                placeholder="e.g. 60123456789">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1"><i class="fab fa-facebook me-1"
+                                    style="color:#1877f2"></i>Facebook URL</label>
+                            <input type="url" id="setFacebook" class="form-control form-control-sm"
+                                placeholder="https://facebook.com/...">
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted mb-1"><i class="fab fa-instagram me-1"
+                                    style="color:#e4405f"></i>Instagram URL</label>
+                            <input type="url" id="setInstagram" class="form-control form-control-sm"
+                                placeholder="https://instagram.com/...">
+                        </div>
+                    </div>
+                    <hr style="border-color:rgba(255,255,255,0.08);margin:20px 0">
+                    <h6 class="fw-bold small text-uppercase mb-3" style="color:var(--primary-light)"><i
+                            class="fas fa-map-marker-alt me-1"></i>Google Maps</h6>
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Embed URL</label>
+                        <input type="url" id="setMapEmbed" class="form-control form-control-sm"
+                            placeholder="Google Maps embed URL">
+                        <small class="text-muted" style="font-size:0.7rem">Paste the embed src from Google Maps share →
+                            embed</small>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button onclick="saveSettings()" class="btn btn-success btn-sm flex-grow-1"><i
+                                class="fas fa-save me-1"></i>Save Settings</button>
+                        <button onclick="loadSettings()" class="btn btn-outline-secondary btn-sm"><i
+                                class="fas fa-sync me-1"></i>Reset</button>
+                    </div>
+                    <div id="settingsSaveStatus" class="text-center mt-2" style="font-size:0.8rem"></div>
                 </div>
             </div>
         </div>

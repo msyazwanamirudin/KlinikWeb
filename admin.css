@@ -779,3 +779,166 @@ body {
         display: block;
     }
 }
+
+/* ============================================
+   DARK THEME OVERRIDES FOR BOOTSTRAP ELEMENTS
+   ============================================ */
+
+/* Badges — ensure readable text on dark background */
+.badge.bg-warning {
+    color: #1a1a2e !important;
+}
+
+.badge.bg-info {
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: #818cf8 !important;
+}
+
+.badge.bg-danger {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #fb7185 !important;
+}
+
+.badge.bg-success {
+    background: rgba(5, 150, 105, 0.2) !important;
+    color: #34d399 !important;
+}
+
+.badge.bg-primary {
+    background: rgba(15, 118, 110, 0.2) !important;
+    color: var(--primary-light) !important;
+}
+
+.badge.bg-secondary {
+    background: rgba(148, 163, 184, 0.15) !important;
+    color: #94a3b8 !important;
+}
+
+/* text-dark override — never use dark text in dark theme */
+.text-dark {
+    color: #e2e8f0 !important;
+}
+
+/* Select dropdown options (browser-rendered) */
+.form-select option,
+select option {
+    background: #1a1a2e;
+    color: #e2e8f0;
+}
+
+/* Table header (table-light) */
+.table-light,
+.table-light th {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #94a3b8 !important;
+}
+
+/* Ensure all table text is readable */
+.table td,
+.table th {
+    color: #cbd5e1;
+}
+
+/* Form labels */
+label,
+.form-check-label {
+    color: #cbd5e1;
+}
+
+/* Input date fields */
+input[type="date"] {
+    color-scheme: dark;
+}
+
+/* Doctor manage list items */
+#doctorManageList .d-flex {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Ensure link colors */
+a {
+    color: var(--primary-light);
+}
+
+/* Small muted text */
+.small.text-muted,
+small.text-muted {
+    color: #64748b !important;
+}
+
+/* btn-close in dark mode */
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ============================================
+   ANALYTICS ALERT CARDS
+   ============================================ */
+.analytics-alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    line-height: 1.4;
+}
+
+.analytics-alert i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.analytics-alert-ok {
+    background: rgba(5, 150, 105, 0.08);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    color: #34d399;
+}
+
+.analytics-alert-warn {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+}
+
+.analytics-alert-danger {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fb7185;
+}
+
+.analytics-alert-info {
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+}
+
+/* Horizontal scrollable tabs for 6+ tabs */
+.dash-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.dash-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.dash-tabs .dash-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Dark theme textarea */
+textarea.form-control {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+}
+
+textarea.form-control:focus {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
