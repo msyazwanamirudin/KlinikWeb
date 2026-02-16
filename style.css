@@ -1468,6 +1468,7 @@ body.modal-open #chatWindow {
 
 /* ═══ Mobile Overrides ═══ */
 @media (max-width: 991.98px) {
+
     /* Hide top navbar and status bar on mobile */
     #navbar-main {
         display: none !important;
@@ -1482,7 +1483,8 @@ body.modal-open #chatWindow {
         scroll-padding-top: 20px;
     }
 
-    section, footer {
+    section,
+    footer {
         scroll-margin-top: 20px;
     }
 
@@ -1501,9 +1503,9 @@ body.modal-open #chatWindow {
         max-height: calc(100vh - 180px);
     }
 
-    /* Move back-to-top above bottom nav */
+    /* Hide back-to-top on mobile — bottom nav handles navigation */
     .back-to-top {
-        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+        display: none !important;
     }
 
     /* Footer bottom padding to avoid overlap */
