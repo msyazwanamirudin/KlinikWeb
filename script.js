@@ -121,6 +121,63 @@ let _cachedInventory = null;
 let _cachedPromo = null;
 let _cachedDoctors = null;
 
+// --- CLINIC SETTINGS (Dynamic from Firebase) ---
+let _clinicWhatsApp = '60172032048'; // default fallback
+
+function applyClinicSettings() {
+    firebaseLoad('settings', {}).then(data => {
+        if (!data || typeof data !== 'object') return;
+
+        // Address
+        if (data.setAddress) {
+            const el = document.getElementById('footerAddress');
+            if (el) el.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i>' + data.setAddress;
+        }
+        // Phone
+        if (data.setPhone) {
+            const el = document.getElementById('footerPhone');
+            if (el) el.innerHTML = '<i class="fas fa-phone me-2"></i>' + data.setPhone;
+            const callBtn = document.getElementById('footerCallNow');
+            if (callBtn) callBtn.href = 'tel:' + data.setPhone.replace(/[^\d+]/g, '');
+        }
+        // Email
+        if (data.setEmail) {
+            const el = document.getElementById('footerEmail');
+            if (el) el.innerHTML = '<i class="fas fa-envelope me-2"></i>' + data.setEmail;
+        }
+        // Operating Hours (Weekday)
+        if (data.setHoursWeekday) {
+            const el = document.getElementById('footerHoursWeekday');
+            if (el) el.textContent = data.setHoursWeekday;
+        }
+        // WhatsApp
+        if (data.setWhatsApp) {
+            _clinicWhatsApp = data.setWhatsApp.replace(/[^\d]/g, '');
+            const el = document.getElementById('footerWhatsApp');
+            if (el) el.href = 'https://wa.me/' + _clinicWhatsApp;
+        }
+        // Facebook
+        if (data.setFacebook) {
+            const el = document.getElementById('footerFacebook');
+            if (el) el.href = data.setFacebook;
+        }
+        // Instagram
+        if (data.setInstagram) {
+            const el = document.getElementById('footerInstagram');
+            if (el) el.href = data.setInstagram;
+        }
+        // Map Embed
+        if (data.setMapEmbed) {
+            const el = document.getElementById('footerMapEmbed');
+            if (el) el.src = data.setMapEmbed;
+        }
+
+        console.log('✅ Clinic settings applied');
+    }).catch(err => {
+        console.warn('⚠️ Could not load clinic settings:', err.message);
+    });
+}
+
 function getCachedRoster() {
     if (_cachedRosterRules !== null) return Promise.resolve(_cachedRosterRules);
     return firebaseLoad('roster/rules', []).then(rules => {
@@ -488,6 +545,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     loadPromoPublic();
+
+
+    applyClinicSettings();
 
 
     const passInput = document.getElementById('adminPasswordInput');
@@ -1787,7 +1847,7 @@ function bookViaWhatsApp(serviceName, details = "") {
 
     if (!confirmAction) return;
 
-    const phone = "60172032048";
+    const phone = _clinicWhatsApp || "60172032048";
     let message = `Hi Klinik, I would like to book an appointment.`;
 
     if (serviceName) {

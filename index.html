@@ -788,7 +788,8 @@
                             </div>
                             <h4 class="fw-bold mb-4">Contact Us</h4>
                             <div class="d-grid gap-3">
-                                <a href="tel:+60172032048" class="btn btn-primary btn-lg rounded-pill">
+                                <a id="footerCallNow" href="tel:+60172032048"
+                                    class="btn btn-primary btn-lg rounded-pill">
                                     <i class="fas fa-phone-alt me-2"></i> Call Now
                                 </a>
                                 <button onclick="bookViaWhatsApp('General Inquiry')"
@@ -801,58 +802,59 @@
 
                     <!-- Admin moved to admin.html -->
                     <ul class="list-unstyled footer-links text-white-50">
-            <li class="mb-2">9:00 AM - 10:00 PM</li>
-            <li class="mb-2">Open Daily</li>
-        </ul>
-        </div>
+                        <li class="mb-2" id="footerHoursWeekday">9:00 AM - 10:00 PM</li>
+                        <li class="mb-2">Open Daily</li>
+                    </ul>
+                </div>
 
-        <!-- 2. Contact Us (Moved here, Quick Links deleted) -->
-        <div class="col-lg-4">
-            <h6 class="text-primary mb-3">Contact Us</h6>
-            <ul class="list-unstyled text-white-50">
-                <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i>43000 Bangi, Selangor
-                </li>
-                <li class="mb-2"><i class="fas fa-phone me-2"></i>017-2032048</li>
-                <li class="mb-2"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
-            </ul>
-        </div>
+                <!-- 2. Contact Us (Moved here, Quick Links deleted) -->
+                <div class="col-lg-4">
+                    <h6 class="text-primary mb-3">Contact Us</h6>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-2" id="footerAddress"><i class="fas fa-map-marker-alt me-2"></i>43000 Bangi,
+                            Selangor
+                        </li>
+                        <li class="mb-2" id="footerPhone"><i class="fas fa-phone me-2"></i>017-2032048</li>
+                        <li class="mb-2" id="footerEmail"><i class="fas fa-envelope me-2"></i>klinik@gmail.com</li>
+                    </ul>
+                </div>
 
-        <!-- 3. Map (Unchanged) -->
-        <div class="col-lg-4">
-            <h6 class="text-primary mb-4">Our Location</h6>
-            <div class="map-container rounded-3 overflow-hidden shadow-sm">
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
-                    width="100%" height="250" style="border:0; filter: none !important;" allowfullscreen=""
-                    loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-                    title="Klinik location on Google Maps"></iframe>
+                <!-- 3. Map (Unchanged) -->
+                <div class="col-lg-4">
+                    <h6 class="text-primary mb-4">Our Location</h6>
+                    <div class="map-container rounded-3 overflow-hidden shadow-sm">
+                        <iframe id="footerMapEmbed"
+                            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7969.24677553825!2d101.7924017!3d2.92414!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdced264e82f61%3A0xf11b8c9b30eccbd1!2sAlam%20Sari%2C%2043000%20Bangi%2C%20Selangor!5e0!3m2!1sen!2smy!4v1770922801726!5m2!1sen!2smy"
+                            width="100%" height="250" style="border:0; filter: none !important;" allowfullscreen=""
+                            loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                            title="Klinik location on Google Maps"></iframe>
+                    </div>
+                    <div class="mt-2 d-flex gap-2">
+                        <a href="https://www.google.com/maps/search/?api=1&query=Alam+Sari,+43000+Bangi,+Selangor"
+                            target="_blank" class="btn btn-outline-light btn-sm flex-grow-1">
+                            <i class="fab fa-google me-1"></i> Maps
+                        </a>
+                        <a href="https://waze.com/ul?q=Alam+Sari,+43000+Bangi,+Selangor" target="_blank"
+                            class="btn btn-outline-light btn-sm flex-grow-1">
+                            <i class="fab fa-waze me-1"></i> Waze
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="mt-2 d-flex gap-2">
-                <a href="https://www.google.com/maps/search/?api=1&query=Alam+Sari,+43000+Bangi,+Selangor"
-                    target="_blank" class="btn btn-outline-light btn-sm flex-grow-1">
-                    <i class="fab fa-google me-1"></i> Maps
-                </a>
-                <a href="https://waze.com/ul?q=Alam+Sari,+43000+Bangi,+Selangor" target="_blank"
-                    class="btn btn-outline-light btn-sm flex-grow-1">
-                    <i class="fab fa-waze me-1"></i> Waze
-                </a>
+            <hr class="border-secondary my-5">
+            <div class="d-flex justify-content-center gap-3 mb-3">
+                <a id="footerFacebook" href="https://facebook.com" target="_blank" class="text-white-50 fs-5"
+                    aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a id="footerInstagram" href="https://instagram.com" target="_blank" class="text-white-50 fs-5"
+                    aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://tiktok.com" target="_blank" class="text-white-50 fs-5" aria-label="TikTok"><i
+                        class="fab fa-tiktok"></i></a>
+                <a id="footerWhatsApp" href="https://wa.me/60172032048" target="_blank" class="text-white-50 fs-5"
+                    aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
             </div>
-        </div>
-        </div>
-        <hr class="border-secondary my-5">
-        <div class="d-flex justify-content-center gap-3 mb-3">
-            <a href="https://facebook.com" target="_blank" class="text-white-50 fs-5" aria-label="Facebook"><i
-                    class="fab fa-facebook-f"></i></a>
-            <a href="https://instagram.com" target="_blank" class="text-white-50 fs-5" aria-label="Instagram"><i
-                    class="fab fa-instagram"></i></a>
-            <a href="https://tiktok.com" target="_blank" class="text-white-50 fs-5" aria-label="TikTok"><i
-                    class="fab fa-tiktok"></i></a>
-            <a href="https://wa.me/60172032048" target="_blank" class="text-white-50 fs-5" aria-label="WhatsApp"><i
-                    class="fab fa-whatsapp"></i></a>
-        </div>
-        <div class="text-center text-white-50 small" id="adminTrigger" style="cursor: default;">
-            &copy; 2026 Klinik Sdn Bhd. All rights reserved.
-        </div>
+            <div class="text-center text-white-50 small" id="adminTrigger" style="cursor: default;">
+                &copy; 2026 Klinik Sdn Bhd. All rights reserved.
+            </div>
         </div>
     </footer>
 

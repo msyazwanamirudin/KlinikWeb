@@ -564,7 +564,7 @@ function flushBandwidthEstimate() {
 function checkFirebaseUsage() {
     const container = document.getElementById('firebaseUsageAlerts'); if (!container) return;
     container.innerHTML = '<div class="text-center small py-2" style="color:#64748b"><i class="fas fa-spinner fa-spin me-1"></i>Checking usage...</div>';
-    const paths = ['roster/rules', 'inventory', 'promo', 'doctors'];
+    const paths = ['roster/rules', 'inventory', 'promo', 'doctors', 'expenses', 'settings'];
     const mk = new Date().toISOString().slice(0, 7);
     Promise.all([...paths.map(p => firebaseLoad(p, null)), firebaseLoad(`_usage/${mk}`, { bytes: 0 })]).then(results => {
         const dataResults = results.slice(0, paths.length), usageData = results[paths.length];
