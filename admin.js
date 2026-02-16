@@ -244,8 +244,9 @@ async function verifyOwnerPin() {
     if (!input || !input.value.trim()) return;
     const hash = await sha256(input.value.trim());
     if (hash === _OWNER_PASSWORD_HASH) {
+        const cb = _pinCallback; // Capture callback before it's cleared
         hidePinModal();
-        if (_pinCallback) { const cb = _pinCallback; _pinCallback = null; cb(); }
+        if (cb) cb();
     } else {
         if (error) { error.textContent = 'Incorrect password'; error.style.display = 'block'; }
         input.value = '';
