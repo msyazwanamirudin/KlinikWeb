@@ -191,13 +191,14 @@ function applyClinicSettings() {
                 }).join('');
             }
         } else {
-            // Legacy fallback
+            // Legacy / no-data fallback — show default hours matching updateLiveStatus defaults
             window._clinicDayHours = null;
             if (footerHoursList) {
                 let html = '';
                 if (data.setHoursWeekday) html += `<li class="mb-1" style="font-size:0.85rem">${data.setHoursWeekday}</li>`;
                 if (data.setHoursWeekend) html += `<li class="mb-1" style="font-size:0.85rem">${data.setHoursWeekend}</li>`;
-                if (html) footerHoursList.innerHTML = html;
+                if (!html) html = '<li class="mb-1" style="font-size:0.85rem">Mon – Sun: 9 AM – 10 PM</li>';
+                footerHoursList.innerHTML = html;
             }
         }
         // WhatsApp
