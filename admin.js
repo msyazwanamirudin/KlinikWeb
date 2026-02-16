@@ -687,14 +687,20 @@ function addPromoItem() {
     const imageUrl = document.getElementById('promoImageUrl').value.trim(), text = document.getElementById('promoText').value.trim();
     if (!imageUrl) return alert('Please provide an image');
     promoData.items.push({ image: imageUrl, text: text }); _cachedPromo = promoData;
-    firebaseSave('promo', promoData).then(() => { document.getElementById('promoImageUrl').value = ''; document.getElementById('promoText').value = ''; document.getElementById('promoImagePreview').innerHTML = '<span class="text-muted small">Enter a URL or upload</span>'; renderPromoAdmin(); });
+    firebaseSave('promo', promoData).then(() => { document.getElementById('promoImageUrl').value = ''; document.getElementById('promoImageUrl').type = 'text'; document.getElementById('promoText').value = ''; document.getElementById('promoImagePreview').innerHTML = '<span class="text-muted small">Enter a URL or upload</span>'; renderPromoAdmin(); });
 }
 function handlePromoFileUpload(input) {
     const file = input.files[0]; if (!file) return;
     if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) { alert('Invalid image type'); input.value = ''; return; }
     if (file.size > 500 * 1024) { alert('Image too large (max 500KB)'); input.value = ''; return; }
     const reader = new FileReader();
-    reader.onload = e => { const b64 = e.target.result; document.getElementById('promoImageUrl').value = b64; document.getElementById('promoImagePreview').innerHTML = `< img src = "${b64}" class="img-fluid rounded" style = "max-height:150px" alt = "Preview" > <div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${(file.size / 1024).toFixed(0)} KB</div>`; };
+    reader.onload = e => {
+        const b64 = e.target.result;
+        document.getElementById('promoImageUrl').value = b64;
+        document.getElementById('promoImageUrl').type = 'hidden';
+        const sizeKB = (file.size / 1024).toFixed(0);
+        document.getElementById('promoImagePreview').innerHTML = `<img src="${b64}" class="img-fluid rounded" style="max-height:150px" alt="Preview"><div class="small mt-1" style="color:#10b981"><i class="fas fa-check-circle me-1"></i>${sizeKB} KB</div>`;
+    };
     reader.readAsDataURL(file);
 }
 function deletePromoItem(index) {
