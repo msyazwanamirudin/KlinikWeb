@@ -2,6 +2,14 @@
 // ADMIN SCRIPTS — Clinic Efficiency Audit
 // ═══════════════════════════════════════════════
 
+// --- Security: Disable right-click and dev tool shortcuts ---
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12') e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) e.preventDefault();
+    if (e.ctrlKey && ['U', 'u'].includes(e.key)) e.preventDefault();
+});
+
 // --- Helpers ---
 function escapeHTML(str) {
     if (!str) return '';
@@ -158,14 +166,17 @@ function loadMetrics() {
 }
 
 // --- Auth ---
+// HMAC-SHA256 salt for password hashing (prevents rainbow table attacks)
+const _HMAC_SALT = 'klinik_haya_2026';
+
 // Default credentials (fallback if Firebase has no saved credentials)
-const _DEFAULT_HASH = "8d90ed647b948fa80c3c9bbf5316c78f151723f52fb9d6101f818af8afff69ec";
+const _DEFAULT_HASH = "681c974cab4a3a51ec4f5601f5cd2f223a1153ee5e39e222c2bad7750c929dff";
 const _DEFAULT_EMAIL = "admin@klinik.com";
 let _adminEmail = _DEFAULT_EMAIL;
 let _adminHash = _DEFAULT_HASH;
 
 // Owner credentials
-const _DEFAULT_OWNER_HASH = "19e88d95413c256d17f08ca4f9d51982ded1266bb5d96b541290b696e0fb8677";
+const _DEFAULT_OWNER_HASH = "257f1f8aaf5820dd6b9bc20394a09bbe64589d111a08d878a4cc994892288c3a";
 const _DEFAULT_OWNER_EMAIL = "owner@klinik.com";
 let _ownerEmail = _DEFAULT_OWNER_EMAIL;
 let _ownerHash = _DEFAULT_OWNER_HASH;
@@ -177,9 +188,13 @@ const MAX_ATTEMPTS = 3;
 const LOCKOUT_TIME = 100 * 365 * 24 * 60 * 60 * 1000;
 
 async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    // HMAC-SHA256 with salt for stronger password binding
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(_HMAC_SALT);
+    const msgData = encoder.encode(message);
+    const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, msgData);
+    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // --- Owner PIN System ---
@@ -341,6 +356,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const pass = document.getElementById('adminPasswordInput');
     if (pass) pass.addEventListener('keyup', e => { if (e.key === 'Enter') verifyAdminLogin(); });
 });
+
+// --- Lockout Reset ---
+function resetLockout() {
+    if (!confirm('This will clear the login lockout.\nYou will still need valid credentials to log in.\n\nProceed?')) return;
+    localStorage.removeItem('adminLockout');
+    localStorage.removeItem('adminAttempts');
+    const errorMsg = document.getElementById('loginError');
+    if (errorMsg) {
+        errorMsg.style.display = 'block';
+        errorMsg.style.color = '#34d399';
+        errorMsg.textContent = '✅ Lockout cleared. You may try logging in again.';
+        setTimeout(() => { errorMsg.style.display = 'none'; errorMsg.style.color = ''; }, 4000);
+    }
+}
 
 // --- Global Cache ---
 let _cachedRosterRules = null;
